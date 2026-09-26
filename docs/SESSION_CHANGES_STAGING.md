@@ -148,9 +148,27 @@
   - Wired primary action CTA (`Enter Live Interview Room ↗`) to dispatch `POST /api/start-interview` and navigate to Screen 4 (`room.html?id=<sessionId>`).
 
 
+### 21. Screen 4 (Live Spoken Interview Room & Attention HUD) Implementation
+- **Target Files**: `frontend/room.html`, `frontend/room.js`, `frontend/integrity.js`
+- **Details**:
+  - Implemented Screen 4 live interview room split viewport in `frontend/` by `frontend-agent`.
+  - Built left viewport: Candidate live video stream, MediaPipe canvas overlay, and real-time Attention HUD chips (Vision, Focus, Face Verification, On-Screen %).
+  - Built right viewport: 3D glowing AI Voice Orb stage with speaking/listening/thinking pulse animations, Web Audio API waveform canvas, dynamic AI reasoning card with BARS 1–5 difficulty indicator, live scrolling transcript, and backup manual text input.
+  - Wired Web Speech API (STT + TTS with acoustic feedback pause protection), turn-taking endpointing, and evaluation completion dispatch (`POST /api/evaluate`).
 
----
+### 22. Screen 5 (Post-Interview Completion Screen) Implementation
+- **Target Files**: `frontend/completion.html`, `frontend/completion.js`
+- **Details**:
+  - Implemented Screen 5 completion confirmation page in `frontend/` by `frontend-agent`.
+  - Displays animated submission badge, candidate metadata confirmation, and confidentiality notice regarding internal BARS scorecards.
+  - Provides return to portal and recruiter dashboard navigation.
 
-## Pending Staged Actions (Awaiting User Execution / End-of-Session)
+### 23. Screen 6 (Recruiter Pipeline & Evidence Dossier Portal) Implementation
+- **Target Files**: `frontend/recruiter-portal.html`, `frontend/recruiter-portal.js`, `frontend/report.html`, `frontend/recruiter.html`
+- **Details**:
+  - Implemented Screen 6 Recruiter Portal supporting dual view modes:
+    1. Pipeline Roster Table View: Candidate list, status pills, overall score, recommendation badges, integrity risk, and "+ Add Candidate" modal.
+    2. Candidate Evidence Dossier Detail View: 3 quantitative indices (Technical Relevancy, Articulation & Delivery, Integrity Confidence), score ring, advisory recommendation pill, BARS competency breakdown, and timestamped attention anomaly audit log.
+  - Added print media styling for PDF export.
 1. End-of-Session Batch Sync to Obsidian Vault (`C:\Users\aryam\ObsidianVault`) and Memanto (`candor` namespace).
 

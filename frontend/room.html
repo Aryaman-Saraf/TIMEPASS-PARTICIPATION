@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candor AI — Live Spoken Interview Room</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Live Interview Room Styles */
+    .room-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(20, 26, 46, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 0.85rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .room-progress-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .progress-pill {
+      background: rgba(108, 140, 255, 0.12);
+      border: 1px solid rgba(108, 140, 255, 0.3);
+      color: var(--accent);
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .timer-pill {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: var(--text-heading);
+      background: rgba(15, 23, 42, 0.7);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+
+    .room-layout {
+      display: grid;
+      grid-template-columns: 5fr 7fr;
+      gap: 1.5rem;
+      min-height: 640px;
+    }
+
+    /* Left Panel: Candidate Video & Attention HUD */
+    .candidate-viewport-card {
+      background: rgba(20, 26, 46, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-card);
+      position: relative;
+    }
+
+    .media-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #070a14;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    #cam {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1); /* Mirrored webcam feed */
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Real-Time Attention HUD Overlay */
+    #hud {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .hud-badge {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text);
+      transition: var(--transition);
+    }
+
+    .hud-badge.hud-ok {
+      border-color: rgba(16, 185, 129, 0.35);
+      color: var(--success);
+    }
+
+    .hud-badge.hud-warn {
+      border-color: rgba(245, 158, 11, 0.35);
+      color: var(--warning);
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .hud-badge.hud-danger {
+      border-color: rgba(239, 68, 68, 0.35);
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .controls-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: auto;
+    }
+
+    .btn-tool {
+      flex: 1;
+      padding: 0.65rem;
+      border-radius: var(--radius-md);
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: var(--transition);
+    }
+
+    .btn-tool:hover {
+      background: var(--card-hover);
+      border-color: var(--border-hover);
+    }
+
+    .btn-tool.active {
+      background: rgba(108, 140, 255, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Right Panel: AI Conversational Hub */
+    .ai-hub-card {
+      background: rgba(20, 26, 46, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-card);
+    }
+
+    /* 3D Voice Orb Header */
+    .orb-stage {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .orb-wrapper {
+      width: 54px;
+      height: 54px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #ai-orb {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffffff, var(--accent) 60%, var(--purple) 100%);
+      box-shadow: 0 0 20px var(--accent-glow);
+      transition: all 0.3s ease;
+    }
+
+    /* Dynamic Orb States */
+    body[data-state="speaking"] #ai-orb {
+      animation: orb-speak 1.2s infinite ease-in-out;
+      box-shadow: 0 0 30px rgba(108, 140, 255, 0.8), 0 0 50px rgba(6, 182, 212, 0.5);
+    }
+
+    body[data-state="listening"] #ai-orb {
+      animation: orb-listen 2s infinite ease-in-out;
+      background: radial-gradient(circle at 35% 35%, #ffffff, var(--success) 60%, var(--cyan) 100%);
+      box-shadow: 0 0 25px var(--success-glow);
+    }
+
+    body[data-state="thinking"] #ai-orb {
+      animation: orb-think 1s infinite linear;
+      background: radial-gradient(circle at 35% 35%, #ffffff, var(--purple) 60%, var(--accent) 100%);
+      box-shadow: 0 0 25px var(--purple-glow);
+    }
+
+    @keyframes orb-speak {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    @keyframes orb-listen {
+      0%, 100% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 1; }
+    }
+
+    @keyframes orb-think {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.05); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    .orb-meta {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .orb-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-heading);
+    }
+
+    .orb-status-text {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    #audio-wave {
+      width: 100px;
+      height: 32px;
+    }
+
+    /* AI Dynamic Reasoning Card */
+    .reasoning-card {
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .reasoning-text {
+      font-size: 0.84rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .difficulty-dots {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .diff-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .diff-dot.active {
+      background: var(--purple);
+      box-shadow: 0 0 6px var(--purple-glow);
+    }
+
+    /* Transcript Box */
+    .transcript-box {
+      flex: 1;
+      min-height: 240px;
+      max-height: 320px;
+      overflow-y: auto;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .chat-bubble {
+      max-width: 85%;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .chat-bubble.ai {
+      align-self: flex-start;
+      background: rgba(20, 26, 46, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text-heading);
+      border-top-left-radius: 2px;
+    }
+
+    .chat-bubble.candidate {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      color: #ffffff;
+      border-top-right-radius: 2px;
+    }
+
+    .chat-bubble.interim {
+      align-self: flex-end;
+      background: rgba(108, 140, 255, 0.15);
+      border: 1px dashed var(--accent);
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .bubble-meta {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Input & Control Bar */
+    .input-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 868px) {
+      .room-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body data-state="thinking">
+
+  <!-- Ambient Grid -->
+  <div class="background-grid"></div>
+
+  <div class="app-container">
+    
+    <!-- Top Navigation Header -->
+    <header class="room-header">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+        </div>
+        <div class="brand-title">Candor <span>AI</span></div>
+      </a>
+
+      <div class="room-progress-group">
+        <div id="room-progress-pill" class="progress-pill">
+          Q1 of 4 · Core Technical Architecture
+        </div>
+        <div id="interview-timer" class="timer-pill">
+          ⏱️ 00:00
+        </div>
+        <button id="btn-end-interview" class="btn" style="width: auto; padding: 0.45rem 1rem; font-size: 0.85rem; background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3);">
+          End Interview
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Live Interview Room Layout -->
+    <main>
+      <section class="room-layout">
+        
+        <!-- LEFT PANEL: Candidate Video & Attention HUD -->
+        <article class="candidate-viewport-card">
+          <div class="media-stage">
+            <video id="cam" autoplay playsinline muted></video>
+            <canvas id="overlay"></canvas>
+          </div>
+
+          <!-- Attention HUD Grid (Driven by IntegrityMonitor) -->
+          <div id="hud">
+            <div id="hud-vision" class="hud-badge hud-ok">
+              👁️ Vision: Active
+            </div>
+            <div id="hud-focus" class="hud-badge hud-ok">
+              🎯 Focus: Centered
+            </div>
+            <div id="hud-faces" class="hud-badge hud-ok">
+              👤 1 Face Verified
+            </div>
+            <div id="hud-onscreen" class="hud-badge hud-ok">
+              📊 On-Screen: 100%
+            </div>
+          </div>
+
+          <!-- Controls Toolbar -->
+          <div class="controls-toolbar">
+            <button id="btn-mute-mic" class="btn-tool">
+              🎙️ Mute Mic
+            </button>
+            <button id="btn-screenshare" class="btn-tool">
+              🖥️ Share Desktop
+            </button>
+          </div>
+        </article>
+
+        <!-- RIGHT PANEL: AI Conversational Hub -->
+        <article class="ai-hub-card">
+          
+          <!-- AI Voice Orb & Waveform Stage -->
+          <div class="orb-stage">
+            <div class="orb-wrapper">
+              <div id="ai-orb"></div>
+            </div>
+            <div class="orb-meta">
+              <div class="orb-title">Ava — AI Technical Interviewer</div>
+              <div id="orb-status-text" class="orb-status-text">Ava is initializing the conversation...</div>
+            </div>
+            <canvas id="audio-wave"></canvas>
+          </div>
+
+          <!-- AI Action / Reasoning Card -->
+          <div id="ai-reasoning-card" class="reasoning-card">
+            <div class="reasoning-text">
+              <strong id="reasoning-action-label" style="color: var(--purple);">✨ Primary Probe:</strong>
+              <span id="reasoning-text-content">Formulating adaptive opening question based on target position...</span>
+            </div>
+            <div class="difficulty-dots" title="BARS Difficulty Level (1 to 5)">
+              <div class="diff-dot active"></div>
+              <div class="diff-dot active"></div>
+              <div class="diff-dot active"></div>
+              <div class="diff-dot"></div>
+              <div class="diff-dot"></div>
+            </div>
+          </div>
+
+          <!-- Scrolling Transcript Box -->
+          <div id="transcript" class="transcript-box">
+            <div class="chat-bubble ai">
+              <div class="bubble-meta">
+                <span>Ava (AI Interviewer)</span>
+                <span>System</span>
+              </div>
+              <div>Hello! Welcome to your Candor AI technical interview. Let's get started.</div>
+            </div>
+          </div>
+
+          <!-- Backup Text Input Bar -->
+          <div class="input-bar">
+            <input type="text" id="candidate-text-input" class="form-input" placeholder="Type answer here if microphone is noisy...">
+            <button id="btn-send-text" class="btn btn-primary" style="width: auto; padding: 0.75rem 1.25rem;">
+              Send ⏎
+            </button>
+            <button id="btn-done-speaking" class="btn btn-secondary" style="width: auto; padding: 0.75rem 1rem;">
+              Done Spoken 🎙️
+            </button>
+          </div>
+
+        </article>
+
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-left">
+        <span>Candor AI Live Room</span>
+        <span>•</span>
+        <span>BitNBuild26 Adaptive Assessment</span>
+      </div>
+      <div class="footer-right">
+        <div id="api-health-chip" class="api-health-chip">
+          <span class="status-dot"></span> Checking API status...
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="room.js"></script>
+</body>
+</html>
