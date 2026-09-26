@@ -77,6 +77,15 @@
   - Verified end-to-end resilience when both Groq and Gemini API keys are invalid.
   - Verified that `startInterview`, `chatTurn`, and `evaluate` gracefully fall back to deterministic offline heuristics without crashing, successfully producing evaluated session reports with BARS scores and recommendations.
 
+### 13. Trial Integration Branch & 3-Way Repository Merge
+- **Target Branch**: `trial/integration`
+- **Details**:
+  - Created dedicated trial branch `trial/integration` branching from `feat/aryaman-dev`.
+  - Merged `origin/Prathul` (frontend candidate setup, room UI, Web Audio visualizer, styles) into `trial/integration`.
+  - Merged `origin/suryansh` (MediaPipe integrity engine `public/integrity.js`, interactive sandbox `public/test-integrity.html`) into `trial/integration`.
+  - Verified test suite: all 17/17 backend and server tests pass without regression.
+  - Completed deep architectural audit cataloging 5 key integration gaps (path mismatch, duplicate integrity modules, duplicate report dashboards, mock vs real API wire-up, and setup session generation).
+
 ---
 
 ## Pending Staged Actions (Awaiting User Execution / End-of-Session)
