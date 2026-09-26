@@ -51,7 +51,7 @@ async function llmJSON(system, user, tier) {
             messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
             ...(jsonMode && { response_format: { type: 'json_object' } }),
           }),
-          signal: AbortSignal.timeout(tier === 'smart' ? 45000 : 15000),
+          signal: AbortSignal.timeout(tier === 'smart' ? 45000 : 8000),
         });
         if (!res.ok) {
           lastErr = new Error(`${p.name} ${res.status}: ${(await res.text()).slice(0, 200)}`);
@@ -306,7 +306,7 @@ export function computeIntegrity(input) {
   const penalty = (100 * (stats.lookAwayMs + stats.faceMissingMs)) / totalMs + 15 * stats.multiFaceCount + 8 * stats.tabHiddenCount
     + stats.tabHiddenMs / 2000 + 2 * stats.blurCount + 3 * of('LOOK_AWAY').filter(e => e.durationMs >= 5000).length;
   const score = clamp(Math.round(100 - penalty), 0, 100);
-  return { captured: !!input, visionAvailable: input?.visionAvailable !== false, score, riskLevel: score >= 80 ? 'low' : score >= 55 ? 'medium' : 'high', stats, events };
+  return { captured: !!input, visionAvailable: !!input && input.visionAvailable !== false, score, riskLevel: score >= 80 ? 'low' : score >= 55 ? 'medium' : 'high', stats, events };
 }
 
 export function overallScore(competencies, scored) {
@@ -365,6 +365,7 @@ function normalizeEval(s, raw) {
 }
 
 export async function evaluate(s, integrity) {
+  if (integrity && !(Number(integrity.totalMs) > 0)) integrity = { ...integrity, totalMs: Date.now() - Date.parse(s.createdAt) };
   if (integrity || !s.integrity) s.integrity = computeIntegrity(integrity);
   const answered = s.turns.some(t => t.role === 'candidate');
   let ev, engine = llmStatus();

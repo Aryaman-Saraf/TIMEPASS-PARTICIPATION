@@ -107,16 +107,18 @@ Taken from Prathul's architecture proposal and Suryansh's core technical idea (`
 package.json        ✅ DONE: start/test scripts, "type":"module", no dependencies
 .env.example        ✅ DONE: GROQ_API_KEY, GEMINI_API_KEY, model overrides, PORT
 .gitignore          ✅ DONE: .env, data/sessions/
-engine.js           ✅ ALREADY WRITTEN: LLM client, prompts, adaptive policy, BARS eval, integrity risk, offline fallback (T2 - Aryaman)
-engine.test.js      node:test tests: nextStep policy, computeIntegrity, overallScore/recommend, parseJSON, heuristic, full offline run (T2 - Aryaman)
-server.js           HTTP routes, static files, JSON persistence, per-session busy lock, 1 MB body limit, path-traversal guard (T2 - Aryaman)
-data/mock-session.json  an evaluated session, so the report and room can be built before the server exists (T2 - Aryaman, by H0:30)
+TEAM_DIRECTIVES.md  ✅ DONE: cross-team CSS tokens, busy locks, dynamic MediaPipe import, transcript anchors
+engine.js           ✅ UPDATED: 8s fast timeout, uncaptured integrity fix, totalMs fallback in evaluate (T2 - Aryaman)
+engine.test.js      ✅ DONE: 10/10 node:test tests passing (T2 - Aryaman)
+server.js           ✅ DONE: all 6 routes, static files, data/ auto-load seeds, busy lock, traversal guard (T2 - Aryaman)
+server.test.js      ✅ DONE: 6/6 node:test contract tests passing (T2 - Aryaman)
+data/mock-session.json  ✅ DONE: evaluated mock session seeded and verified (T2 - Aryaman)
 public/styles.css   dark design tokens, shared components (T1 - Prathul)
 public/index.html   setup page: name, role, JD, resume text, question count (3/5/7), consent, "Load sample" (T1 - Prathul)
 public/room.html    interview room layout; must contain #cam, #overlay, #hud for the monitor (T1 - Prathul)
 public/room.js      speech loop, TTS, live transcript, progress, finish → evaluate (T1 - Prathul)
 public/integrity.js IntegrityMonitor class + renderIntegrity(el, integrity, turns) for the report (T3 - Suryansh)
-public/report.html  recruiter shell; no ?id = candidate list, with ?id = scorecard (T2 - Aryaman)
+public/report.html  ✅ SHELL READY: recruiter scorecard shell; renders into #app (T2 - Aryaman)
 public/report.js    scorecard, BARS bars, STAR table, transcript; calls T3's renderIntegrity() (T2 - Aryaman)
 README.md           run steps + demo script (T3 - Suryansh)
 ```
