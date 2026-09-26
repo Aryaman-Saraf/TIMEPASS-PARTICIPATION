@@ -137,6 +137,16 @@
   - Built Resume Intake module supporting drag-and-drop file upload (`FileReader` API), text area editing, Privacy Shield banner (PII redaction notification), and local/API state persistence.
   - Added primary CTA (`Start Interview Pre-Check ↗`) navigating to Screen 3 (`preflight.html`).
 
+### 20. Screen 3 (Pre-Device Hardware Calibration) Frontend Implementation
+- **Target Files**: `frontend/preflight.html`, `frontend/preflight.js`
+- **Details**:
+  - Implemented Screen 3 hardware calibration check in `frontend/` by `frontend-agent`.
+  - Built mirrored webcam video preview box (`<video id="preview-video">`) with offline fallback indicators.
+  - Implemented device selection dropdowns for camera, microphone, and audio output (`navigator.mediaDevices.enumerateDevices()`).
+  - Integrated real-time Web Audio API (`AudioContext`, `AnalyserNode`) RMS volume activity bar.
+  - Integrated browser speech recognition feature detection and speaker test chime/speech utterance synthesizer.
+  - Wired primary action CTA (`Enter Live Interview Room ↗`) to dispatch `POST /api/start-interview` and navigate to Screen 4 (`room.html?id=<sessionId>`).
+
 
 
 ---

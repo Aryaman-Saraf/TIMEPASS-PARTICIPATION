@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candor AI — Pre-Device Hardware Calibration</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Preflight Hardware Calibration Styles */
+    .preflight-grid {
+      display: grid;
+      grid-template-columns: 6fr 6fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .video-card {
+      background: rgba(20, 26, 46, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      box-shadow: var(--shadow-card);
+    }
+
+    .video-container {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #070a14;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1); /* Mirrored webcam feed */
+    }
+
+    .video-placeholder-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .video-placeholder-icon svg {
+      width: 48px;
+      height: 48px;
+      fill: var(--muted-dark);
+    }
+
+    .live-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .calibration-card {
+      background: rgba(20, 26, 46, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-card);
+    }
+
+    .device-select-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .mic-meter-container {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .meter-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .meter-track {
+      width: 100%;
+      height: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--cyan), var(--success));
+      border-radius: var(--radius-full);
+      transition: width 0.08s ease-out;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .chips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .status-chip {
+      padding: 0.6rem 0.75rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      text-align: center;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--muted);
+      transition: var(--transition);
+    }
+
+    .status-chip.chip-success {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: var(--success);
+    }
+
+    .status-chip.chip-warning {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: var(--warning);
+    }
+
+    .status-chip.chip-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: var(--danger);
+    }
+
+    .speaker-test-box {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    @media (max-width: 868px) {
+      .preflight-grid {
+        grid-template-columns: 1fr;
+      }
+      .chips-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Grid Overlay -->
+  <div class="background-grid"></div>
+
+  <div class="app-container">
+    
+    <!-- Top Navigation Header -->
+    <header class="navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
+          </svg>
+        </div>
+        <div class="brand-title">Candor <span>AI</span></div>
+      </a>
+
+      <div class="navbar-badge">
+        <span class="status-dot"></span>
+        Screen 3: Hardware Check
+      </div>
+    </header>
+
+    <!-- Main Preflight Hardware Check Container -->
+    <main>
+      <section class="hero-header" style="margin-bottom: 2rem;">
+        <div class="hero-pill">
+          🎙️ Pre-Device Hardware Calibration
+        </div>
+        <h1 class="hero-title" style="font-size: 2.2rem;">
+          Verify Camera & Audio <span class="gradient-text">Before Interview</span>
+        </h1>
+        <p class="hero-subtitle" style="font-size: 1rem;">
+          Ensure your webcam video feed, microphone activity meter, and browser speech AI are fully operational.
+        </p>
+      </section>
+
+      <!-- Preflight 2-Column Grid -->
+      <section class="preflight-grid">
+        
+        <!-- LEFT COLUMN: Mirrored Webcam Preview -->
+        <article class="video-card">
+          <div class="video-container">
+            <span class="live-badge">
+              <span class="status-dot"></span>
+              WEBCAM PREVIEW
+            </span>
+            <video id="preview-video" autoplay playsinline muted></video>
+            <div id="video-placeholder" class="video-placeholder-icon" style="display: none;">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h13c.55 0 1-.45 1-1v-3.5l4 4v-11z"/>
+              </svg>
+              <span>Camera feed offline or permission pending</span>
+            </div>
+          </div>
+          <div style="margin-top: 1rem; width: 100%; text-align: center; color: var(--muted); font-size: 0.83rem;">
+            <span>ℹ️ Video is mirrored for natural candidate view. Processing occurs 100% on your device.</span>
+          </div>
+        </article>
+
+        <!-- RIGHT COLUMN: Hardware Calibration & Device Selector -->
+        <article class="calibration-card">
+          
+          <!-- Device Dropdown 1: Camera -->
+          <div class="device-select-group">
+            <label class="form-label" for="camera-select">📷 Camera Device</label>
+            <select id="camera-select" class="form-input">
+              <option value="">Detecting cameras...</option>
+            </select>
+          </div>
+
+          <!-- Device Dropdown 2: Microphone -->
+          <div class="device-select-group">
+            <label class="form-label" for="mic-select">🎙️ Microphone Input</label>
+            <select id="mic-select" class="form-input">
+              <option value="">Detecting microphones...</option>
+            </select>
+          </div>
+
+          <!-- Device Dropdown 3: Audio Output -->
+          <div class="device-select-group">
+            <label class="form-label" for="audio-out-select">🔊 Audio Output / Speakers</label>
+            <select id="audio-out-select" class="form-input">
+              <option value="">Default System Speakers</option>
+            </select>
+          </div>
+
+          <!-- Real-Time Mic Volume Meter -->
+          <div class="mic-meter-container">
+            <div class="meter-label-row">
+              <span>Real-Time Mic Activity</span>
+              <span id="volume-text" style="font-family: var(--font-mono); color: var(--accent);">0%</span>
+            </div>
+            <div class="meter-track">
+              <div id="volume-level-bar" class="meter-fill"></div>
+            </div>
+          </div>
+
+          <!-- Hardware Status Chips Grid -->
+          <div class="chips-grid">
+            <div id="chip-camera" class="status-chip">
+              <span>📷 Camera: Testing</span>
+            </div>
+            <div id="chip-mic" class="status-chip">
+              <span>🎙️ Mic: Testing</span>
+            </div>
+            <div id="chip-speech" class="status-chip">
+              <span>🗣️ Speech AI: Testing</span>
+            </div>
+          </div>
+
+          <!-- Speaker & Voice Synthesis Test -->
+          <div class="speaker-test-box">
+            <div>
+              <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-heading);">Test Speakers & Voice</div>
+              <div id="speaker-test-status" style="font-size: 0.8rem; color: var(--muted);">Play synthetic audio chime & phrase</div>
+            </div>
+            <button id="btn-test-speaker" class="btn" style="width: auto; padding: 0.6rem 1rem; font-size: 0.85rem; background: rgba(108,140,255,0.15); color: var(--accent); border: 1px solid rgba(108,140,255,0.3);">
+              🔊 Play Sound Check
+            </button>
+          </div>
+
+          <!-- Main CTA: Start Session & Enter Live Room -->
+          <button id="btn-enter-room" class="btn btn-primary" style="margin-top: auto;">
+            Enter Live Interview Room ↗
+          </button>
+
+        </article>
+
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-left">
+        <span>Candor AI Hardware Preflight</span>
+        <span>•</span>
+        <span>Zero-npm Browser Media Suite</span>
+      </div>
+      <div class="footer-right">
+        <div id="api-health-chip" class="api-health-chip">
+          <span class="status-dot"></span> Checking API status...
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="preflight.js"></script>
+</body>
+</html>
