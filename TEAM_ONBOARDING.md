@@ -38,6 +38,15 @@ git commit -m "feat(scope): describe what you built"
 git push -u origin <your-branch-name>
 ```
 
+### 4. Merge into `main` at Each Checkpoint (H1:30, H3:00, H4:15)
+1. Open a Pull Request from your branch into `main` on GitHub.
+2. The repo owner merges it.
+3. Pull `main` back into your branch:
+   ```bash
+   git pull origin main
+   ```
+Because every file has exactly one owner, these merges should never conflict.
+
 ---
 
 ## 📖 What You Must Read & Refer To
@@ -47,6 +56,7 @@ Follow this exact reading order before touching any code:
 1. **[README.md](README.md)** (3 min): 
    - Understand the project mission, architecture, and how to run the app.
 2. **[TEAM_TASKS.md](TEAM_TASKS.md)** (5 min - **MOST IMPORTANT**):
+   - Start with **"How we're judged"** at the top: Functionality 14, Innovation 10, Demonstration 8, Feasibility 7, Scalability 6, Design 5.
    - Find your section (`T1`, `T2`, or `T3`).
    - Read your **5-Minute Primer**, check your **Files Owned**, and follow your **Timed Checklist**.
    - Notice the **"If stuck"** fallbacks: if an issue takes more than 20 minutes, switch immediately to the documented fallback.

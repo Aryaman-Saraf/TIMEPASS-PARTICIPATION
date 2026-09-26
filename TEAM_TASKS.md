@@ -10,23 +10,40 @@ This page tells each teammate what they own, what they build, and when it has to
 | **T2** | AI backend + report | `engine.js`, `engine.test.js`, `server.js`, `data/mock-session.json`, `public/report.html`, `public/report.js` | "It asks smart follow-ups and writes a fair report" |
 | **T3** | Integrity + QA | `public/integrity.js`, `README.md` | "It notices when I look away or switch tabs" |
 
+## How we're judged (BitNBuild26, 50 points)
+| Criterion | Pts | What it means for your work |
+|---|---|---|
+| Functionality | **14** | The MVP must work **every** run. That's why checkpoints and "If stuck" fallbacks exist. |
+| Innovation | **10** | Make the adaptivity **visible**: T1's live Follow-up badge, T2's adaptive path. Integrity stays out of the hire score. |
+| Demonstration | **8** | A rehearsed 3-min pitch (bottom of this page) + a backup video. |
+| Feasibility | **7** | $0, no installs, offline fallback. The presenter says it out loud. |
+| Scalability | **6** | The facts are in `IMPLEMENTATION_PLAN.md` §2a. The presenter says them in 30 s. |
+| Design | **5** | One clean, consistent theme across the room and the report. |
+
+**Functionality is 28% of the score: a reliable MVP beats any stretch feature.** Full mapping: `IMPLEMENTATION_PLAN.md` §0a.
+
 **Golden rules**
 1. **Never edit a file you don't own.** Need something changed? Message the owner.
 2. **Build MVP first.** Start stretch work only after Checkpoint 2 (H3:00) passes.
 3. **Stuck for more than 20 min?** Use the "If stuck" fallback in your section, then tell the team.
-4. **Push at least every 30 min** (`git pull`, then commit, then `git push`).
+4. **Work on your own branch** (`TEAM_ONBOARDING.md`); never commit to `main`. Push your branch at least every 30 min.
 
 ---
 
 ## H0:00–0:30: Everyone (setup)
 - [ ] Install Node ≥ 22.9 (`node -v`), git, and Chrome.
 - [ ] Get **your own** free Groq key at https://console.groq.com/keys (no credit card). Do not share one key: the free tier is 8K tokens/min per key.
-- [ ] Repo owner: `git init`, commit everything, push to GitHub, and invite the other two. Everyone else: `git clone`.
+- [ ] `git clone https://github.com/Aryaman-Saraf/TIMEPASS-PARTICIPATION.git`, then create **your branch** exactly as named in `TEAM_ONBOARDING.md`.
 - [ ] `copy .env.example .env` and paste your key into `GROQ_API_KEY=`.
 - [ ] Read §4 of `IMPLEMENTATION_PLAN.md` **together** (10 min). These are the promises between your code and your teammates' code.
 - [ ] Ship your **stub** (see your section) and push it by 0:30, so the other two can build against it.
 
-## Checkpoints (stop, pull, test together, 10 min each)
+## Checkpoints (stop, merge, pull, test together, 10 min each)
+Before each checkpoint:
+1. Everyone opens a PR from their branch into `main`.
+2. The repo owner merges the PRs.
+3. Everyone runs `git pull origin main` into their branch.
+4. Test together on the merged `main`.
 | When | Must work |
 |---|---|
 | **H1:30** | Setup page → Start → room page opens and **speaks the opening question**. |
@@ -65,6 +82,7 @@ This page tells each teammate what they own, what they build, and when it has to
 - [ ] **1:30:** Checkpoint 1.
 - [ ] **1:30–3:00:** `listen()`: `continuous = true`, `interimResults = true`. Show interim text in italics. Restart in `onend` while still listening. After the first final result, start a 2.5 s silence timer; when it fires → `send()`.
 - [ ] **1:30–3:00:** Loop: `say(reply)` → `listen()` → `send(answer)` → `say(reply)` … until `done`. Show "Q2/5 · competency" progress and a timer.
+- [ ] **1:30–3:00 (Innovation points, 15 min):** a live badge from `progress.action`: `probe` → "↻ Follow-up", `advance` → "→ Next question", `wrap_up` → "✓ Wrap-up". Show difficulty `progress.difficulty` as ●●●○○ next to it. This is how judges *see* the interview adapting.
 - [ ] **1:30–3:00:** "Begin" button (browsers need a click before the camera, mic and audio can start): `getUserMedia({video:true, audio:true})`, then `monitor.start(true)`. **If the camera is denied**, call `monitor.start(false)` and continue. **If the mic is denied**, typed input only.
 - [ ] **1:30–3:00:** End button or `done` → `finish()` → evaluate → redirect. If evaluate fails, show a Retry button.
 - [ ] **3:00:** Checkpoint 2.
@@ -121,7 +139,11 @@ import { startInterview, chatTurn, evaluate, llmStatus, httpError } from './engi
   - **escape everything** from the LLM or the candidate with `esc()` (replace `& < > " '`) before putting it in `innerHTML`.
 - [ ] **3:00:** Checkpoint 2.
 - [ ] **3:00–4:15:** prompt tuning with a real key on 3 different sample resumes. Is the follow-up relevant? Are the evidence quotes verbatim? Log the time per turn and aim for under 1.5 s. Then the **offline drill**: set a wrong key, run a full interview, and confirm you still get a report.
-- [ ] **Stretch:** radar SVG, adaptive-path badges (Main/Probe/Wrap per AI turn + difficulty dots), print CSS for `window.print()`.
+- [ ] **1:30–3:00 (MVP, Innovation points):** an **adaptive path** section in the report.
+  - One row per AI turn in `s.turns`: a badge from `kind` (main / probe / advance / wrap_up), difficulty dots, and the live `score` of the candidate answer that followed.
+  - This is how judges see *why* the interview changed direction.
+- [ ] **Stretch:** radar SVG, print CSS for `window.print()`.
+- [ ] **For the pitch:** check that the numbers in `IMPLEMENTATION_PLAN.md` §2a (calls per interview, free-tier capacity) match what you actually see in the server logs, and correct them if not.
 
 ### Definition of done (MVP)
 `npm test` passes. `curl localhost:3000/api/health` shows `groq`. A full interview through the UI produces a report page with all MVP sections.
@@ -192,7 +214,8 @@ export function renderIntegrity(el, integrity, turns)  // report section: risk p
   3. Mic denied (typed only).
   4. Turn your head for 3 s, bring a second person into frame, switch tabs for 5 s. Check: HUD → report table → risk goes up, **hire score unchanged**.
   5. Bad Groq key (the offline fallback still gives a report).
-- [ ] **3:00–4:15:** `README.md`: what it is, free keys, `npm test`, `npm start`, the demo script below.
+- [ ] **3:00–4:15:** `README.md` already has the overview, setup, feasibility and scalability sections. Update the run steps if anything changed, and add 2 screenshots (room + report).
+- [ ] **4:30:** record the **2-min backup demo video** of a clean run. Free options: Win+Alt+R (Xbox Game Bar) or OBS. Keep it on the demo laptop *and* a phone.
 - [ ] **Stretch:** 2 s calibration (average yaw/pitch at start = the "straight ahead" baseline); eye-gaze from blendshapes `eyeLookOut*/eyeLookIn*/eyeLookDown*` > 0.6; a gaze line on the overlay; timeline lanes in the report.
 
 ### Definition of done (MVP)
@@ -204,11 +227,27 @@ Every one of the 5 event types appears in the room HUD and in the report table f
 
 ---
 
-## H4:15–5:00: Demo script (everyone)
-1. **Setup (30 s):** "Load sample" → role "Backend Engineer" → Start. Point out that the questions reference the resume.
-2. **Adaptive (90 s):** give one vague answer ("I worked on some APIs") → Ava **probes**. Give one strong STAR answer with a number → difficulty goes up.
-3. **Integrity (30 s):** look at your phone for 3 s, switch tabs once → the HUD reacts live.
-4. **Report (60 s):** score + recommendation, evidence quotes, STAR table, integrity section showing the events *and* the disclaimer that they don't affect the hire score.
-5. **Backup:** if Wi-Fi or Groq fails live, the offline fallback still runs. Also keep one good saved session in `data/sessions/` to open in the report.
+## H4:15–5:00: 3-minute pitch + demo (everyone)
+Each step is tagged with the criterion it scores. One person presents and one drives the laptop.
 
-Run it **twice** before judging: once as a strong candidate, once as a "distracted" candidate.
+| # | Time | Criterion | Say / do |
+|---|---|---|---|
+| 1 | 20 s | Demonstration | **Problem:** screening interviews are slow, inconsistent and unfair, remote cheating is invisible, and candidates get no feedback. Candor fixes all three. |
+| 2 | 30 s | Functionality | "Load sample" → role "Backend Engineer" → Start. Point out that the first questions quote the **resume**. |
+| 3 | 50 s | **Innovation** | Give a vague answer ("I worked on some APIs"): the badge shows **↻ Follow-up** and Ava probes. Give a strong STAR answer with a number: **→ Next question** and the difficulty dots go up. "Most platforms ask fixed questions; ours listens and adapts." |
+| 4 | 20 s | Innovation | Look at your phone for 3 s, switch tabs once. The HUD reacts live. "All of this runs on the candidate's device; no video leaves the laptop." |
+| 5 | 40 s | Functionality / Design | Report: score + recommendation, evidence quotes, STAR table, **adaptive path**, integrity events + the disclaimer "*context, not proof; not part of the hire score*". |
+| 6 | 20 s | **Feasibility + Scalability** | "$0 per interview, no installs, works offline if the AI API goes down. Vision runs client-side, so the server stays thin. We swap to any OpenAI-compatible model with one `.env` line. Sessions move to Postgres to scale out. Works for any role because questions come from the JD." |
+
+**Backup plan:**
+- Wi-Fi or Groq fails → the offline fallback still runs the whole interview.
+- The laptop fails → play T3's backup video.
+- There's always one good saved session in `data/sessions/` to open in the report.
+
+**Likely judge questions, with 1-line answers:**
+- *"What if the AI API fails?"* → Groq, then Gemini, then built-in heuristics; the interview never stops.
+- *"Isn't gaze tracking unfair?"* → It is shown as context only, never scored. We ignore glances under 1.5 s, and the candidate sees the same HUD.
+- *"Can the LLM be biased in the decision?"* → The LLM only cites evidence against a fixed 1–5 rubric. The hire recommendation is computed by code, so the same scores always give the same outcome.
+- *"How does it scale?"* → Client-side vision, a thin server, provider swap via config, a DB for sessions. See §2a for the numbers.
+
+Rehearse it **twice** before judging: once as a strong candidate, once as a "distracted" candidate. Time it and stay **under 3 min**.

@@ -96,6 +96,22 @@ Open **[http://localhost:3000](http://localhost:3000)** in Chrome to begin!
 
 ---
 
+## 💸 Why It's Feasible ($0)
+
+- **No paid services.** LLMs run on the Groq free tier (Gemini free tier as fallback). Speech and face tracking are free browser APIs.
+- **No installs.** No npm dependencies and no build step: `npm start` on any laptop with Node and Chrome.
+- **Never stops.** If every AI provider fails, a built-in heuristic engine finishes the interview and still writes a report.
+
+## 📈 How It Scales
+
+- **Vision costs the server nothing.** MediaPipe runs in the candidate's browser, and only small JSON event logs are uploaded. No video leaves the device.
+- **Thin server.** Each request is one LLM call plus a small JSON write. To scale out, move sessions to Redis/Postgres and run several server instances.
+- **Swap models with no code change.** Any OpenAI-compatible provider or model can be set via `.env`. Next steps: a pool of keys and a request queue.
+- **Any role.** Competencies and questions are generated from the job description, so there is no per-job question bank.
+- **Capacity today (estimate).** One interview ≈ 8–14 LLM calls. One free Groq key handles ≈ 5 interviews at the same time and ≈ 70 per day. Details are in [IMPLEMENTATION_PLAN.md §2a](IMPLEMENTATION_PLAN.md).
+
+---
+
 ## 👥 Team Workstreams & Documentation
 
 - **Teammates**: Please read **[TEAM_ONBOARDING.md](TEAM_ONBOARDING.md)** immediately for your Git branch assignment.

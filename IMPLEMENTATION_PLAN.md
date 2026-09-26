@@ -31,6 +31,18 @@ Models to use instead:
 - Gemini fallback: `gemini-flash-lite-latest` through the OpenAI-compatible endpoint (about 500 requests/day on the free tier).
 - Every model name can be overridden in `.env`.
 
+## 0a. How we're judged (BitNBuild26, 50 points), ordered by weight
+| Criterion | Pts | What earns it for us | Owner |
+|---|---|---|---|
+| **Functionality** | 14 | The MVP flow (setup → spoken interview → report) works on **every** run. The offline, no-camera and no-mic paths still finish. | All; T3 verifies |
+| **Innovation** | 10 | Adaptive follow-ups made **visible**: a live "Follow-up / Next question" badge in the room + the adaptive path in the report. Integrity kept **out** of the hire score (fairness). Hire decision computed by code, not the LLM. Face tracking on the candidate's device. Coaching tips for the candidate. | T1 (live badge), T2 (path, eval), T3 (integrity) |
+| **Demonstration** | 8 | A rehearsed 3-min pitch mapped to these criteria (see TEAM_TASKS.md), run twice, plus a backup video. | All; T3 records |
+| **Feasibility** | 7 | $0 per interview, no npm installs, runs on any laptop with Chrome, offline fallback. Say this out loud in the pitch. | T3 (README), presenter |
+| **Scalability** | 6 | §2a: vision is client-side, the server is thin, provider/model swaps via `.env`, capacity numbers, a clear upgrade path. | T2 (facts), presenter |
+| **Design** | 5 | One consistent dark theme; a room and report readable at a glance; a score ring + recommendation pill. | T1 (room), T2 (report) |
+
+**Rule:** Functionality is 28% of the score. A reliable MVP beats any stretch feature.
+
 ## 1. Market research: the findings the design is built on
 | Finding | Design decision |
 |---|---|
@@ -55,6 +67,22 @@ Sources:
 - **Speech:** `webkitSpeechRecognition` for speech-to-text and `speechSynthesis` for speaking, both free. Speech input needs Chrome or Edge; other browsers fall back to typing. Note: Chrome's speech-to-text sends audio to Google's servers.
 - **Storage:** an in-memory Map, written to `data/sessions/<uuid>.json` after every change. It survives restarts and needs no database.
 - **Fail-safe:** if every LLM provider fails, `engine.js` switches to heuristics: a question bank templated with the role and skills, STAR-keyword scoring, and averaged live scores. The demo never stops.
+
+## 2a. Scalability & cost (the pitch facts; the numbers are estimates)
+- **Vision costs the server nothing.** MediaPipe runs in the candidate's browser, and only small event lists (JSON) are uploaded. No video ever leaves the device.
+- **The server is thin.** Each request is one LLM call plus a small JSON session write. To scale:
+  1. move sessions from `data/sessions/*.json` to Redis/Postgres;
+  2. run several copies of `server.js` behind a load balancer.
+
+  No other changes are needed.
+- **LLM calls per interview** ≈ 1 planning + 1 per answer + 1 grading, so ~8–14 calls for 5 questions.
+- **Free-tier ceiling per Groq key:** 30 requests/min, 1K requests/day per model, 8K tokens/min.
+  - That is ≈ 5 interviews at the same time.
+  - It is ≈ 70 full interviews/day on the fast model.
+  - The bottleneck is tokens/min: one turn ≈ 1.5K tokens.
+- **Upgrade path with no code change:** a paid Groq key, or any OpenAI-compatible provider/model via the `.env` overrides. Next steps: a pool of keys + a request queue.
+- **Works for any role:** competencies and questions are generated from the JD, so there is no hard-coded question bank per job.
+- **Cost:** $0 at hackathon scale. Speech (browser), vision (browser) and hosting (a laptop) are all free.
 
 ## 3. File layout and owners (v2: rebalanced, one owner per file means no merge conflicts)
 - **T1: Candidate experience.** Everything the candidate sees and hears.
@@ -83,9 +111,9 @@ README.md           run steps + demo script (T3)
 | | MVP (must have) | Stretch (only after MVP is green) |
 |---|---|---|
 | Setup | Pasted resume + JD text, "Load sample" button | PDF upload via pdf.js |
-| Interview | Spoken Q&A (TTS + speech recognition) with typed fallback; adaptive probe/advance (already in engine) | Mic visualizer, orb animation |
+| Interview | Spoken Q&A (TTS + speech recognition) with typed fallback; adaptive probe/advance (already in engine); **live badge from `progress.action`** ("↻ Follow-up" / "→ Next question" / "✓ Wrap-up") + difficulty | Mic visualizer, orb animation |
 | Integrity | Tab hidden, window blur, face missing, multiple faces, look-away using **fixed** yaw/pitch thresholds; HUD badges | 2 s calibration baseline, eye-blendshape gaze, gaze line on overlay |
-| Report | Score + recommendation, competency bars + evidence quotes, strengths/gaps, STAR table, integrity stats + event table, transcript | Radar SVG, timeline lanes, adaptive-path badges, print styling |
+| Report | Score + recommendation, competency bars + evidence quotes, strengths/gaps, STAR table, integrity stats + event table, **adaptive path** (Main/Probe/Wrap badge + difficulty + live score per AI turn), transcript | Radar SVG, timeline lanes, print styling |
 | Resilience | Offline fallback (already in engine), no-camera path | Edge browser testing |
 | **Cut** | Resuming an interview after a page reload | |
 
@@ -194,20 +222,24 @@ Report = {summary, competencies:[{name, score 1-5, rationale, evidence[] verbati
 | 0:00–0:30 | **All:** keys + `.env`, clone repo, `npm test` smoke, read §4 contracts together | | |
 | | `room.html` skeleton with `#cam #overlay #hud` | `data/mock-session.json` from an offline run | stub `integrity.js` (same API, tab/blur events only) |
 | 0:30–1:30 | `index.html` form + "Load sample"; `say()` TTS | `server.js`: all 6 routes + persistence | MediaPipe load, face box on overlay, face-missing + multi-face |
-| **1:30** | **Checkpoint 1:** setup page → server → room speaks the opening | | |
+| **1:30** | **Checkpoint 1** (everyone merges their branch into `main` first, §8a): setup page → server → room speaks the opening | | |
 | 1:30–3:00 | `listen()` + silence endpointing, transcript, chat loop, End → evaluate → redirect | `engine.test.js`; `report.js` MVP sections (build against the mock) | look-away (fixed thresholds), episodes, HUD `onChange`, `renderIntegrity()` |
 | **3:00** | **Checkpoint 2, MVP freeze:** one full spoken interview → report with integrity section. Fix bugs before any stretch work. | | |
 | 3:00–4:15 | stretch: visualizer, polish, typed-fallback + aria-live | prompt tuning on 3 sample resumes, latency < 1.5 s/turn, bad-key offline drill | test runs: no camera, denied mic, tab switch; README + demo script; stretch: calibration/gaze |
 | **4:15** | **Checkpoint 3, code freeze.** Only bug fixes after this point. | | |
-| 4:15–5:00 | **All:** run the demo script twice (strong candidate + "looks at phone, switches tab"), save one good session JSON in `data/` as a backup | | |
+| 4:15–5:00 | **All:** run the 3-min pitch twice (strong candidate + "looks at phone, switches tab"), save one good session JSON in `data/` as a backup. **T3 records a 2-min backup demo video.** | | |
 
 **Rescue rule:** stuck for more than 20 min → use the fallback listed in `TEAM_TASKS.md`, or cut the item to MVP and tell the team.
 
-## 8a. Git workflow
-- One GitHub repo. The person who has this folder runs `git init`, commits, pushes, and invites the other two.
-- Work on `main` only; no branches are needed with one owner per file.
-- `git pull` before you start, commit small, `git push` often (at least every 30 min).
-- **Never edit a file you don't own.** Need a change? Ask the owner.
+## 8a. Git workflow (matches `TEAM_ONBOARDING.md`)
+- Repo: https://github.com/Aryaman-Saraf/TIMEPASS-PARTICIPATION.
+- Each teammate works on **their own feature branch** (names are in TEAM_ONBOARDING.md). **Never commit directly to `main`.**
+- Commit small and push your branch at least every 30 min.
+- **Before each checkpoint** (1:30, 3:00, 4:15):
+  1. open a PR from your branch into `main`;
+  2. the repo owner merges it;
+  3. everyone runs `git pull origin main` into their branch.
+- One owner per file means these merges don't conflict. **Never edit a file you don't own.** Need a change? Ask the owner.
 - Never commit `.env` (it is already in `.gitignore`).
 
 ## 9. Verification
