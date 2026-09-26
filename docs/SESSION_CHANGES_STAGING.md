@@ -119,6 +119,15 @@
   - Configured strict write boundaries limited exclusively to `frontend/` directory with workspace-wide read access.
   - Registered subagent dynamically in system via `define_subagent`.
 
+### 18. Screen 1 (Authentication / Entry Gateway) Frontend Implementation
+- **Target Files**: `frontend/index.html`, `frontend/auth.html`, `frontend/auth.js`, `frontend/styles.css`
+- **Details**:
+  - Implemented Screen 1 entry gateway in `frontend/` by `frontend-agent`.
+  - Created branding hero header with live `/api/health` status check chip.
+  - Implemented Dual Portal selection cards: Candidate / Interviewee (preset demo profiles: Sarah Jenkins, Alex Chen, Jordan Lee, and custom candidate inputs) and Recruiter / Hiring Manager portal entry.
+  - Bound profile state to `localStorage` (`candor_current_candidate`) for seamless navigation to Screen 2 (`candidate-dashboard.html`).
+  - Added modern dark-theme tokens, glassmorphism card layouts, and CSS micro-animations.
+
 
 
 ---
