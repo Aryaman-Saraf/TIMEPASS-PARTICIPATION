@@ -77,16 +77,20 @@ The backend enforces a strict per-session in-flight lock to prevent duplicate co
 
 ## 3. Updates Implemented by Aryaman (T2 — AI Backend & Report)
 **Branch:** `feat/aryaman-dev`  
-**Owned Files:** `engine.js`, `engine.test.js`, `server.js`, `server.test.js`, `data/mock-session.json`, `public/report.html`, `public/report.js`
+**Owned Files:** `engine.js`, `engine.test.js`, `server.js`, `server.test.js`, `db.js`, `auth.js`, `resumeParser.js`, `api/index.js`, `vercel.json`, `supabase/schema.sql`, `data/mock-session.json`, `public/report.html`, `public/report.js`
 
 1. **AI Fast-Tier Timeout Reduced to 8s**:
    - `llmJSON` fast-tier timeout dropped from 15s to **8s** for rapid failover to offline heuristics if Groq hangs.
 2. **Edge-Case Engine Fixes Applied**:
    - `computeIntegrity(undefined)` properly marks `visionAvailable: false` and `captured: false`.
    - `evaluate()` falls back to session duration elapsed since `createdAt` if `totalMs` is omitted or zero.
-3. **HTTP Server (`server.js`) Active**:
-   - All 6 endpoints (`/api/start-interview`, `/api/chat-turn`, `/api/evaluate`, `/api/sessions`, `/api/session?id=`, `/api/health`) verified and live.
+3. **HTTP Server (`server.js`) & Vercel Serverless (`api/index.js`) Active**:
+   - All 15 endpoints verified and operational across local Node.js and Vercel Serverless.
    - Built-in path traversal security guard prevents access to `.env` or files outside `public/`.
    - Automatic seeding of all `.json` files in `data/` (including `data/mock-session.json`).
-4. **16/16 Automated Tests Passing**:
-   - `npm test` runs both `engine.test.js` (10 tests) and `server.test.js` (6 tests).
+4. **Universal DB Adapter (`db.js`)**:
+   - Supabase Cloud PostgreSQL REST API with automatic local JSON fallback in `data/`.
+5. **Role-Based Access Control (`auth.js`) & Resume Upload (`resumeParser.js`)**:
+   - Bearer token authentication and automated PII sanitization.
+6. **21/21 Automated Tests Passing**:
+   - `npm test` runs all contract, engine, DB, auth, and pipeline tests cleanly with zero external network dependencies.

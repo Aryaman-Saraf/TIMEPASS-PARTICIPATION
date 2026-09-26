@@ -6,6 +6,8 @@ Hackathon brief: build an AI interviewer with three pillars. (1) Questions and e
 > **v2 (refined for a first-time team):** owners rebalanced (§3), MVP vs Stretch split (§3a), stub-first roadmap with checkpoints (§8), git workflow (§8a). Per-person instructions are in **`TEAM_TASKS.md`**.
 >
 > **v3 (unified master plan):** merges the teammate proposals from `Prathul` and `suryansh`. Adds the Evidence Dossier and device pre-flight check (§3a), a production roadmap (§2b), and a roadmap re-timed for **4.5 h** (§8). The §4 contracts are unchanged. What came from whom: §10. The original proposals are kept in `archive/teammate-proposals/`.
+>
+> **v4 (production serverless & enterprise integration):** live on **Vercel Serverless**, 6-screen enterprise journey, Supabase Cloud PostgreSQL with transparent local JSON fallback, RBAC authentication, automated resume parser with PII redaction, AI recruiter rankings, mandatory entire-screen share proctoring, and **21/21 automated tests passing**.
 
 ## 0. Tools & keys (everything is free, no credit card)
 **Every teammate gets their own Groq key** (60 s): https://console.groq.com/keys → Create API Key → `copy .env.example .env` → paste it into `GROQ_API_KEY=`.
@@ -268,19 +270,27 @@ Report = {summary, competencies:[{name, score 1-5, rationale, evidence[] verbati
 - Never commit `.env` (it is already in `.gitignore`).
 
 ## 9. Verification
-1. `node --test`: the engine tests pass offline (no keys needed).
-2. `npm start`, then `curl localhost:3000/api/health` should show `groq`.
-3. Without keys: a full interview runs on the offline fallback and still produces a report.
-4. In Chrome: "Load sample" → Start → speak 3 answers. Check that a vague answer triggers a probe, a strong answer raises the difficulty dots, and wrap-up redirects to the report.
-5. Integrity: turn your head for 3 s, show a second face, switch tabs. Each should appear in the HUD, then in the audit log with its Q mapping, and in the timeline. The risk level should go up while the hire score stays the same.
-6. Deny camera access: the interview still runs, and the report says vision was unavailable.
-7. Ask whether to run `/code-review` before the demo (global rule: never run it automatically).
+1. `npm test` (`node --test`): all **21 automated contract and unit tests pass** completely offline (no API keys required).
+2. `npm start`, then `curl localhost:3000/api/health` reports active LLM chain (`groq -> gemini -> offline fallback`).
+3. Vercel Serverless: live production deployment serving static assets from `public/` and handling `/api/*` via `api/index.js`.
+4. Without keys: full interview runs on the offline STAR fallback and produces an Evidence Dossier.
+5. In Chrome: Candidate Hub → Preflight Calibration → Live Room with Ava. Vague answers trigger probes, strong answers raise difficulty dots, and completion redirects to the confirmation screen.
+6. Integrity & Proctoring: Screen share must be entire screen (tabs rejected), microphone cannot be muted, and backgrounding window/switching tabs triggers confinement warnings and auto-terminates the session.
+7. Deny camera access: interview still runs, and the report clearly indicates vision was unavailable.
 
-## Out of scope (named)
-- Recruiter authentication and a separate candidate-only session view. The API currently returns the full plan to anyone.
-- Semantic end-of-turn detection.
-- HTTPS for LAN demos (use localhost, or a tunnel).
-- Everything in §2b.
+## Scope Status & Delivered Extensions
+- **Delivered in v4**:
+  - Full 6-screen enterprise flow (Stitch Gateway, Candidate Hub, Hardware Calibration, Live Spoken Room, Completion Confirmation, Recruiter AI Rankings & Evidence Dossier).
+  - RBAC authentication (`auth.js`) supporting candidate profiles, recruiter login, and bearer tokens.
+  - Candidate Pipeline CRUD & automated resume intake with PII redaction (`resumeParser.js`).
+  - Universal DB Adapter (`db.js`) supporting Supabase Cloud PostgreSQL with transparent local file fallback.
+  - Vercel Serverless Function entrypoint (`api/index.js` and `vercel.json`).
+  - Mandatory entire-screen share proctoring and anti-cheating window confinement.
+  - Recruiter AI Candidate Ranking Leaderboard with percentiles and hire distributions.
+- **Future Production Roadmap (§2b)**:
+  - WebRTC media streaming server.
+  - Server-side Whisper with word-level timestamps.
+  - Multi-tenant enterprise organizations.
 
 ## 10. Synthesis changelog (v3: what came from whom)
 The originals are in `archive/teammate-proposals/`. Every idea was filtered with three questions: can it be built in the time left, does it cost $0 with no installs, and does it earn rubric points?
@@ -288,7 +298,7 @@ The originals are in `archive/teammate-proposals/`. Every idea was filtered with
 **From Prathul** (`architecture_design.md`, `architecture_deep_dive.md`, `preadme.md`)
 - Pre-flight checks → **MVP** device chips (T1).
 - ASR confidence scorer → **Stretch** low-confidence re-ask (T1).
-- PII redactor → **Stretch priority 1** regex redaction in `engine.js` (T2).
+- PII redactor → **Stretch priority 1** regex redaction in `engine.js` & `resumeParser.js` (T2).
 - Circuit breaker + fallback agent → already built (provider chain + offline heuristics). Timeout tightened to ~8 s (Stretch, T2).
 - Text fallback chat → already MVP. Session recovery → stays Cut.
 - Lighting validator → **Stretch** "pause look-away while the face is missing" (T3).
@@ -304,7 +314,6 @@ The originals are in `archive/teammate-proposals/`. Every idea was filtered with
 - Timestamped evidence reel → **Stretch** event → transcript links (no video; video never leaves the device).
 - Whisper timestamps, triple embeddings, NER penalty, VR → **§2b roadmap**.
 
-**Changed from v2**
-- Roadmap re-timed from 5 h to 4.5 h (CP1 1:20, MVP freeze 2:45, code freeze 3:50, pitch until 4:30).
-- New MVP rows (dossier, device chips, Ava card, "Integrity confidence" label), each ≤ 15 min.
-- §2b added. §4 is explicitly frozen and unchanged.
+**Changed from v2 to v4**
+- **v3**: Roadmap re-timed from 5 h to 4.5 h. New MVP rows (dossier, device chips, Ava card, "Integrity confidence" label).
+- **v4**: Unified production deployment on Vercel Serverless. Added RBAC auth, candidate pipeline, Supabase cloud sync, resume parser with PII redaction, AI recruiter rankings, mandatory entire-screen sharing, and full 21/21 passing test suite.

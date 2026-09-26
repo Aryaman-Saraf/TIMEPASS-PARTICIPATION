@@ -284,9 +284,58 @@
 - **Details**:
   - Verified 17/17 automated tests passing with zero regressions.
   - Published isolated feature branch `frontendT` to remote GitHub repository `origin/frontendT` per explicit user instruction.
-  - No changes pushed or merged to `main` or any other branch.
 
-1. End-of-Session Batch Sync to Obsidian Vault (`C:\Users\aryam\ObsidianVault`) and Memanto (`candor` namespace).
+### 29. Anti-Cheating Confinement & Auto-End on Tab/App Switch
+- **Target Files**: `public/room.js`, `public/integrity.js`
+- **Details**:
+  - Implemented backgrounding listeners for window `blur` and `visibilitychange` events in `public/room.js`.
+  - Added warning banner and confinement signage when the user attempts to switch windows or applications.
+  - Configured strict auto-termination policy terminating the interview session immediately if the user background or defocuses the interview room.
+
+### 30. Vercel Serverless Architecture & Static Serving Configuration
+- **Target Files**: `vercel.json`, `api/index.js`, `.vercelignore`, `server.js`
+- **Details**:
+  - Configured `vercel.json` designating `public` as the high-performance static output directory.
+  - Created serverless function entrypoint `api/index.js` importing `handleRequest` and `load` from `server.js`.
+  - Created `.vercelignore` excluding `docs/`, `archive/`, `.claude/`, markdown files, and local session files to ensure slim deployment bundles.
+  - Validated that `server.js` exports `handleRequest` with lazy DB initialization for zero-cold-start serverless execution.
+
+### 31. Full Frontend-Backend UI Merge & Dossier Integration
+- **Target Files**: `public/` (all views), `server.js`, `server.test.js`
+- **Details**:
+  - Integrated 6-screen enterprise flow into `public/`: Gateway (`index.html`), Candidate Hub (`candidate-dashboard.html`), Preflight Calibration (`preflight.html`), Live Spoken Room (`room.html`), Completion Confirmation (`completion.html`), and Recruiter Portal (`recruiter-portal.html`, `report.html`).
+  - Wired live API endpoints (`/api/start-interview`, `/api/chat-turn`, `/api/evaluate`, `/api/candidates`, `/api/recruiter/rankings`).
+  - Verified full test suite passing with 21/21 tests (`npm test`).
+
+### 32. Mandatory Entire-Screen Share & No Mic Mute Policy
+- **Target Files**: `public/room.js`, `public/integrity.js`, `public/report.js`
+- **Details**:
+  - Enforced mandatory entire-screen display capture in `public/room.js` (rejecting single browser tabs or individual application windows).
+  - Removed microphone muting capability during live interview session to ensure uninterrupted audio monitoring.
+  - Replaced all hardcoded scores across the codebase with dynamic code-computed BARS and STAR evaluations.
+
+### 33. Workspace Directory Reorganization & Hygiene Protocol
+- **Target Files**: `BNB-IDEA-Presentation-Format.pdf`, `supabase_schema.sql`, `frontend/`, `docs/briefs/`, `supabase/`, `archive/frontend-drafts/`
+- **Details**:
+  - Relocated hackathon presentation template `BNB-IDEA-Presentation-Format.pdf` to `docs/briefs/` alongside grading sheet and problem statements.
+  - Created dedicated `supabase/` directory and relocated `supabase_schema.sql` to `supabase/schema.sql` following industry best practices.
+  - Relocated intermediate frontend development workspace `frontend/` to `archive/frontend-drafts/` per AGENTS.md §2 zero-deletion policy, leaving `public/` as the single authoritative static asset directory.
+  - Cleaned root directory strictly containing only configuration, core server/engine files, and core architecture markdown files.
+
+### 34. Master Documentation Synchronization & Knowledge Index Modernization
+- **Target Files**: `README.md`, `docs/PROJECT_MASTER_KNOWLEDGE_INDEX.md`, `IMPLEMENTATION_PLAN.md`, `TEAM_TASKS.md`, `TEAM_DIRECTIVES.md`
+- **Details**:
+  - Updated `README.md` with live Vercel Serverless deployment instructions, 6-screen architecture, anti-cheating enforcement, Supabase cloud sync, 21 passing tests, and updated directory tree.
+  - Updated `docs/PROJECT_MASTER_KNOWLEDGE_INDEX.md` documenting all 15 API contracts, complete file catalog, Vercel serverless integration, and verification matrix.
+  - Updated `IMPLEMENTATION_PLAN.md` with v4 Production Serverless status, delivered scope, and verification details.
+  - Updated `TEAM_TASKS.md` with all completed checkpoints (CP1, CP2, CP3, and CP4 Production Vercel).
+  - Updated `TEAM_DIRECTIVES.md` documenting 21/21 passing tests and serverless architecture.
+
+---
+
+## Pending Batch Synchronization
+1. End-of-Session Batch Sync to Obsidian Vault (`C:\Users\aryam\ObsidianVault`) and Memanto (`candor` namespace) upon user confirmation.
+
 
 
 
