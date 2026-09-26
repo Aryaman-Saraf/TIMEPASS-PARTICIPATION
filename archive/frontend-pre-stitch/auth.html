@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candor AI — Voice AI Recruitment & Assessment Platform</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Ambient Grid Overlay -->
+  <div class="background-grid"></div>
+
+  <div class="app-container">
+    
+    <!-- Navigation Header -->
+    <header class="navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
+          </svg>
+        </div>
+        <div class="brand-title">Candor <span>AI</span></div>
+      </a>
+
+      <div class="navbar-badge">
+        <span class="status-dot"></span>
+        BitNBuild '26 Entry
+      </div>
+    </header>
+
+    <!-- Main Hero Section -->
+    <main>
+      <section class="hero-header">
+        <div class="hero-pill">
+          ⚡ BitNBuild '26 · Voice-First Technical Interviewing
+        </div>
+        <h1 class="hero-title">
+          Autonomous AI Interviews with <span class="gradient-text">Uncompromising Integrity</span>
+        </h1>
+        <p class="hero-subtitle">
+          Conversational Voice AI Recruitment & Assessment Platform — Adaptive STAR Probing, BARS Telemetry, and Real-Time Attention Analytics.
+        </p>
+      </section>
+
+      <!-- Dual Role Selection Portal -->
+      <section class="portal-grid">
+        
+        <!-- CARD 1: CANDIDATE PORTAL -->
+        <article class="role-card candidate-card">
+          <div>
+            <div class="card-badge">Candidate Gateway</div>
+            <div class="card-header-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+            </div>
+            <h2 class="card-title">Candidate Portal</h2>
+            <p class="card-description">
+              Select or enter your candidate profile to begin your hardware pre-check and voice interview with Ava.
+            </p>
+
+            <!-- Preset Profiles Section -->
+            <div class="section-label">Select Demo Preset Profile:</div>
+            <div class="preset-profiles">
+              
+              <!-- Preset 1: Sarah Jenkins -->
+              <div class="preset-chip selected" data-preset-id="cand-001">
+                <div class="preset-info">
+                  <span class="preset-name">Sarah Jenkins</span>
+                  <span class="preset-role">Senior Frontend Engineer</span>
+                </div>
+                <span class="preset-badge">Frontend</span>
+              </div>
+
+              <!-- Preset 2: Alex Chen -->
+              <div class="preset-chip" data-preset-id="cand-002">
+                <div class="preset-info">
+                  <span class="preset-name">Alex Chen</span>
+                  <span class="preset-role">Senior Backend Engineer</span>
+                </div>
+                <span class="preset-badge">Backend</span>
+              </div>
+
+              <!-- Preset 3: Jordan Lee -->
+              <div class="preset-chip" data-preset-id="cand-003">
+                <div class="preset-info">
+                  <span class="preset-name">Jordan Lee</span>
+                  <span class="preset-role">Fullstack AI Architect</span>
+                </div>
+                <span class="preset-badge">Fullstack</span>
+              </div>
+
+            </div>
+
+            <div class="divider">
+              <span>Or Enter Custom Identity</span>
+            </div>
+
+            <!-- Custom Form Inputs -->
+            <div class="form-group">
+              <label class="form-label" for="candidate-name">Candidate Full Name</label>
+              <input type="text" id="candidate-name" class="form-input" placeholder="e.g. Sarah Jenkins">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="candidate-email">Candidate Email</label>
+              <input type="email" id="candidate-email" class="form-input" placeholder="e.g. candidate@example.com">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="candidate-role">Target Role</label>
+              <input type="text" id="candidate-role" class="form-input" placeholder="e.g. Senior Frontend Engineer">
+            </div>
+          </div>
+
+          <!-- Candidate Action CTA -->
+          <div style="margin-top: 1.5rem;">
+            <button id="btn-candidate-proceed" class="btn btn-primary">
+              Proceed to Candidate Dashboard
+              <span class="btn-icon">→</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- CARD 2: HIRING MANAGER / RECRUITER PORTAL -->
+        <article class="role-card recruiter-card">
+          <div>
+            <div class="card-badge">Recruiter Portal</div>
+            <div class="card-header-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+              </svg>
+            </div>
+            <h2 class="card-title">Hiring Manager Portal</h2>
+            <p class="card-description">
+              Access real-time pipeline management, candidate rosters, AI Evidence Dossiers, and BARS evaluations.
+            </p>
+
+            <ul class="feature-list">
+              <li class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span><strong>Adaptive STAR Probing Logs:</strong> View verbatim follow-up transcript progression and difficulty curves.</span>
+              </li>
+              <li class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span><strong>BARS 1–5 Scorecards:</strong> Quantitative indices for Technical Relevancy & Articulation.</span>
+              </li>
+              <li class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span><strong>Vision & Attention Integrity Audit:</strong> Real-time gaze anomalies, head pose, and tab focus tracking.</span>
+              </li>
+              <li class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span><strong>Candidate Roster Management:</strong> Add, schedule, and evaluate candidate sessions on demand.</span>
+              </li>
+            </ul>
+
+            <div class="recruiter-pass-box">
+              <span class="pass-label">Demo Portal Access:</span>
+              <span class="pass-code">recruiter@candor.ai</span>
+            </div>
+          </div>
+
+          <!-- Recruiter Action CTA -->
+          <div style="margin-top: 1.5rem;">
+            <button id="btn-recruiter-proceed" class="btn btn-secondary">
+              Enter Recruiter Pipeline Portal
+              <span class="btn-icon">↗</span>
+            </button>
+          </div>
+        </article>
+
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-left">
+        <span>Candor AI © 2026 BitNBuild26 Hackathon</span>
+        <span>•</span>
+        <span>Zero-npm Browser Native Platform</span>
+      </div>
+      <div class="footer-right">
+        <div id="api-health-chip" class="api-health-chip">
+          <span class="status-dot"></span> Checking API status...
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="auth.js"></script>
+</body>
+</html>

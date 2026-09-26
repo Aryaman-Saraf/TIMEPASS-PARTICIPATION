@@ -192,7 +192,18 @@
   - Verified `/api/health` reports operational LLM chain (`groq → gemini`).
   - Verified static HTTP serving: `index.html` (200 OK) and `stitch-gateway.html` (200 OK).
 
+### 27. Stitch Gateway Screen Activation as Primary Frontend
+- **Target Files**: `frontend/index.html`, `frontend/auth.html`, `public/index.html`, `public/auth.html`, `archive/frontend-pre-stitch/`
+- **Details**:
+  - Safely archived pre-Stitch gateway files to `archive/frontend-pre-stitch/` per Rule 2 zero-deletion policy.
+  - Activated the Stitch-designed "Candor AI — Enterprise Interview Gateway" as the primary application frontend at `http://localhost:3000/`.
+  - Wired live candidate selection (Sarah Jenkins, Alex Chen, Jordan Lee, and custom profiles) directly to `candor_current_candidate` state and navigation to `candidate-dashboard.html`.
+  - Wired live Recruiter console sign-in and enterprise SSO buttons to `recruiter-portal.html`.
+  - Wired top telemetry status pill to poll `/api/health` for live LLM chain status (`groq → gemini`).
+  - Verified 17/17 automated tests pass.
+
 1. End-of-Session Batch Sync to Obsidian Vault (`C:\Users\aryam\ObsidianVault`) and Memanto (`candor` namespace).
+
 
 
 
