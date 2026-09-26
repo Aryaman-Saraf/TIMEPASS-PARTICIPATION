@@ -3,6 +3,7 @@
 This page tells each teammate what they own, what they build, and when it has to be ready.
 - The design and the API contracts live in `IMPLEMENTATION_PLAN.md`: §4 has the contracts, §3a has the MVP vs Stretch split.
 - If this page and the plan ever disagree, **the §4 contracts win**.
+- **v3:** re-timed for the **4.5 h** we have left, with ideas from Prathul's and Suryansh's proposals merged in (plan §10). Items marked *(v3)* are new.
 
 | | Teammate | Owns (only you edit these files) | Your part of the demo |
 |---|---|---|---|
@@ -14,7 +15,7 @@ This page tells each teammate what they own, what they build, and when it has to
 | Criterion | Pts | What it means for your work |
 |---|---|---|
 | Functionality | **14** | The MVP must work **every** run. That's why checkpoints and "If stuck" fallbacks exist. |
-| Innovation | **10** | Make the adaptivity **visible**: T1's live Follow-up badge, T2's adaptive path. Integrity stays out of the hire score. |
+| Innovation | **10** | Make the adaptivity **visible**: T1's live Follow-up badge, T2's adaptive path. The **Evidence Dossier** with an *advisory* recommendation. Integrity stays out of the hire score. |
 | Demonstration | **8** | A rehearsed 3-min pitch (bottom of this page) + a backup video. |
 | Feasibility | **7** | $0, no installs, offline fallback. The presenter says it out loud. |
 | Scalability | **6** | The facts are in `IMPLEMENTATION_PLAN.md` §2a. The presenter says them in 30 s. |
@@ -24,19 +25,19 @@ This page tells each teammate what they own, what they build, and when it has to
 
 **Golden rules**
 1. **Never edit a file you don't own.** Need something changed? Message the owner.
-2. **Build MVP first.** Start stretch work only after Checkpoint 2 (H3:00) passes.
+2. **Build MVP first.** Start stretch work only after Checkpoint 2 (H2:45) passes.
 3. **Stuck for more than 20 min?** Use the "If stuck" fallback in your section, then tell the team.
 4. **Work on your own branch** (`TEAM_ONBOARDING.md`); never commit to `main`. Push your branch at least every 30 min.
 
 ---
 
-## H0:00–0:30: Everyone (setup)
+## H0:00–0:20: Everyone (setup)
 - [ ] Install Node ≥ 22.9 (`node -v`), git, and Chrome.
 - [ ] Get **your own** free Groq key at https://console.groq.com/keys (no credit card). Do not share one key: the free tier is 8K tokens/min per key.
 - [ ] `git clone https://github.com/Aryaman-Saraf/TIMEPASS-PARTICIPATION.git`, then create **your branch** exactly as named in `TEAM_ONBOARDING.md`.
 - [ ] `copy .env.example .env` and paste your key into `GROQ_API_KEY=`.
 - [ ] Read §4 of `IMPLEMENTATION_PLAN.md` **together** (10 min). These are the promises between your code and your teammates' code.
-- [ ] Ship your **stub** (see your section) and push it by 0:30, so the other two can build against it.
+- [ ] Ship your **stub** (see your section) and push it by 0:20, so the other two can build against it.
 
 ## Checkpoints (stop, merge, pull, test together, 10 min each)
 Before each checkpoint:
@@ -46,9 +47,9 @@ Before each checkpoint:
 4. Test together on the merged `main`.
 | When | Must work |
 |---|---|
-| **H1:30** | Setup page → Start → room page opens and **speaks the opening question**. |
-| **H3:00 (MVP freeze)** | A full spoken interview → End → report shows scores, evidence, STAR and the **integrity section**. Fix any bug here before starting stretch work. |
-| **H4:15 (code freeze)** | Bug fixes only. Run the demo script. |
+| **H1:20** | Setup page → Start → room page opens and **speaks the opening question**. |
+| **H2:45 (MVP freeze)** | A full spoken interview → End → report shows scores, evidence, STAR and the **integrity section**. Fix any bug here before starting stretch work. |
+| **H3:50 (code freeze)** | Bug fixes only. Run the demo script. |
 
 ---
 
@@ -76,17 +77,19 @@ Before each checkpoint:
 - `room.html` **must contain** `<video id="cam" autoplay muted playsinline>`, `<canvas id="overlay">` and `<div id="hud">`.
 
 ### Checklist
-- [ ] **0:00–0:30:** `room.html` skeleton with the three elements above, plus a transcript box, a typed-answer input, and Done / End buttons. Push it.
-- [ ] **0:30–1:30:** `styles.css` (dark theme, CSS variables). `index.html` form: name, role, JD textarea, resume textarea, question count 3/5/7, consent checkbox, and a **"Load sample"** button that fills in a realistic JD and resume.
-- [ ] **0:30–1:30:** `say(text)` returns a Promise that resolves on `onend`. Split the text into sentences; long utterances can get cut off in Chrome. Add a safety timeout of about 15 s per sentence in case `onend` never fires.
-- [ ] **1:30:** Checkpoint 1.
-- [ ] **1:30–3:00:** `listen()`: `continuous = true`, `interimResults = true`. Show interim text in italics. Restart in `onend` while still listening. After the first final result, start a 2.5 s silence timer; when it fires → `send()`.
-- [ ] **1:30–3:00:** Loop: `say(reply)` → `listen()` → `send(answer)` → `say(reply)` … until `done`. Show "Q2/5 · competency" progress and a timer.
-- [ ] **1:30–3:00 (Innovation points, 15 min):** a live badge from `progress.action`: `probe` → "↻ Follow-up", `advance` → "→ Next question", `wrap_up` → "✓ Wrap-up". Show difficulty `progress.difficulty` as ●●●○○ next to it. This is how judges *see* the interview adapting.
-- [ ] **1:30–3:00:** "Begin" button (browsers need a click before the camera, mic and audio can start): `getUserMedia({video:true, audio:true})`, then `monitor.start(true)`. **If the camera is denied**, call `monitor.start(false)` and continue. **If the mic is denied**, typed input only.
-- [ ] **1:30–3:00:** End button or `done` → `finish()` → evaluate → redirect. If evaluate fails, show a Retry button.
-- [ ] **3:00:** Checkpoint 2.
-- [ ] **3:00–4:15 (stretch):** mic level bars (AnalyserNode), `document.body.dataset.state = speaking|listening|thinking` to animate an orb, `aria-live` on the transcript, a check at mobile width.
+- [ ] **0:00–0:20:** `room.html` skeleton with the three elements above, plus a transcript box, a typed-answer input, and Done / End buttons. Push it.
+- [ ] **0:20–1:20:** `styles.css` (dark theme, CSS variables). `index.html` form: name, role, JD textarea, resume textarea, question count 3/5/7, consent checkbox, and a **"Load sample"** button that fills in a realistic JD and resume.
+- [ ] **0:20–1:20:** `say(text)` returns a Promise that resolves on `onend`. Split the text into sentences; long utterances can get cut off in Chrome. Add a safety timeout of about 15 s per sentence in case `onend` never fires.
+- [ ] **1:20:** Checkpoint 1.
+- [ ] **1:20–2:45:** `listen()`: `continuous = true`, `interimResults = true`. Show interim text in italics. Restart in `onend` while still listening. After the first final result, start a 2.5 s silence timer; when it fires → `send()`.
+- [ ] **1:20–2:45:** Loop: `say(reply)` → `listen()` → `send(answer)` → `say(reply)` … until `done`. Show "Q2/5 · competency" progress and a timer.
+- [ ] **1:20–2:45 (Innovation points, 15 min):** a live badge from `progress.action`: `probe` → "↻ Follow-up", `advance` → "→ Next question", `wrap_up` → "✓ Wrap-up". Show difficulty `progress.difficulty` as ●●●○○ next to it. This is how judges *see* the interview adapting.
+- [ ] **1:20–2:45:** "Begin" button (browsers need a click before the camera, mic and audio can start): `getUserMedia({video:true, audio:true})`, then `monitor.start(true)`. **If the camera is denied**, call `monitor.start(false)` and continue. **If the mic is denied**, typed input only.
+- [ ] **1:20–2:45 (v3, 10 min):** **device pre-flight chips** after Begin: Camera ✓/✗, Mic ✓/✗ (from the `getUserMedia` result), Speech ✓/✗ (`'webkitSpeechRecognition' in window`). If Speech is ✗, say "typed mode" up front.
+- [ ] **1:20–2:45 (v3, 10 min):** **static Ava card**: an avatar (emoji/SVG/initials) + a status line ("Speaking…", "Listening…", "Thinking…") driven by `document.body.dataset.state`.
+- [ ] **1:20–2:45:** End button or `done` → `finish()` → evaluate → redirect. If evaluate fails, show a Retry button.
+- [ ] **2:45:** Checkpoint 2.
+- [ ] **2:45–3:50 (stretch):** first the **low-confidence re-ask** *(v3)*: if a final result's text is empty or `result[0].confidence < 0.5`, Ava says "Sorry, I didn't catch that. Could you repeat, or type it?" and listens again, with no server call. Then mic level bars (AnalyserNode), orb animation, `aria-live` on the transcript, a check at mobile width.
 
 ### Definition of done (MVP)
 A candidate can run a full interview by voice in Chrome. Typing + Enter always works as a backup. Denying camera or mic does not break anything.
@@ -117,32 +120,41 @@ import { startInterview, chatTurn, evaluate, llmStatus, httpError } from './engi
 ```
 
 ### Checklist
-- [ ] **0:00–0:30:** produce `data/mock-session.json` by running `startInterview` → a few `chatTurn`s → `evaluate` **with no key** (the offline fallback). Write the session to that file and push it.
-- [ ] **0:30–1:30:** `server.js` with `node:http` (no Express):
+- [ ] **0:00–0:20:** produce `data/mock-session.json` by running `startInterview` → a few `chatTurn`s → `evaluate` **with no key** (the offline fallback). Write the session to that file and push it.
+- [ ] **0:20–1:20:** `server.js` with `node:http` (no Express):
   - static files from `public/` (`/` → `index.html`), with a **path-traversal guard** (the resolved path must stay inside `public/`);
   - JSON body reader capped at **1 MB**;
   - a `Map` of sessions, written to `data/sessions/<id>.json` after every change and loaded at startup;
   - a **busy lock** per session (a `Set` of ids in flight → reply 409 if the id is already there);
   - errors → `res.statusCode = err.status || 500` with `{error: message}`.
-- [ ] **1:30:** Checkpoint 1.
-- [ ] **1:30–3:00:** `engine.test.js` with `node:test` + `assert`:
+- [ ] **1:20:** Checkpoint 1.
+- [ ] **1:20–2:45:** `engine.test.js` with `node:test` + `assert`:
   - `nextStep` never goes over 2 follow-ups and wraps up at the last question;
   - `computeIntegrity` gives 100 for no events and a lower score for a tab switch;
   - `recommend(80) === 'Strong Hire'`;
   - `parseJSON` handles code-fenced JSON;
   - `heuristic` scores a full STAR answer higher than "ok";
   - a full offline interview produces a report.
-- [ ] **1:30–3:00:** `report.html` + `report.js`:
+- [ ] **1:20–2:45:** `report.html` + `report.js`:
   - with no `?id`, a table of sessions from `/api/sessions`;
   - with `?id`, the scorecard: header (name, role, score, recommendation pill), competency bars with rationale + evidence quotes, strengths/gaps, STAR table, communication, coaching, and a collapsible transcript;
   - call `renderIntegrity(document.getElementById('integrity'), s.integrity, s.turns)` from T3's `integrity.js`;
   - **escape everything** from the LLM or the candidate with `esc()` (replace `& < > " '`) before putting it in `innerHTML`.
-- [ ] **3:00:** Checkpoint 2.
-- [ ] **3:00–4:15:** prompt tuning with a real key on 3 different sample resumes. Is the follow-up relevant? Are the evidence quotes verbatim? Log the time per turn and aim for under 1.5 s. Then the **offline drill**: set a wrong key, run a full interview, and confirm you still get a report.
-- [ ] **1:30–3:00 (MVP, Innovation points):** an **adaptive path** section in the report.
+- [ ] **2:45:** Checkpoint 2.
+- [ ] **1:20–2:45 (MVP, Innovation points):** an **adaptive path** section in the report.
   - One row per AI turn in `s.turns`: a badge from `kind` (main / probe / advance / wrap_up), difficulty dots, and the live `score` of the candidate answer that followed.
   - This is how judges see *why* the interview changed direction.
-- [ ] **Stretch:** radar SVG, print CSS for `window.print()`.
+- [ ] **1:20–2:45 (v3, MVP, 15 min): Evidence Dossier header** (from Suryansh's idea). Three tiles, built only from §4 fields:
+  - **Technical Relevancy** = `report.overallScore`.
+  - **Articulation & Delivery** = `Math.round(((c.clarity + c.structure + c.conciseness) / 3 - 1) / 4 * 100)` where `c = report.communication`.
+  - **Integrity Confidence** = `integrity.stats.onScreenPct`, or "n/a" if there is no integrity data.
+  - Under the tiles, the recommendation pill with the caption **"Advisory, a human makes the final call"**.
+- [ ] **2:45–3:50, in this order:**
+  1. **PII redaction** *(v3, from Prathul)*: in `engine.js`, before building prompts, replace emails, phone numbers, URLs and every occurrence of `candidateName` in `resumeText` with `[REDACTED]`. Add one test.
+  2. Lower the fast-tier timeout in `llmJSON` from 15 s to ~8 s so a hung provider fails over quickly *(v3)*.
+  3. Prompt tuning with a real key on 3 different sample resumes. Is the follow-up relevant? Are the evidence quotes verbatim? Log the time per turn and aim for under 1.5 s.
+  4. The **offline drill**: set a wrong key, run a full interview, and confirm you still get a report.
+- [ ] **Stretch:** filler words per 100 words + rough WPM in the communication card *(v3)*; click an integrity event row → scroll to the transcript turn at that time *(v3)*; radar SVG; print CSS for `window.print()`.
 - [ ] **For the pitch:** check that the numbers in `IMPLEMENTATION_PLAN.md` §2a (calls per interview, free-tier capacity) match what you actually see in the server logs, and correct them if not.
 
 ### Definition of done (MVP)
@@ -178,11 +190,11 @@ export function renderIntegrity(el, integrity, turns)  // report section: risk p
 - The server recomputes severity and the score (`computeIntegrity` in engine.js), so don't compute them in the browser.
 
 ### Checklist
-- [ ] **0:00–0:30: stub** `integrity.js` with the exact API above.
+- [ ] **0:00–0:20: stub** `integrity.js` with the exact API above.
   - It already logs `TAB_HIDDEN`, using `document.visibilitychange` (start the episode when hidden, end it and push the event when visible again).
   - It already logs `WINDOW_BLUR`, using `blur` / `focus` on `window`.
   - `start()` ignores the camera for now. Push it so T1 can integrate straight away.
-- [ ] **0:30–1:30:** load MediaPipe (checked: version 1.0.1 and these URLs return 200):
+- [ ] **0:20–1:20:** load MediaPipe (checked: version 1.0.1 and these URLs return 200):
   ```js
   import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/vision_bundle.mjs';
   const fileset = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm');
@@ -195,27 +207,28 @@ export function renderIntegrity(el, integrity, turns)  // report section: risk p
   - If GPU fails, retry with `delegate: 'CPU'`. If that fails too → `vision: 'unavailable'` and continue with tab/blur only.
   - Draw a box around face 0 on the overlay canvas (mirror it to match the mirrored video).
   - `FACE_MISSING`: no face for ≥ 1 s. `MULTIPLE_FACES`: 2+ faces for ≥ 1 s, with `detail.count`.
-- [ ] **1:30:** Checkpoint 1.
-- [ ] **1:30–3:00:** look-away with **fixed thresholds** (put them in a `CONFIG` object so you can tune them in the demo room):
+- [ ] **1:20:** Checkpoint 1.
+- [ ] **1:20–2:45:** look-away with **fixed thresholds** (put them in a `CONFIG` object so you can tune them in the demo room):
   - yaw ≈ `asin(clamp((nose.x - midCheekX) / (cheekWidth/2), -1, 1))` in degrees, using landmarks nose 1, cheeks 234 / 454;
   - pitch works the same way with forehead 10 / chin 152;
   - away if |yaw| > 25° or |pitch| > 20°, for ≥ 1.5 s → `LOOK_AWAY` with `detail:{yaw, pitch}`;
   - call `onChange(hud)` whenever a state changes.
-- [ ] **1:30–3:00:** `renderIntegrity(el, integrity, turns)`:
+- [ ] **1:20–2:45:** `renderIntegrity(el, integrity, turns)`:
   - risk pill (low / medium / high) + score;
   - disclaimer: "Attention signals are context, not proof, and are not part of the hire score";
-  - tiles: on-screen %, look-aways, tab switches, multi-face;
+  - tiles: **"Integrity confidence"** (= on-screen %, *v3 label*), look-aways, tab switches, multi-face;
   - event table: time, type, duration, severity, and "during Qn" (the latest AI turn whose `t` is before the event's `at`);
   - if `!integrity.visionAvailable`, say "Camera not available: only tab/window events were monitored". Escape all text.
-- [ ] **3:00:** Checkpoint 2.
-- [ ] **3:00–4:15: QA runs** (write down what broke and tell the owner):
+- [ ] **2:45:** Checkpoint 2.
+- [ ] **2:45–3:50: QA runs** (write down what broke and tell the owner):
   1. The full happy path by voice.
   2. Camera denied.
   3. Mic denied (typed only).
   4. Turn your head for 3 s, bring a second person into frame, switch tabs for 5 s. Check: HUD → report table → risk goes up, **hire score unchanged**.
   5. Bad Groq key (the offline fallback still gives a report).
-- [ ] **3:00–4:15:** `README.md` already has the overview, setup, feasibility and scalability sections. Update the run steps if anything changed, and add 2 screenshots (room + report).
-- [ ] **4:30:** record the **2-min backup demo video** of a clean run. Free options: Win+Alt+R (Xbox Game Bar) or OBS. Keep it on the demo laptop *and* a phone.
+- [ ] **2:45–3:50:** `README.md` already has the overview, setup, feasibility and scalability sections. Update the run steps if anything changed, and add 2 screenshots (room + report).
+- [ ] **4:00:** record the **2-min backup demo video** of a clean run. Free options: Win+Alt+R (Xbox Game Bar) or OBS. Keep it on the demo laptop *and* a phone.
+- [ ] **Stretch (v3, first):** a **"during answer"** flag in the event table: the event's `at` falls between an AI turn's `t` and the next candidate turn's `t` (Suryansh's attention-anomaly idea). While the face is missing, don't also count look-away (Prathul's lighting idea).
 - [ ] **Stretch:** 2 s calibration (average yaw/pitch at start = the "straight ahead" baseline); eye-gaze from blendshapes `eyeLookOut*/eyeLookIn*/eyeLookDown*` > 0.6; a gaze line on the overlay; timeline lanes in the report.
 
 ### Definition of done (MVP)
@@ -227,7 +240,7 @@ Every one of the 5 event types appears in the room HUD and in the report table f
 
 ---
 
-## H4:15–5:00: 3-minute pitch + demo (everyone)
+## H3:50–4:30: 3-minute pitch + demo (everyone)
 Each step is tagged with the criterion it scores. One person presents and one drives the laptop.
 
 | # | Time | Criterion | Say / do |
@@ -236,8 +249,8 @@ Each step is tagged with the criterion it scores. One person presents and one dr
 | 2 | 30 s | Functionality | "Load sample" → role "Backend Engineer" → Start. Point out that the first questions quote the **resume**. |
 | 3 | 50 s | **Innovation** | Give a vague answer ("I worked on some APIs"): the badge shows **↻ Follow-up** and Ava probes. Give a strong STAR answer with a number: **→ Next question** and the difficulty dots go up. "Most platforms ask fixed questions; ours listens and adapts." |
 | 4 | 20 s | Innovation | Look at your phone for 3 s, switch tabs once. The HUD reacts live. "All of this runs on the candidate's device; no video leaves the laptop." |
-| 5 | 40 s | Functionality / Design | Report: score + recommendation, evidence quotes, STAR table, **adaptive path**, integrity events + the disclaimer "*context, not proof; not part of the hire score*". |
-| 6 | 20 s | **Feasibility + Scalability** | "$0 per interview, no installs, works offline if the AI API goes down. Vision runs client-side, so the server stays thin. We swap to any OpenAI-compatible model with one `.env` line. Sessions move to Postgres to scale out. Works for any role because questions come from the JD." |
+| 5 | 40 s | Functionality / Design | Recruiter portal: the **Evidence Dossier** (Technical Relevancy · Articulation & Delivery · Integrity Confidence) + the *advisory* recommendation, evidence quotes, STAR table, **adaptive path**, integrity events + the disclaimer "*context, not proof; not part of the hire score*". |
+| 6 | 20 s | **Feasibility + Scalability** | "$0 per interview, no installs, works offline if the AI API goes down. Vision runs client-side, so the server stays thin. We swap to any OpenAI-compatible model with one `.env` line. Sessions move to Postgres to scale out. Works for any role because questions come from the JD. Next: WebRTC + a message bus, embeddings for relevance, a nightly name-swap bias audit (plan §2b)." |
 
 **Backup plan:**
 - Wi-Fi or Groq fails → the offline fallback still runs the whole interview.
@@ -248,6 +261,7 @@ Each step is tagged with the criterion it scores. One person presents and one dr
 - *"What if the AI API fails?"* → Groq, then Gemini, then built-in heuristics; the interview never stops.
 - *"Isn't gaze tracking unfair?"* → It is shown as context only, never scored. We ignore glances under 1.5 s, and the candidate sees the same HUD.
 - *"Can the LLM be biased in the decision?"* → The LLM only cites evidence against a fixed 1–5 rubric. The hire recommendation is computed by code, so the same scores always give the same outcome.
-- *"How does it scale?"* → Client-side vision, a thin server, provider swap via config, a DB for sessions. See §2a for the numbers.
+- *"How does it scale?"* → Client-side vision, a thin server, provider swap via config, a DB for sessions. See §2a for the numbers and §2b for the production roadmap.
+- *"Why not just Accept/Reject?"* → We give an explainable evidence dossier. The recommendation is advisory, computed by code from the rubric, and a human makes the final call.
 
 Rehearse it **twice** before judging: once as a strong candidate, once as a "distracted" candidate. Time it and stay **under 3 min**.

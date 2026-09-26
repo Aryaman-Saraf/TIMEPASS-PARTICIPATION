@@ -11,7 +11,8 @@ Built for our 5-hour hackathon with **$0 budget**, **zero npm build dependencies
 1. **Profile-Aware Questioning & Evaluation**:
    - Ingests candidate resume and target role context to generate customized, role-specific questions.
    - Evaluates performance objectively against **BARS** (Behaviorally Anchored Rating Scales 1–5) and **STAR** criteria.
-   - Produces an executive hiring report with strengths, gaps, evidence quotes, and coaching tips.
+   - Produces an **Explainable Evidence Dossier**: Technical Relevancy, Articulation & Delivery and Integrity Confidence indices, strengths, gaps, evidence quotes, and coaching tips.
+   - The hire recommendation is computed by code from the rubric and is **advisory**: a human makes the final call.
 
 2. **Conversational & Adaptive Interviewing**:
    - Natural spoken conversation using the browser-native **Web Speech API** (zero external speech API cost and zero audio streaming latency).
@@ -92,6 +93,7 @@ Open **[http://localhost:3000](http://localhost:3000)** in Chrome to begin!
 │   └── styles.css            # Dark theme & UI design tokens (T1)
 ├── data/sessions/            # JSON session storage (git-ignored)
 └── archive/                  # Preserved historical plan iterations
+    └── teammate-proposals/   # Original proposals from Prathul & Suryansh (merged into the plan, §10)
 ```
 
 ---
@@ -109,6 +111,12 @@ Open **[http://localhost:3000](http://localhost:3000)** in Chrome to begin!
 - **Swap models with no code change.** Any OpenAI-compatible provider or model can be set via `.env`. Next steps: a pool of keys and a request queue.
 - **Any role.** Competencies and questions are generated from the job description, so there is no per-job question bank.
 - **Capacity today (estimate).** One interview ≈ 8–14 LLM calls. One free Groq key handles ≈ 5 interviews at the same time and ≈ 70 per day. Details are in [IMPLEMENTATION_PLAN.md §2a](IMPLEMENTATION_PLAN.md).
+
+## 🗺️ Roadmap (not built today)
+
+- **Scale:** WebRTC media server + a message bus, so speech, vision and audio analysis scale independently. Containerised services, Postgres/Redis sessions.
+- **Smarter scoring:** Whisper word-timestamps for pace and filler analysis; embeddings to match answers against JD requirements and resume claims.
+- **Fairness & integrity:** stronger PII redaction, a nightly name-swap bias audit, speaker diarization, screen-share checks. Full list in [IMPLEMENTATION_PLAN.md §2b](IMPLEMENTATION_PLAN.md).
 
 ---
 

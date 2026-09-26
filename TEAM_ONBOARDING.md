@@ -38,7 +38,7 @@ git commit -m "feat(scope): describe what you built"
 git push -u origin <your-branch-name>
 ```
 
-### 4. Merge into `main` at Each Checkpoint (H1:30, H3:00, H4:15)
+### 4. Merge into `main` at Each Checkpoint (H1:20, H2:45, H3:50)
 1. Open a Pull Request from your branch into `main` on GitHub.
 2. The repo owner merges it.
 3. Pull `main` back into your branch:
@@ -93,8 +93,8 @@ Do not share API keys! The free tier limits requests per minute per key.
 
 | Time | Checkpoint | Goal |
 | :--- | :--- | :--- |
-| **H0:00 – H0:30** | **Setup & Stubs** | Everyone clones, creates their branch, gets keys, and pushes stubs. |
-| **H1:30** | **Checkpoint 1** | Form setup → room page opens and speaks the opening question aloud. |
-| **H3:00** | **Checkpoint 2 (MVP Freeze)** | Complete spoken interview from start to finish + report generated. |
-| **H4:15** | **Code Freeze** | Bug fixes only. Run the full demo script twice. |
-| **H4:30 – H5:00** | **Rehearsal & Video** | Record a 2-minute backup demo video. |
+| **H0:00 – H0:20** | **Setup & Stubs** | Everyone clones, creates their branch, gets keys, and pushes stubs. |
+| **H1:20** | **Checkpoint 1** | Form setup → room page opens and speaks the opening question aloud. |
+| **H2:45** | **Checkpoint 2 (MVP Freeze)** | Complete spoken interview from start to finish + report generated. |
+| **H3:50** | **Code Freeze** | Bug fixes only. Run the full demo script twice. |
+| **H3:50 – H4:30** | **Rehearsal & Video** | Record a 2-minute backup demo video. |
