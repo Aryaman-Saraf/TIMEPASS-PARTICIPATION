@@ -105,6 +105,18 @@
   - Enforced strict repository root cleanliness: only configuration files, core architecture documentation, core backend/test files, and 4 primary directories (`public/`, `data/`, `docs/`, `archive/`).
   - Verified test suite: 17/17 tests passing.
 
+### 16. Dual-Portal Gateway & Read-Only Candidate Pre-Flight
+- **Target Files**: `public/index.html`
+- **Details**:
+  - Implemented main portal gateway with dual-persona authentication: "Candidate / Interviewee" vs "Hiring Manager / Recruiter".
+  - Recruiter card connects directly to Recruiter Dossier Dashboard (`report.html`).
+  - Candidate side presents scheduled interview invitation roster (Sarah Jenkins - Frontend, Alex Chen - Backend, Jordan Lee - Full Stack).
+  - Completely eliminated all candidate-editable configuration: Target Role, Interview Mode, Question Count, Job Description, and Resume inputs are strictly read-only and locked by the hiring manager (`🔒 Hiring Manager Locked`).
+  - Added Candidate Waiting Line status indicator: "Next in Line (#1) · AI Interviewer Ava Ready".
+  - Extracted job description and pre-uploaded candidate resume (with `🛡️ PII Redacted & Anonymized` badge) are displayed in an expandable read-only inspection card.
+  - Verified in live browser subagent: verified zero editable dropdowns, verified audio speaker test, and verified dynamic mic activity meter.
+  - Verified test suite: 17/17 tests passing.
+
 ---
 
 ## Pending Staged Actions (Awaiting User Execution / End-of-Session)
