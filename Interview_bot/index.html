@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candor AI - Technical Setup & Pre-flight Check</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Top Navbar (Image 3 Header) -->
+    <nav class="navbar flex-between">
+        <a href="index.html" class="brand-logo">
+            <div class="brand-icon">C</div>
+            <span>Candor AI</span>
+        </a>
+        <div class="flex gap-4">
+            <button class="btn btn-outline" style="padding: 0.375rem 0.875rem;" onclick="playHelpAudio()">
+                <span>❓ Help Center</span>
+            </button>
+            <div class="flex gap-2">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" 
+                     alt="Sarah Miller" 
+                     style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-dark);">
+                <div style="font-size: 0.8125rem;">
+                    <div style="font-weight: 600;">Sarah Miller</div>
+                    <div style="color: var(--text-muted); font-size: 0.75rem;">Candidate</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Setup Modal (Image 3 Center Box) -->
+    <div class="setup-overlay">
+        <div class="setup-card">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.375rem;">Technical Setup</h1>
+                <p style="color: var(--text-muted); font-size: 0.875rem;">Step 2 of 3: Pre-flight Audio & Video Check</p>
+            </div>
+
+            <!-- Video Preview Frame -->
+            <div class="video-preview-box">
+                <video id="preview-video" autoplay muted playsinline></video>
+                <div class="chip chip-success" style="position: absolute; top: 0.75rem; right: 0.75rem; z-index: 10;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); display: inline-block;"></span>
+                    <span>Ready to Begin</span>
+                </div>
+
+                <!-- Device Controls Selector Bar -->
+                <div class="video-controls-bar">
+                    <select id="cam-select" class="select-control">
+                        <option>📹 Camera: HD Web Camera</option>
+                    </select>
+                    <select id="mic-select" class="select-control">
+                        <option>🎙️ Microphone: Built-in Array</option>
+                    </select>
+                    <select id="spk-select" class="select-control">
+                        <option>🔊 Speakers: Default System Output</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Status Indicators Pills (Matches Image 3) -->
+            <div class="flex" style="justify-content: center; gap: 0.75rem; margin-bottom: 2rem;">
+                <div id="cam-chip" class="chip chip-success">
+                    <span>✓</span> <span>Camera Connected</span>
+                </div>
+                <div id="mic-chip" class="chip chip-success">
+                    <span>✓</span> <span>Microphone Active</span>
+                </div>
+                <div id="stt-chip" class="chip chip-success">
+                    <span>✓</span> <span>Speech AI Ready</span>
+                </div>
+            </div>
+
+            <!-- Audio Output Test & Action -->
+            <div class="flex-col gap-3" style="align-items: center;">
+                <button class="btn btn-outline" onclick="testAudioFeedback()" style="font-size: 0.8125rem;">
+                    🔊 Play Audio Speaker Test
+                </button>
+                <button class="btn btn-primary" onclick="startInterviewSession()" style="width: 100%; max-width: 320px; padding: 0.875rem 1.5rem; font-size: 1rem;">
+                    Begin Interview ↗
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio Sound Synthesizer for Audio Feedback Cues
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playChime(freq = 523.25, type = 'sine', duration = 0.2) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // Camera & Audio Initialization
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                document.getElementById('preview-video').srcObject = stream;
+                playChime(659.25, 'sine', 0.25); // Feedback chime
+            })
+            .catch(err => {
+                console.error("Camera/Mic permission denied:", err);
+                document.getElementById('cam-chip').className = 'chip chip-danger';
+                document.getElementById('cam-chip').innerHTML = '<span>✗</span> Camera Denied';
+            });
+
+        function testAudioFeedback() {
+            playChime(880, 'triangle', 0.3);
+            const synth = window.speechSynthesis;
+            const utt = new SpeechSynthesisUtterance("Audio output is working perfectly. You are ready to start the interview.");
+            synth.speak(utt);
+        }
+
+        function playHelpAudio() {
+            const synth = window.speechSynthesis;
+            const utt = new SpeechSynthesisUtterance("Welcome to Candor A I. Please ensure your camera and microphone are connected before clicking Begin Interview.");
+            synth.speak(utt);
+        }
+
+        function startInterviewSession() {
+            playChime(783.99, 'sine', 0.3); // High start chime
+            setTimeout(() => {
+                window.location.href = "room.html";
+            }, 300);
+        }
+    </script>
+</body>
+</html>

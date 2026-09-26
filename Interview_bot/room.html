@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candor AI - Live Interview Room</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body style="overflow: hidden;">
+
+    <!-- Header Navbar (Image 2 Top Bar) -->
+    <nav class="navbar flex-between">
+        <div class="flex gap-4">
+            <a href="index.html" class="brand-logo">
+                <div class="brand-icon">C</div>
+                <span>Candor AI</span>
+            </a>
+            <div style="height: 20px; width: 1px; background: var(--border-dark);"></div>
+            <div style="font-size: 0.875rem; color: var(--text-muted);">
+                Interview Room: <strong style="color: #fff;">Sarah Jenkins</strong> | Senior Frontend Engineer
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <div class="flex gap-2">
+                <span style="font-size: 0.8125rem; color: var(--text-muted);">Status:</span>
+                <span class="chip chip-success" style="padding: 0.125rem 0.625rem;">Live</span>
+            </div>
+            <div class="flex gap-2" style="color: var(--danger); font-size: 0.8125rem; font-weight: 600;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--danger); animation: pulse 1.5s infinite;"></span>
+                <span>Recording</span>
+            </div>
+            <div style="height: 20px; width: 1px; background: var(--border-dark);"></div>
+            <div class="flex gap-2" style="font-size: 0.8125rem;">
+                <span style="color: var(--text-muted);">User:</span>
+                <strong style="color: #fff;">Alex R. (Interviewer)</strong>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Live Grid Layout (Image 2 Main View) -->
+    <div class="room-container">
+        
+        <!-- Left Panel: Candidate Video & Stream Overlay -->
+        <div class="video-panel">
+            <div class="candidate-stream-wrap">
+                <video id="cam" autoplay muted playsinline></video>
+                <canvas id="overlay" class="overlay-canvas"></canvas>
+
+                <!-- Top Overlay Controls -->
+                <div class="stream-overlay-top">
+                    <div id="hud" class="flex gap-2">
+                        <!-- Dynamic Integrity Badges -->
+                    </div>
+                    <div class="chip" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+                        📶 HD WebRTC | Low Latency
+                    </div>
+                </div>
+
+                <!-- Bottom Overlay Nameplate (Matches Image 2) -->
+                <div class="stream-overlay-bottom">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem; color: #fff;">Sarah Jenkins | Candidate</div>
+                        <div class="flex gap-2" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.125rem;">
+                            <span style="color: var(--danger);">● Recording</span>
+                            <span>📶 Audio Signal 100%</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button class="btn btn-outline" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;" onclick="toggleAudioMute()">
+                            🎙️ <span id="mute-label">Mute Audio</span>
+                        </button>
+                        <button class="btn btn-outline" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;" onclick="toggleAudioFeedbackPrompt()">
+                            🔊 Audio Feedback
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: AI Assistant & Real-Time Audio Engine (Image 2 Right Side) -->
+        <div class="ai-panel">
+            
+            <!-- 3D Glowing AI Voice Orb & Waveform -->
+            <div class="ai-orb-container">
+                <div id="ai-orb" class="ai-orb">AI</div>
+                <canvas id="audio-wave" class="audio-wave-canvas"></canvas>
+                <div id="ai-status-text" style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.5rem; font-weight: 500;">
+                    Text: AI Assistant | Active Listening...
+                </div>
+            </div>
+
+            <!-- Scrolling Transcript Box -->
+            <div id="transcript" class="transcript-box">
+                <div class="chat-bubble ai">
+                    <div class="chat-meta">
+                        <strong>Candor AI</strong>
+                        <span>02:14</span>
+                    </div>
+                    Hello Sarah! Welcome. Can you elaborate on how you handled performance issues in React?
+                </div>
+            </div>
+
+            <!-- Dynamic AI Follow-up / Action Card (Image 2 Blue Card) -->
+            <div id="ai-action-box" class="ai-action-card">
+                <div id="action-badge" class="ai-action-badge">
+                    <span>✨</span> <span>Follow-up Question</span>
+                </div>
+                <div id="action-desc" style="font-size: 0.8125rem; color: #93c5fd; line-height: 1.4;">
+                    Based on Sarah's mention of React performance optimization, consider asking about specific techniques used (e.g., useCallback, virtualization) or how she measured improvements.
+                </div>
+            </div>
+
+            <!-- Audio Input Text Backup Box -->
+            <div class="flex gap-2">
+                <input type="text" id="backup-input" placeholder="Audio active. Type text answer if needed..." 
+                       onkeypress="if(event.key==='Enter') window.sendManual()" 
+                       style="font-size: 0.8125rem; padding: 0.625rem;">
+                <button class="btn btn-primary" onclick="window.sendManual()" style="padding: 0.625rem 1rem;">
+                    Send
+                </button>
+            </div>
+
+            <!-- Bottom Action Toolbar (Image 2 Bottom Bar) -->
+            <div class="flex-between" style="padding-top: 0.5rem; border-top: 1px solid var(--border-dark);">
+                <div class="flex gap-2">
+                    <button class="btn btn-outline" style="padding: 0.375rem 0.625rem; font-size: 0.75rem;" onclick="openAISettings()">
+                        ⚙️ AI Settings
+                    </button>
+                    <button class="btn btn-outline" style="padding: 0.375rem 0.625rem; font-size: 0.75rem;" onclick="speakHelp()">
+                        ❓ Help
+                    </button>
+                </div>
+                <button class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.8125rem;" onclick="window.endInterview()">
+                    End Interview
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script type="module" src="integrity.js"></script>
+    <script type="module" src="room.js"></script>
+</body>
+</html>
