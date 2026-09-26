@@ -16,3 +16,6 @@ data/sessions/*.json
 .vscode/
 .idea/
 .DS_Store
+
+# Temporary scratchpad
+scratch/

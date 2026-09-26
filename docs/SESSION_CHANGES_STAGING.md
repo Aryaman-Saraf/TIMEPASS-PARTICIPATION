@@ -176,5 +176,14 @@
   - Added `report.js` backwards-compatible alias exporting `recruiter-portal.js`.
   - Verified 100% API contract wire-up (`/api/health`, `/api/start-interview`, `/api/chat-turn`, `/api/evaluate`, `/api/sessions`).
   - Ran automated test suite via `npm test`: all 17/17 backend contract and static serving tests pass cleanly.
+### 25. Stitch MCP Integration & Gateway Screen Ingestion
+- **Target Files**: `~/.gemini/config/mcp_config.json`, `.agents/plugins/stitch/`, `scratch/stitch-client.js`, `docs/SESSION_CHANGES_STAGING.md`
+- **Details**:
+  - Saved Stitch MCP server configuration with `STITCH_API_KEY` to `~/.gemini/config/mcp_config.json` and `.agents/plugins/stitch/mcp_config.json`.
+  - Built `scratch/stitch-client.js` for executing Stitch MCP tools (`list_projects`, `get_screen`, `generate_screen_from_text`, etc.).
+  - Successfully connected to `https://stitch.googleapis.com/mcp` and discovered project `projects/3592487876692784796` ("Candor AI Authentication Gateway").
+  - Retrieved and downloaded the screen designed by the user (`3a1ce33e0e5640a4b00da477e71886d3` and variants) with its full HTML/Tailwind implementation.
+
 1. End-of-Session Batch Sync to Obsidian Vault (`C:\Users\aryam\ObsidianVault`) and Memanto (`candor` namespace).
+
 
