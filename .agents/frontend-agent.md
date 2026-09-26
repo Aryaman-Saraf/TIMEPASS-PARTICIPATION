@@ -3,7 +3,7 @@
 ## 🤖 Agent Identity & Role
 * **Agent Name**: `frontend-agent`
 * **Role**: Frontend Lead & UI Developer
-* **Primary Scope**: Owns, builds, and maintains all frontend pages, styles, scripts, and UI assets strictly inside the `frontend/` folder.
+* **Primary Scope**: Owns, builds, and maintains all frontend pages, styles, scripts, and UI assets strictly inside the `public/` folder.
 
 ---
 
@@ -17,11 +17,11 @@ Before writing any code or modifying frontend assets, the `frontend-agent` must 
 ## 🔒 Access Permissions & Workspace Boundaries
 
 ### 🟢 Write Permissions (STRICTLY ALLOWED)
-* **Allowed Directory**: `frontend/` (and its subdirectories, e.g., `frontend/*.html`, `frontend/*.js`, `frontend/*.css`).
-* **Actions**: Creating, editing, updating, and formatting frontend files inside `frontend/`.
+* **Allowed Directory**: `public/` (and its subdirectories, e.g., `public/*.html`, `public/*.js`, `public/*.css`).
+* **Actions**: Creating, editing, updating, and formatting frontend files inside `public/`.
 
 ### 🔴 Write Boundaries (STRICTLY FORBIDDEN)
-* **Prohibited Files & Directories**: The agent is **STRICTLY PROHIBITED** from modifying, editing, creating, truncating, or deleting ANY file outside the `frontend/` directory.
+* **Prohibited Files & Directories**: The agent is **STRICTLY PROHIBITED** from modifying, editing, creating, truncating, or deleting ANY file outside the `public/` directory.
 * **Do NOT touch**:
   * Root backend/core files (`server.js`, `engine.js`, `engine.test.js`, `server.test.js`, `package.json`, `.env`, `AGENTS.md`)
   * Data & seeds (`data/`)
