@@ -596,15 +596,35 @@ async function handleEndInterview() {
       throw new Error(err.error || `HTTP ${res.status}`);
     }
 
-    // Redirect to Recruiter Report
-    setTimeout(() => {
-      window.location.href = `report.html?id=${encodeURIComponent(sessionId)}`;
-    }, 800);
+    // Stop all media tracks
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(t => t.stop());
+    }
+
+    // Hide evaluation loader and show requested candidate completion screen
+    if (evaluationModal) evaluationModal.style.display = 'none';
+    const compEl = document.getElementById('completion-screen');
+    const recLink = document.getElementById('completion-recruiter-link');
+    if (recLink) recLink.href = `report.html?id=${encodeURIComponent(sessionId)}`;
+    if (compEl) {
+      compEl.style.display = 'flex';
+    } else {
+      alert('Interview done. Results will be with you soon.');
+      window.location.href = 'index.html';
+    }
 
   } catch (err) {
     console.error('Failed to evaluate session:', err);
-    alert(`Evaluation notice: ${err.message}. Navigating to session dashboard.`);
-    window.location.href = `report.html?id=${encodeURIComponent(sessionId)}`;
+    if (evaluationModal) evaluationModal.style.display = 'none';
+    const compEl = document.getElementById('completion-screen');
+    const recLink = document.getElementById('completion-recruiter-link');
+    if (recLink) recLink.href = `report.html?id=${encodeURIComponent(sessionId)}`;
+    if (compEl) {
+      compEl.style.display = 'flex';
+    } else {
+      alert('Interview done. Results will be with you soon.');
+      window.location.href = 'index.html';
+    }
   }
 }
 

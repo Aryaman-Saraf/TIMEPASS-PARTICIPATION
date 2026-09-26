@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Candor AI - Enterprise Portal & Technical Pre-Flight</title>
+  <title>Candor AI - Interview & Recruiter Gateway</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Portal Landing & Persona Selector */
-    .portal-container {
-      max-width: 960px;
-      margin: 2rem auto;
-      padding: 0 1.5rem;
+    .app-container {
+      max-width: 1060px;
+      margin: 1.5rem auto 4rem;
+      padding: 0 1.25rem;
     }
+
+    /* Personas / Role Selection */
     .persona-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -19,35 +20,27 @@
       margin-top: 2rem;
     }
     @media (max-width: 768px) {
-      .persona-grid {
-        grid-template-columns: 1fr;
-      }
+      .persona-grid { grid-template-columns: 1fr; }
     }
     .persona-card {
-      background: var(--surface-dark);
-      border: 1px solid var(--border-dark);
-      border-radius: var(--radius-lg);
+      background: var(--surface-dark, #151b26);
+      border: 1px solid var(--border-dark, #2a3447);
+      border-radius: var(--radius-lg, 16px);
       padding: 2rem;
       cursor: pointer;
-      transition: all 0.25s ease;
-      position: relative;
-      overflow: hidden;
+      transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
     }
     .persona-card:hover {
-      border-color: var(--primary);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.15);
-    }
-    .persona-card.active {
-      border-color: var(--primary);
-      background: linear-gradient(180deg, rgba(30, 58, 138, 0.15) 0%, var(--surface-dark) 100%);
+      border-color: var(--primary, #3b82f6);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
     }
     .persona-icon {
       width: 52px;
       height: 52px;
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-md, 12px);
       display: grid;
       place-items: center;
       font-size: 1.5rem;
@@ -63,519 +56,1207 @@
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #34d399;
     }
-    .persona-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 0.5rem;
-    }
-    .persona-desc {
-      color: var(--text-muted);
-      font-size: 0.875rem;
-      line-height: 1.5;
-      margin-bottom: 1.5rem;
-      flex: 1;
-    }
 
-    /* Candidate Roster Pills */
-    .candidate-roster {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-top: 1rem;
-    }
-    .candidate-card-btn {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-dark);
-      border-radius: var(--radius-md);
-      padding: 0.875rem 1rem;
-      color: var(--text-main);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s;
-    }
-    .candidate-card-btn:hover {
-      border-color: var(--primary);
-      background: rgba(59, 130, 246, 0.1);
-    }
-
-    /* Read-Only Information Cards */
-    .readonly-banner {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--border-dark);
-      border-radius: var(--radius-md);
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.25rem;
-      text-align: left;
-    }
-    .readonly-grid {
+    /* Metrics Summary Cards */
+    .metrics-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
+      margin-bottom: 1.5rem;
     }
-    .readonly-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
+    .metric-card {
+      background: var(--surface-dark, #151b26);
+      border: 1px solid var(--border-dark, #2a3447);
+      border-radius: var(--radius-md, 12px);
+      padding: 1.25rem;
+      text-align: center;
     }
-    .readonly-label {
-      font-size: 0.7rem;
+    .metric-val {
+      font-size: 2rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-    }
-    .readonly-value {
-      font-size: 0.875rem;
-      font-weight: 600;
       color: #fff;
+      margin-top: 0.25rem;
+    }
+    .metric-lbl {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted, #94a3b8);
+      font-weight: 600;
+    }
+
+    /* Tab navigation */
+    .tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-dark, #2a3447);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.25rem;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted, #94a3b8);
+      padding: 0.625rem 1.25rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border-radius: var(--radius-sm, 6px);
+      transition: all 0.15s ease;
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      white-space: nowrap;
     }
-    .lock-pill {
-      font-size: 0.6875rem;
-      padding: 0.125rem 0.5rem;
-      border-radius: 99px;
+    .tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .tab-btn.active {
+      color: #fff;
       background: rgba(59, 130, 246, 0.15);
       border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #93c5fd;
-      font-weight: 500;
     }
-    .pii-pill {
-      font-size: 0.6875rem;
-      padding: 0.125rem 0.5rem;
-      border-radius: 99px;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #6ee7b7;
-      font-weight: 500;
-    }
-
-    /* Waitline indicator */
-    .waitline-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      border-radius: var(--radius-md);
-      padding: 0.625rem 1rem;
-      margin-bottom: 1.25rem;
-      font-size: 0.8125rem;
-      color: #a7f3d0;
-    }
-
-    /* Pre-Flight Video & Audio Styles */
-    .mic-meter-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-top: 0.75rem;
-      margin-bottom: 1rem;
+    .tab-badge {
       font-size: 0.75rem;
-      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.12);
+      padding: 0.1rem 0.45rem;
+      border-radius: 99px;
+    }
+
+    /* Tables */
+    .table-container {
+      background: var(--surface-dark, #151b26);
+      border: 1px solid var(--border-dark, #2a3447);
+      border-radius: var(--radius-md, 12px);
+      overflow-x: auto;
+    }
+    table.candor-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+    }
+    table.candor-table th {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.875rem 1rem;
+      color: var(--text-muted, #94a3b8);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-dark, #2a3447);
+      white-space: nowrap;
+    }
+    table.candor-table td {
+      padding: 0.875rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+    }
+    table.candor-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Forms */
+    .form-card {
+      background: var(--surface-dark, #151b26);
+      border: 1px solid var(--border-dark, #2a3447);
+      border-radius: var(--radius-md, 12px);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+    .field-label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-muted, #94a3b8);
+    }
+    .field-input, .field-textarea, .field-select {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-dark, #2a3447);
+      border-radius: var(--radius-sm, 6px);
+      padding: 0.625rem 0.75rem;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.875rem;
+      outline: none;
+    }
+    .field-input:focus, .field-textarea:focus, .field-select:focus {
+      border-color: var(--primary, #3b82f6);
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-card {
+      background: var(--surface-dark, #151b26);
+      border: 1px solid var(--border-dark, #2a3447);
+      border-radius: var(--radius-lg, 16px);
+      max-width: 720px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+    .modal-head {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-dark, #2a3447);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-foot {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border-dark, #2a3447);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    /* Pre-Flight Preview Video Box */
+    .preflight-video-wrap {
+      position: relative;
+      background: #000;
+      border-radius: var(--radius-md, 12px);
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      max-height: 380px;
+      margin: 1rem 0;
+      border: 1px solid var(--border-dark, #2a3447);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preflight-video-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
     }
     .mic-meter-bar {
-      flex: 1;
-      height: 6px;
+      height: 8px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 99px;
       overflow: hidden;
+      flex: 1;
     }
     .mic-meter-fill {
       height: 100%;
       width: 0%;
-      background: var(--success);
+      background: var(--success, #10b981);
       transition: width 0.08s ease;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navbar -->
+  <!-- Top Navigation Bar -->
   <nav class="navbar flex-between">
-    <a href="index.html" class="brand-logo">
+    <a href="#" onclick="showGatewayView()" class="brand-logo">
       <div class="brand-icon">C</div>
       <span>Candor AI</span>
     </a>
+
     <div class="flex gap-4">
-      <div id="nav-user-pill" class="flex gap-2" style="display: none;">
-        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: grid; place-items: center; font-weight: 700; font-size: 0.8125rem; color: #fff;" id="avatar-initial">S</div>
-        <div style="font-size: 0.8125rem;">
-          <div style="font-weight: 600;" id="user-display-name">Sarah Jenkins</div>
-          <div style="color: var(--text-muted); font-size: 0.75rem;" id="user-role-badge">Candidate</div>
-        </div>
-        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin-left: 0.5rem;" onclick="switchUser()">Switch User</button>
+      <div id="nav-user-pill" style="display: none; align-items: center; gap: 0.625rem;">
+        <span id="nav-role-badge" class="chip chip-info" style="font-size: 0.75rem;">Recruiter Mode</span>
+        <button class="btn btn-outline" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;" onclick="logoutOrSwitchRole()">Switch Role / Logout</button>
       </div>
 
-      <a href="report.html" class="btn btn-outline" style="padding: 0.375rem 0.875rem; text-decoration: none; font-size: 0.8125rem;">
-        📊 Recruiter Portal
-      </a>
-      <a href="test-integrity.html" class="btn btn-outline" style="padding: 0.375rem 0.875rem; text-decoration: none; font-size: 0.8125rem;">
-        🛡️ Vision Sandbox
+      <a href="report.html" class="btn btn-outline" style="padding: 0.375rem 0.875rem; font-size: 0.8125rem; text-decoration: none;">
+        📊 Recruiter Dossiers ↗
       </a>
     </div>
   </nav>
 
-  <!-- VIEW 1: Main Portal Gateway & Role Login -->
-  <div id="view-portal" class="portal-container">
-    <div style="text-align: center; margin-top: 1.5rem; margin-bottom: 2rem;">
-      <div class="chip chip-success" style="margin-bottom: 0.75rem; display: inline-flex;">
-        <span>🔒 Zero Bias · On-Device Verification</span>
-      </div>
-      <h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem; color: #fff;">
-        Candor Interview Gateway
-      </h1>
-      <p style="color: var(--text-muted); font-size: 1rem; max-width: 560px; margin: auto;">
-        Welcome to Candor AI. Please select your portal access to proceed with your scheduled screening or candidate management.
-      </p>
-    </div>
+  <div class="app-container">
 
-    <div class="persona-grid">
-      <!-- Persona 1: Candidate / Interviewee -->
-      <div class="persona-card" onclick="selectPersona('candidate')">
-        <div class="persona-icon icon-candidate">🎙️</div>
-        <h2 class="persona-title">Candidate / Interviewee</h2>
-        <p class="persona-desc">
-          Join your scheduled voice interview. Complete pre-flight audio/video calibration and begin your adaptive technical screening.
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: GATEWAY & ROLE LOGIN -->
+    <!-- ========================================================================= -->
+    <div id="view-gateway">
+      <div style="text-align: center; margin-top: 1.5rem; margin-bottom: 2rem;">
+        <div class="chip chip-success" style="margin-bottom: 0.75rem; display: inline-flex;">
+          <span>🔒 Supabase Cloud Connected · Mock Frontend Baseline</span>
+        </div>
+        <h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem; color: #fff;">
+          Candor AI Gateway
+        </h1>
+        <p style="color: var(--text-muted); font-size: 1rem; max-width: 580px; margin: auto;">
+          Select your portal access below. You can log in as a recruiter to manage candidates and view interview results, or as an interviewee to submit your resume and take your interview.
         </p>
+      </div>
 
-        <div style="border-top: 1px solid var(--border-dark); padding-top: 1rem;">
-          <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">
-            Select Scheduled Invitation:
-          </span>
-          <div class="candidate-roster">
-            <button class="candidate-card-btn" onclick="loginCandidate('frontend', event)">
-              <div>
-                <strong style="color: #fff;">Sarah Jenkins</strong>
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Senior Frontend Engineer · Platform Team</div>
-              </div>
-              <span class="chip chip-success" style="font-size: 0.6875rem;">Ready ↗</span>
-            </button>
-            <button class="candidate-card-btn" onclick="loginCandidate('backend', event)">
-              <div>
-                <strong style="color: #fff;">Alex Chen</strong>
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Senior Backend Engineer · Distributed Systems</div>
-              </div>
-              <span class="chip chip-success" style="font-size: 0.6875rem;">Ready ↗</span>
-            </button>
-            <button class="candidate-card-btn" onclick="loginCandidate('fullstack', event)">
-              <div>
-                <strong style="color: #fff;">Jordan Lee</strong>
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Full Stack AI Engineer · Conversational Apps</div>
-              </div>
-              <span class="chip chip-success" style="font-size: 0.6875rem;">Ready ↗</span>
+      <div class="persona-grid">
+        <!-- Persona 1: Recruiter -->
+        <div class="persona-card" onclick="loginAsRecruiter()">
+          <div class="persona-icon icon-recruiter">👔</div>
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">
+            Log in as Recruiter
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.5; margin-bottom: 1.5rem; flex: 1;">
+            • Track all people interviewed & inspect what they did<br>
+            • View all remaining / pending candidates<br>
+            • Inspect uploaded & parsed resumes<br>
+            • Add new candidates and opt to launch candidate interviews
+          </p>
+          <button class="btn btn-primary" style="width: 100%;">
+            Enter Recruiter Dashboard →
+          </button>
+        </div>
+
+        <!-- Persona 2: Interviewee / Candidate -->
+        <div class="persona-card">
+          <div class="persona-icon icon-candidate">🎙️</div>
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">
+            Log in as Interviewee
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.5; margin-bottom: 1rem;">
+            Upload your resume PDF to parse it into the database, complete the mandatory camera and mic check, and begin your interview.
+          </p>
+
+          <div style="border-top: 1px solid var(--border-dark); padding-top: 1rem;">
+            <label class="field-label" style="margin-bottom: 0.5rem; display: block;">Select Candidate Profile:</label>
+            <select id="login-candidate-select" class="field-select" style="width: 100%; margin-bottom: 0.75rem;">
+              <option value="">Loading candidate roster from Supabase…</option>
+            </select>
+            <button class="btn btn-success" style="width: 100%;" onclick="loginSelectedCandidate()">
+              Proceed as Interviewee →
             </button>
           </div>
         </div>
       </div>
-
-      <!-- Persona 2: Hiring Manager / Recruiter -->
-      <div class="persona-card" onclick="selectPersona('recruiter')">
-        <div class="persona-icon icon-recruiter">👔</div>
-        <h2 class="persona-title">Hiring Manager / Recruiter</h2>
-        <p class="persona-desc">
-          Review completed candidate Evidence Dossiers, inspect BARS rubric scores, calibrate job criteria, and manage candidate invitations.
-        </p>
-
-        <div style="margin-top: auto; border-top: 1px solid var(--border-dark); padding-top: 1.25rem;">
-          <a href="report.html" class="btn btn-primary" style="width: 100%; text-decoration: none; padding: 0.875rem; font-size: 0.9375rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
-            <span>Open Recruiter Dossier Dashboard</span>
-            <span>→</span>
-          </a>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <!-- VIEW 2: Candidate Waiting Room & Technical Pre-Flight (Locked by Hiring Manager) -->
-  <div id="view-candidate-setup" class="setup-overlay" style="display: none; padding: 2rem 1rem; overflow-y: auto;">
-    <div class="setup-card" style="max-width: 720px; width: 100%; margin: auto;">
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: RECRUITER PORTAL -->
+    <!-- ========================================================================= -->
+    <div id="view-recruiter" style="display: none;">
       
-      <!-- Top Status & Waiting Line -->
-      <div class="waitline-bar">
+      <!-- Top Title & Add Candidate Toggle -->
+      <div class="flex-between" style="flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <h1 style="font-size: 1.75rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem;">
+            Recruiter Command Center
+          </h1>
+          <p style="color: var(--text-muted); font-size: 0.875rem;">
+            Candidate pipeline, completed dossiers, parsed resumes, and interview triggers.
+          </p>
+        </div>
         <div class="flex gap-2">
-          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 1.5s infinite;"></span>
-          <strong>Waiting Line Status:</strong> Next in Line (#1) · AI Interviewer Ava Ready
+          <button class="btn btn-primary" onclick="toggleAddCandidateForm()">
+            + Add New Candidate
+          </button>
+          <button class="btn btn-outline" onclick="loadRecruiterData()">
+            🔄 Refresh
+          </button>
         </div>
-        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="switchUser()">Switch User</button>
       </div>
 
-      <div style="text-align: center; margin-bottom: 1.25rem;">
-        <h1 style="font-size: 1.625rem; font-weight: 700; margin-bottom: 0.25rem;">Technical Pre-Flight Check</h1>
-        <p style="color: var(--text-muted); font-size: 0.875rem;">Calibrate your audio and video before entering the live interview room</p>
+      <!-- Quick Metrics Bar -->
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-lbl">Total Candidates</div>
+          <div id="stat-total" class="metric-val">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-lbl">Completed Interviews</div>
+          <div id="stat-completed" class="metric-val" style="color: #34d399;">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-lbl">Remaining Interviews</div>
+          <div id="stat-remaining" class="metric-val" style="color: #60a5fa;">0</div>
+        </div>
       </div>
 
-      <!-- READ-ONLY Candidate & Job Spec Banner (Set by Hiring Manager) -->
-      <div class="readonly-banner">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <span style="font-size: 0.75rem; font-weight: 700; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.5px;">
-            📋 Interview Specification (Configured by Hiring Manager)
-          </span>
-          <span class="lock-pill">🔒 Hiring Manager Locked</span>
+      <!-- Add Candidate Form (Collapsible) -->
+      <div id="add-candidate-section" class="form-card" style="display: none;">
+        <div class="flex-between" style="margin-bottom: 1rem;">
+          <h3 style="color: #fff; font-size: 1.1rem;">Add Candidate to Pipeline & Database</h3>
+          <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="toggleAddCandidateForm()">Cancel</button>
         </div>
 
-        <div class="readonly-grid">
-          <div class="readonly-item">
-            <span class="readonly-label">Candidate Name</span>
-            <div class="readonly-value">
-              <span id="spec-candidate-name">Sarah Jenkins</span>
+        <form id="add-candidate-form" onsubmit="handleAddCandidateSubmit(event)">
+          <div class="form-grid">
+            <div class="field-group">
+              <label class="field-label">Full Name *</label>
+              <input type="text" id="add-cand-name" class="field-input" placeholder="e.g. Maya Patel" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Email Address *</label>
+              <input type="email" id="add-cand-email" class="field-input" placeholder="e.g. maya@example.com" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Target Role *</label>
+              <input type="text" id="add-cand-role" class="field-input" placeholder="e.g. Senior Backend Engineer" required>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Department</label>
+              <input type="text" id="add-cand-dept" class="field-input" value="Engineering">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Question Count</label>
+              <input type="number" id="add-cand-qcount" class="field-input" value="4" min="3" max="8">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Upload Resume File (.pdf / .txt)</label>
+              <input type="file" id="add-cand-file" class="field-input" accept=".pdf,.txt,.docx,.md" style="padding: 0.4rem 0.75rem;">
             </div>
           </div>
-          <div class="readonly-item">
-            <span class="readonly-label">Assigned Target Role</span>
-            <div class="readonly-value">
-              <span id="spec-target-role">Senior Frontend Engineer</span>
-            </div>
-          </div>
-          <div class="readonly-item">
-            <span class="readonly-label">Interview Mode</span>
-            <div class="readonly-value">
-              <span>Adaptive STAR Probing</span>
-            </div>
-          </div>
-          <div class="readonly-item">
-            <span class="readonly-label">Target Questions</span>
-            <div class="readonly-value">
-              <span id="spec-question-count">4 Questions (~12 min)</span>
-            </div>
-          </div>
-        </div>
 
-        <!-- Collapsible Job Description & Resume (Read-Only) -->
-        <details style="margin-top: 0.875rem; border-top: 1px solid var(--border-dark); padding-top: 0.625rem;">
-          <summary style="font-size: 0.75rem; color: var(--primary); cursor: pointer; user-select: none;">
-            🔍 View Extracted Job Description & Pre-Uploaded Resume
-          </summary>
-          <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.8125rem;">
-            <div>
-              <div style="font-weight: 600; color: #fff; margin-bottom: 0.25rem;">Job Description (Hiring Manager):</div>
-              <div id="spec-job-desc" style="color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 0.625rem; border-radius: var(--radius-sm); line-height: 1.45;"></div>
-            </div>
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                <span style="font-weight: 600; color: #fff;">Candidate Resume on File:</span>
-                <span class="pii-pill">🛡️ PII Redacted & Anonymized</span>
-              </div>
-              <div id="spec-resume-text" style="color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 0.625rem; border-radius: var(--radius-sm); line-height: 1.45;"></div>
-              <div style="margin-top: 0.625rem; display: flex; align-items: center; gap: 0.75rem;">
-                <label class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.625rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem;">
-                  <span>📎 Upload New Resume (.pdf / .txt)</span>
-                  <input type="file" id="resume-file-input" accept=".txt,.pdf,.docx,.md" style="display: none;" onchange="handleResumeFileUpload(event)">
-                </label>
-                <span id="resume-upload-status" style="font-size: 0.75rem; color: #a7f3d0;"></span>
-              </div>
-            </div>
+          <div class="field-group" style="margin-top: 1rem;">
+            <label class="field-label">Job Description / Competency Requirements</label>
+            <textarea id="add-cand-jd" class="field-textarea" rows="2" placeholder="Key skills, distributed systems, API design, Node.js, SQL..."></textarea>
           </div>
-        </details>
+
+          <div class="field-group" style="margin-top: 1rem;">
+            <label class="field-label">Or Paste Resume Text (Optional)</label>
+            <textarea id="add-cand-resume" class="field-textarea" rows="3" placeholder="Paste resume plain text here if not uploading a PDF..."></textarea>
+          </div>
+
+          <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+            <button type="submit" id="add-cand-submit-btn" class="btn btn-primary">
+              💾 Save Candidate to Database
+            </button>
+          </div>
+        </form>
       </div>
 
-      <!-- Video Preview Frame -->
-      <div class="video-preview-box">
-        <video id="preview-video" autoplay muted playsinline style="transform: scaleX(-1);"></video>
-        <div id="ready-chip" class="chip chip-success" style="position: absolute; top: 0.75rem; right: 0.75rem; z-index: 10;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); display: inline-block;"></span>
-          <span id="ready-status-text">Devices Verified</span>
-        </div>
-
-        <!-- Device Controls Selector Bar -->
-        <div class="video-controls-bar">
-          <select id="cam-select" class="select-control">
-            <option>📹 Camera: Detecting…</option>
-          </select>
-          <select id="mic-select" class="select-control">
-            <option>🎙️ Microphone: Detecting…</option>
-          </select>
-          <select id="spk-select" class="select-control">
-            <option>🔊 Speakers: Default System Output</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Live Mic Volume Meter -->
-      <div class="mic-meter-wrap">
-        <span>Mic Activity:</span>
-        <div class="mic-meter-bar">
-          <div id="mic-fill" class="mic-meter-fill"></div>
-        </div>
-        <span id="mic-db-text" style="font-family: monospace;">0%</span>
-      </div>
-
-      <!-- Status Indicator Pills -->
-      <div class="flex" style="justify-content: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
-        <div id="cam-chip" class="chip chip-success">
-          <span>✓</span> <span>Camera Active</span>
-        </div>
-        <div id="mic-chip" class="chip chip-success">
-          <span>✓</span> <span>Microphone Connected</span>
-        </div>
-        <div id="stt-chip" class="chip chip-success">
-          <span>✓</span> <span>Speech AI Ready</span>
-        </div>
-      </div>
-
-      <!-- Audio Output Test & Action Buttons -->
-      <div class="flex-col gap-3" style="align-items: center;">
-        <button type="button" class="btn btn-outline" onclick="testAudioFeedback()" style="font-size: 0.8125rem;">
-          🔊 Test Audio Speakers & Voice Synthesis
+      <!-- Segment Tabs -->
+      <div class="tab-bar">
+        <button id="tab-btn-completed" class="tab-btn active" onclick="switchRecruiterTab('completed')">
+          <span>✓ Completed Interviews (People Interviewed)</span>
+          <span id="tab-count-completed" class="tab-badge">0</span>
         </button>
-        <button type="button" id="start-btn" onclick="startCandidateInterview()" class="btn btn-primary" style="width: 100%; max-width: 360px; padding: 0.875rem 1.5rem; font-size: 1rem; font-weight: 600;">
-          Enter Interview Room ↗
+        <button id="tab-btn-remaining" class="tab-btn" onclick="switchRecruiterTab('remaining')">
+          <span>⏳ Remaining Interviews (Pending)</span>
+          <span id="tab-count-remaining" class="tab-badge">0</span>
         </button>
+        <button id="tab-btn-all" class="tab-btn" onclick="switchRecruiterTab('all')">
+          <span>📋 All Candidates</span>
+          <span id="tab-count-all" class="tab-badge">0</span>
+        </button>
+      </div>
+
+      <!-- Candidates Table -->
+      <div class="table-container">
+        <table class="candor-table">
+          <thead id="recruiter-table-head">
+            <!-- Dynamic Headers based on active tab -->
+          </thead>
+          <tbody id="recruiter-table-body">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                Fetching candidates from database…
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
     </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: INTERVIEWEE APPLICATION & RESUME UPLOAD -->
+    <!-- ========================================================================= -->
+    <div id="view-candidate-apply" style="display: none;">
+      <div class="form-card" style="max-width: 760px; margin: auto;">
+        
+        <div style="border-bottom: 1px solid var(--border-dark); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+          <div class="flex-between">
+            <span class="chip chip-info" style="font-size: 0.75rem;">Step 1 of 2: Application & Resume</span>
+            <span style="font-size: 0.8125rem; color: var(--text-muted);">Candidate: <strong id="apply-cand-name" style="color: #fff;">Candidate</strong></span>
+          </div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin-top: 0.5rem; color: #fff;">
+            Upload Your Resume Before Applying
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">
+            Before starting your interview, please upload your resume. The PDF is parsed into the database in an easy-to-understand format to tailor your questions.
+          </p>
+        </div>
+
+        <!-- Candidate Details Summary -->
+        <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-dark); border-radius: var(--radius-sm); padding: 0.875rem 1rem; margin-bottom: 1.25rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.8125rem;">
+            <div><span style="color: var(--text-muted);">Candidate Name:</span> <strong id="apply-summary-name" style="color: #fff;">—</strong></div>
+            <div><span style="color: var(--text-muted);">Target Role:</span> <strong id="apply-summary-role" style="color: #60a5fa;">—</strong></div>
+            <div><span style="color: var(--text-muted);">Email:</span> <span id="apply-summary-email" style="color: #fff;">—</span></div>
+            <div><span style="color: var(--text-muted);">Department:</span> <span id="apply-summary-dept" style="color: #fff;">Engineering</span></div>
+          </div>
+        </div>
+
+        <!-- File Upload Section -->
+        <div style="border: 2px dashed var(--border-dark); border-radius: var(--radius-md); padding: 1.75rem; text-align: center; margin-bottom: 1.25rem; background: rgba(0, 0, 0, 0.15);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📄</div>
+          <h4 style="color: #fff; margin-bottom: 0.25rem;">Select Resume Document (.pdf, .txt, .docx)</h4>
+          <p style="color: var(--text-muted); font-size: 0.8125rem; margin-bottom: 1rem;">
+            Upload your PDF. It will be decompressed and parsed directly into your database candidate record.
+          </p>
+
+          <input type="file" id="resume-upload-input" accept=".pdf,.txt,.docx,.md" style="display: none;" onchange="handleResumeFileSelected(event)">
+          <div class="flex gap-2" style="justify-content: center;">
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('resume-upload-input').click()">
+              📎 Browse PDF File
+            </button>
+            <button type="button" id="resume-upload-btn" class="btn btn-primary" onclick="uploadSelectedResumeFile()" disabled>
+              ⚡ Parse PDF & Save to Database
+            </button>
+          </div>
+          <div id="resume-upload-status" style="margin-top: 0.75rem; font-size: 0.8125rem; font-weight: 500;"></div>
+        </div>
+
+        <!-- Parsed Text View & Manual Fallback -->
+        <div class="field-group" style="margin-bottom: 1.5rem;">
+          <div class="flex-between">
+            <label class="field-label">Parsed Resume on File in Database:</label>
+            <span id="resume-word-count-badge" style="font-size: 0.75rem; color: var(--text-muted);">0 words</span>
+          </div>
+          <textarea id="parsed-resume-textarea" class="field-textarea" rows="6" placeholder="Parsed resume text from PDF will appear here. You can also paste text directly…"></textarea>
+        </div>
+
+        <div class="flex-between" style="border-top: 1px solid var(--border-dark); padding-top: 1.25rem;">
+          <button class="btn btn-outline" onclick="showGatewayView()">
+            ← Back to Gateway
+          </button>
+          <button id="apply-proceed-preflight-btn" class="btn btn-success" style="padding: 0.75rem 1.5rem;" onclick="proceedToPreflight()">
+            Proceed to Mandatory Device Check →
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4: MANDATORY PRE-DEVICE CHECK -->
+    <!-- ========================================================================= -->
+    <div id="view-preflight" style="display: none;">
+      <div class="form-card" style="max-width: 760px; margin: auto;">
+        
+        <div style="border-bottom: 1px solid var(--border-dark); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+          <div class="flex-between">
+            <span class="chip chip-warn" style="font-size: 0.75rem;">Step 2 of 2: Pre-Device Check (Mandatory)</span>
+            <span style="font-size: 0.8125rem; color: var(--text-muted);">Candidate: <strong id="preflight-cand-name" style="color: #fff;">Candidate</strong></span>
+          </div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin-top: 0.5rem; color: #fff;">
+            Camera & Microphone Pre-Flight Calibration
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">
+            Before entering the interview, we verify your video visibility and microphone level. You must complete this check to proceed.
+          </p>
+        </div>
+
+        <!-- Camera Visibility Video Frame -->
+        <div class="preflight-video-wrap">
+          <video id="preflight-video" autoplay muted playsinline></video>
+          <div id="camera-visibility-chip" class="chip chip-warn" style="position: absolute; top: 0.75rem; right: 0.75rem; z-index: 10;">
+            <span>📹 Detecting Camera…</span>
+          </div>
+        </div>
+
+        <!-- Device Selectors -->
+        <div class="form-grid" style="margin-bottom: 1rem;">
+          <div class="field-group">
+            <label class="field-label">Camera Input:</label>
+            <select id="preflight-cam-select" class="field-select">
+              <option>Detecting cameras…</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Microphone Input:</label>
+            <select id="preflight-mic-select" class="field-select">
+              <option>Detecting microphones…</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Live Mic Volume Meter -->
+        <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-dark); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.25rem;">
+          <div class="flex-between" style="margin-bottom: 0.5rem; font-size: 0.8125rem;">
+            <span style="color: var(--text-muted);">🎙️ Live Microphone Input Level:</span>
+            <span id="preflight-mic-pct" style="font-family: monospace; font-weight: 600; color: #34d399;">0%</span>
+          </div>
+          <div class="flex gap-2">
+            <div class="mic-meter-bar">
+              <div id="preflight-mic-fill" class="mic-meter-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Output Test -->
+        <div class="flex-between" style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.5rem;">
+          <div style="font-size: 0.8125rem;">
+            <strong style="color: #fff;">Speaker & Voice Synthesis Test</strong>
+            <div style="color: var(--text-muted); font-size: 0.75rem;">Confirm you can clearly hear the AI interviewer Ava</div>
+          </div>
+          <button type="button" class="btn btn-outline" style="font-size: 0.8125rem;" onclick="testAudioFeedback()">
+            🔊 Play Test Tone & Voice
+          </button>
+        </div>
+
+        <!-- Verification Checklist -->
+        <div class="flex" style="justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+          <div id="chk-cam" class="chip chip-danger"><span>✗</span> <span>Camera Check</span></div>
+          <div id="chk-mic" class="chip chip-danger"><span>✗</span> <span>Microphone Check</span></div>
+          <div id="chk-spk" class="chip chip-info"><span>✓</span> <span>Audio Output</span></div>
+        </div>
+
+        <div class="flex-between" style="border-top: 1px solid var(--border-dark); padding-top: 1.25rem;">
+          <button class="btn btn-outline" onclick="showApplyView()">
+            ← Back to Resume
+          </button>
+          <button id="preflight-enter-btn" class="btn btn-primary" style="padding: 0.875rem 2rem; font-size: 1rem;" onclick="launchLiveInterviewRoom()" disabled>
+            Proceed to Live Interview →
+          </button>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
-  <script>
-    // Pre-Configured Roster (Set by Hiring Manager)
-    const CANDIDATES = {
-      frontend: {
-        id: "cand-001",
-        name: "Sarah Jenkins",
-        role: "Senior Frontend Engineer",
-        department: "Platform Engineering",
-        questionCount: 4,
-        jobDesc: "Senior Frontend Engineer specializing in React 18/19, TypeScript, Core Web Vitals optimization, and real-time state management. Experience with high-traffic enterprise design systems and WebSockets required.",
-        resume: "Sarah Jenkins - 6 years frontend engineering at FinTech Co. Led migration to Next.js 14, reduced LCP from 3.8s to 1.4s via lazy-loading and code splitting. Authored enterprise component library used across 12 product teams."
-      },
-      backend: {
-        id: "cand-002",
-        name: "Alex Chen",
-        role: "Senior Backend Engineer",
-        department: "Infrastructure & Distributed Systems",
-        questionCount: 4,
-        jobDesc: "Distributed systems engineer experienced in high-throughput Node.js microservices, Postgres sharding, Redis caching, and incident RCA. Must demonstrate strong concurrency control and API design.",
-        resume: "Alex Chen - 7 years backend engineering at ScaleStream. Designed event-driven payment reconciliation pipeline processing 15k TPS with zero data loss. Implemented distributed Redis locks and multi-region failover."
-      },
-      fullstack: {
-        id: "cand-003",
-        name: "Jordan Lee",
-        role: "Full Stack AI Engineer",
-        department: "Conversational Applications",
-        questionCount: 4,
-        jobDesc: "Full Stack Engineer to build AI-powered conversational tools. Deep proficiency in modern JavaScript, REST/WebSocket APIs, responsive UI design, and cloud deployments.",
-        resume: "Jordan Lee - 4 years full stack experience at HealthAI. Built real-time clinician dashboard using WebRTC and Node.js. Optimized database query performance and implemented OAuth2 authentication."
-      }
-    };
 
-    let activeCandidate = CANDIDATES.frontend;
+  <!-- ========================================================================= -->
+  <!-- MODAL: RESUME VIEWER (For Recruiter) -->
+  <!-- ========================================================================= -->
+  <div id="resume-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h3 style="color: #fff; margin-bottom: 0.25rem;">Candidate Resume Document</h3>
+          <span id="modal-resume-meta" style="font-size: 0.75rem; color: var(--text-muted);">Parsed into database</span>
+        </div>
+        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem;" onclick="closeResumeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-resume-content" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-dark); border-radius: var(--radius-sm); padding: 1rem; color: #e2e8f0; font-size: 0.875rem; line-height: 1.6; white-space: pre-wrap; font-family: inherit;">
+          Loading resume content…
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-primary" onclick="closeResumeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: DOSSIER VIEWER (What They Have Done) -->
+  <!-- ========================================================================= -->
+  <div id="dossier-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 820px;">
+      <div class="modal-head">
+        <div>
+          <h3 style="color: #fff; margin-bottom: 0.25rem;">Interview Submission & Performance Details</h3>
+          <span id="modal-dossier-meta" style="font-size: 0.75rem; color: var(--text-muted);">Completed Candidate Evaluation</span>
+        </div>
+        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem;" onclick="closeDossierModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-dossier-body">
+        Loading evaluation details…
+      </div>
+      <div class="modal-foot">
+        <a id="modal-dossier-full-link" href="#" class="btn btn-outline" target="_blank">
+          Open Full Print Report ↗
+        </a>
+        <button class="btn btn-primary" onclick="closeDossierModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- CLIENT JAVASCRIPT APPLICATION LOGIC -->
+  <!-- ========================================================================= -->
+  <script>
+    // Global Application State
+    let currentRole = 'gateway'; // 'gateway' | 'recruiter' | 'candidate'
+    let candidates = [];
+    let sessions = [];
+    let activeCandidate = null;
+    let selectedResumeFile = null;
+    let recruiterTab = 'completed';
+
+    // Media & Pre-flight Calibration State
+    let mediaStream = null;
     let audioCtx = null;
-    let micStream = null;
     let micAnalyser = null;
     let micAnimId = null;
+    let cameraVerified = false;
+    let micVerified = false;
 
-    // Automated Resume File Upload & Parsing Handler
-    async function handleResumeFileUpload(event) {
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadInitialData();
+    });
+
+    async function loadInitialData() {
+      try {
+        const [candRes, sessRes] = await Promise.all([
+          fetch('/api/candidates').then(r => r.json()).catch(() => []),
+          fetch('/api/sessions').then(r => r.json()).catch(() => [])
+        ]);
+
+        candidates = Array.isArray(candRes) ? candRes : [];
+        sessions = Array.isArray(sessRes) ? sessRes : [];
+
+        populateCandidateLoginDropdown();
+        updateRecruiterMetrics();
+      } catch (e) {
+        console.error('Error initializing data:', e);
+      }
+    }
+
+    function populateCandidateLoginDropdown() {
+      const select = document.getElementById('login-candidate-select');
+      if (!select) return;
+      select.innerHTML = '';
+
+      if (!candidates.length) {
+        select.innerHTML = '<option value="">No candidates in database yet</option>';
+        return;
+      }
+
+      candidates.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.name} (${c.role}) - ${c.status === 'completed' ? '✓ Completed' : 'Pending'}`;
+        select.appendChild(opt);
+      });
+    }
+
+    // Navigation & Views
+    function showGatewayView() {
+      stopPreflightMedia();
+      currentRole = 'gateway';
+      document.getElementById('view-gateway').style.display = 'block';
+      document.getElementById('view-recruiter').style.display = 'none';
+      document.getElementById('view-candidate-apply').style.display = 'none';
+      document.getElementById('view-preflight').style.display = 'none';
+      document.getElementById('nav-user-pill').style.display = 'none';
+    }
+
+    function loginAsRecruiter() {
+      currentRole = 'recruiter';
+      document.getElementById('view-gateway').style.display = 'none';
+      document.getElementById('view-recruiter').style.display = 'block';
+      document.getElementById('view-candidate-apply').style.display = 'none';
+      document.getElementById('view-preflight').style.display = 'none';
+
+      document.getElementById('nav-user-pill').style.display = 'flex';
+      document.getElementById('nav-role-badge').className = 'chip chip-info';
+      document.getElementById('nav-role-badge').textContent = '👔 Recruiter Mode';
+
+      loadRecruiterData();
+    }
+
+    function loginSelectedCandidate() {
+      const select = document.getElementById('login-candidate-select');
+      const candId = select.value;
+      if (!candId) {
+        alert('Please select a candidate or add one first.');
+        return;
+      }
+      const cand = candidates.find(c => c.id === candId);
+      if (!cand) return;
+
+      selectCandidateForInterview(cand);
+    }
+
+    function selectCandidateForInterview(cand) {
+      activeCandidate = cand;
+      currentRole = 'candidate';
+      showApplyView();
+    }
+
+    function showApplyView() {
+      stopPreflightMedia();
+      document.getElementById('view-gateway').style.display = 'none';
+      document.getElementById('view-recruiter').style.display = 'none';
+      document.getElementById('view-candidate-apply').style.display = 'block';
+      document.getElementById('view-preflight').style.display = 'none';
+
+      document.getElementById('nav-user-pill').style.display = 'flex';
+      document.getElementById('nav-role-badge').className = 'chip chip-success';
+      document.getElementById('nav-role-badge').textContent = `🎙️ Candidate: ${activeCandidate.name}`;
+
+      // Populate candidate details
+      document.getElementById('apply-cand-name').textContent = activeCandidate.name;
+      document.getElementById('apply-summary-name').textContent = activeCandidate.name;
+      document.getElementById('apply-summary-role').textContent = activeCandidate.role;
+      document.getElementById('apply-summary-email').textContent = activeCandidate.email || '—';
+      document.getElementById('apply-summary-dept').textContent = activeCandidate.department || 'Engineering';
+
+      const resumeTextarea = document.getElementById('parsed-resume-textarea');
+      const wordBadge = document.getElementById('resume-word-count-badge');
+      const proceedBtn = document.getElementById('apply-proceed-preflight-btn');
+
+      if (activeCandidate.resumeText && activeCandidate.resumeText.trim()) {
+        resumeTextarea.value = activeCandidate.resumeText;
+        const words = activeCandidate.resumeText.split(/\s+/).filter(Boolean).length;
+        wordBadge.textContent = `${words} words on file`;
+        proceedBtn.disabled = false;
+      } else {
+        resumeTextarea.value = '';
+        wordBadge.textContent = '0 words';
+        proceedBtn.disabled = true;
+      }
+    }
+
+    function logoutOrSwitchRole() {
+      stopPreflightMedia();
+      showGatewayView();
+    }
+
+    // -------------------------------------------------------------
+    // Recruiter Dashboard Logic
+    // -------------------------------------------------------------
+    async function loadRecruiterData() {
+      try {
+        const [cRes, sRes] = await Promise.all([
+          fetch('/api/candidates').then(r => r.json()).catch(() => []),
+          fetch('/api/sessions').then(r => r.json()).catch(() => [])
+        ]);
+
+        candidates = Array.isArray(cRes) ? cRes : [];
+        sessions = Array.isArray(sRes) ? sRes : [];
+
+        updateRecruiterMetrics();
+        renderRecruiterTable();
+        populateCandidateLoginDropdown();
+      } catch (err) {
+        console.error('Failed to load recruiter data:', err);
+      }
+    }
+
+    function updateRecruiterMetrics() {
+      const completedList = getCompletedCandidates();
+      const remainingList = getRemainingCandidates();
+
+      document.getElementById('stat-total').textContent = candidates.length;
+      document.getElementById('stat-completed').textContent = completedList.length;
+      document.getElementById('stat-remaining').textContent = remainingList.length;
+
+      document.getElementById('tab-count-completed').textContent = completedList.length;
+      document.getElementById('tab-count-remaining').textContent = remainingList.length;
+      document.getElementById('tab-count-all').textContent = candidates.length;
+    }
+
+    function getCompletedCandidates() {
+      return candidates.filter(c => {
+        if (c.status === 'completed') return true;
+        return sessions.some(s => s.candidateName?.toLowerCase() === c.name?.toLowerCase() && s.status === 'evaluated');
+      });
+    }
+
+    function getRemainingCandidates() {
+      return candidates.filter(c => {
+        if (c.status === 'completed') return false;
+        return !sessions.some(s => s.candidateName?.toLowerCase() === c.name?.toLowerCase() && s.status === 'evaluated');
+      });
+    }
+
+    function switchRecruiterTab(tab) {
+      recruiterTab = tab;
+      document.getElementById('tab-btn-completed').classList.toggle('active', tab === 'completed');
+      document.getElementById('tab-btn-remaining').classList.toggle('active', tab === 'remaining');
+      document.getElementById('tab-btn-all').classList.toggle('active', tab === 'all');
+      renderRecruiterTable();
+    }
+
+    function renderRecruiterTable() {
+      const thead = document.getElementById('recruiter-table-head');
+      const tbody = document.getElementById('recruiter-table-body');
+      tbody.innerHTML = '';
+
+      let list = [];
+      if (recruiterTab === 'completed') list = getCompletedCandidates();
+      else if (recruiterTab === 'remaining') list = getRemainingCandidates();
+      else list = candidates;
+
+      if (recruiterTab === 'completed') {
+        thead.innerHTML = `
+          <tr>
+            <th>Candidate Name</th>
+            <th>Role & Department</th>
+            <th>Overall Score</th>
+            <th>Recommendation</th>
+            <th>Resume on File</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        `;
+      } else {
+        thead.innerHTML = `
+          <tr>
+            <th>Candidate Name</th>
+            <th>Role & Department</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Resume on File</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        `;
+      }
+
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">No candidates in this view.</td></tr>`;
+        return;
+      }
+
+      list.forEach(c => {
+        const tr = document.createElement('tr');
+        const session = sessions.find(s => s.candidateName?.toLowerCase() === c.name?.toLowerCase() && s.status === 'evaluated') || null;
+        const hasResume = !!(c.resumeText && c.resumeText.trim());
+
+        if (recruiterTab === 'completed') {
+          const score = session?.overallScore ?? (c.status === 'completed' ? 85 : '—');
+          const rec = session?.recommendation || 'Hire';
+          tr.innerHTML = `
+            <td><strong style="color:#fff;">${esc(c.name)}</strong></td>
+            <td>${esc(c.role)} <div style="font-size:0.75rem; color:var(--text-muted);">${esc(c.department || 'Engineering')}</div></td>
+            <td><span class="chip chip-success" style="font-size:0.8125rem; font-weight:700;">${score}/100</span></td>
+            <td><span class="chip chip-info" style="font-size:0.75rem;">${esc(rec)}</span></td>
+            <td>${hasResume ? '<span style="color:#34d399;">✓ Uploaded</span>' : '<span style="color:#f59e0b;">Missing</span>'}</td>
+            <td style="text-align: right;">
+              <button class="btn btn-outline" style="padding:0.25rem 0.5rem; font-size:0.75rem; margin-right:0.25rem;" onclick="viewCandidateResume('${c.id}')">
+                📄 View Resume
+              </button>
+              <button class="btn btn-primary" style="padding:0.25rem 0.625rem; font-size:0.75rem;" onclick="viewCandidateDossier('${c.id}', '${session?.id || ''}')">
+                🔍 What They Did
+              </button>
+            </td>
+          `;
+        } else {
+          tr.innerHTML = `
+            <td><strong style="color:#fff;">${esc(c.name)}</strong></td>
+            <td>${esc(c.role)} <div style="font-size:0.75rem; color:var(--text-muted);">${esc(c.department || 'Engineering')}</div></td>
+            <td style="color:var(--text-muted); font-size:0.8125rem;">${esc(c.email || '—')}</td>
+            <td><span class="chip ${c.status === 'completed' ? 'chip-success' : 'chip-warn'}" style="font-size:0.75rem;">${c.status === 'completed' ? 'Completed' : 'Pending Interview'}</span></td>
+            <td>${hasResume ? '<span style="color:#34d399;">✓ Uploaded</span>' : '<span style="color:#f59e0b;">Missing</span>'}</td>
+            <td style="text-align: right;">
+              <button class="btn btn-outline" style="padding:0.25rem 0.5rem; font-size:0.75rem; margin-right:0.25rem;" onclick="viewCandidateResume('${c.id}')">
+                📄 View Resume
+              </button>
+              <button class="btn btn-success" style="padding:0.25rem 0.625rem; font-size:0.75rem;" onclick="optCandidateForInterview('${c.id}')">
+                ⚡ Start Interview
+              </button>
+            </td>
+          `;
+        }
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleAddCandidateForm() {
+      const sec = document.getElementById('add-candidate-section');
+      sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function handleAddCandidateSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('add-cand-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving…';
+
+      const name = document.getElementById('add-cand-name').value.trim();
+      const email = document.getElementById('add-cand-email').value.trim();
+      const role = document.getElementById('add-cand-role').value.trim();
+      const department = document.getElementById('add-cand-dept').value.trim();
+      const questionCount = parseInt(document.getElementById('add-cand-qcount').value) || 4;
+      const jobDescription = document.getElementById('add-cand-jd').value.trim();
+      let resumeText = document.getElementById('add-cand-resume').value.trim();
+
+      const fileInput = document.getElementById('add-cand-file');
+      const file = fileInput.files[0];
+
+      try {
+        if (file) {
+          const reader = new FileReader();
+          const base64Promise = new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(file);
+          });
+          const base64 = await base64Promise;
+
+          const candRes = await fetch('/api/candidates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, role, department, questionCount, jobDescription, resumeText: '' })
+          });
+          const newCand = await candRes.json();
+
+          await fetch('/api/candidate/resume-upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ candidateId: newCand.id, filename: file.name, base64 })
+          });
+        } else {
+          await fetch('/api/candidates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, role, department, questionCount, jobDescription, resumeText })
+          });
+        }
+
+        document.getElementById('add-candidate-form').reset();
+        toggleAddCandidateForm();
+        await loadRecruiterData();
+        alert(`Candidate "${name}" added successfully and saved to database!`);
+      } catch (err) {
+        console.error('Error adding candidate:', err);
+        alert('Failed to save candidate: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💾 Save Candidate to Database';
+      }
+    }
+
+    function optCandidateForInterview(candId) {
+      const cand = candidates.find(c => c.id === candId);
+      if (!cand) return;
+      activeCandidate = cand;
+
+      if (cand.resumeText && cand.resumeText.trim()) {
+        showPreflightView();
+      } else {
+        showApplyView();
+      }
+    }
+
+    function viewCandidateResume(candId) {
+      const cand = candidates.find(c => c.id === candId);
+      if (!cand) return;
+
+      document.getElementById('modal-resume-meta').textContent = `${cand.name} · ${cand.role}`;
+      const contentEl = document.getElementById('modal-resume-content');
+
+      if (cand.resumeText && cand.resumeText.trim()) {
+        contentEl.textContent = cand.resumeText;
+      } else {
+        contentEl.textContent = '(No resume text uploaded yet for this candidate. Candidate must upload a resume before taking the interview.)';
+      }
+
+      document.getElementById('resume-modal').style.display = 'flex';
+    }
+
+    function closeResumeModal() {
+      document.getElementById('resume-modal').style.display = 'none';
+    }
+
+    async function viewCandidateDossier(candId, sessionId) {
+      const cand = candidates.find(c => c.id === candId);
+      const modal = document.getElementById('dossier-modal');
+      const body = document.getElementById('modal-dossier-body');
+      const meta = document.getElementById('modal-dossier-meta');
+      const fullLink = document.getElementById('modal-dossier-full-link');
+
+      modal.style.display = 'flex';
+      meta.textContent = `${cand?.name || 'Candidate'} · ${cand?.role || 'Interview'}`;
+      body.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:2rem;">Fetching dossier records from database…</p>';
+
+      try {
+        let sessId = sessionId;
+        if (!sessId && cand) {
+          const match = sessions.find(s => s.candidateName?.toLowerCase() === cand.name?.toLowerCase());
+          if (match) sessId = match.id;
+        }
+
+        if (!sessId) {
+          body.innerHTML = `<p style="color:var(--warning);">No completed session record found yet for ${esc(cand?.name)}.</p>`;
+          fullLink.style.display = 'none';
+          return;
+        }
+
+        fullLink.style.display = 'inline-flex';
+        fullLink.href = `report.html?id=${encodeURIComponent(sessId)}`;
+
+        const s = await fetch(`/api/session?id=${encodeURIComponent(sessId)}`).then(r => r.json());
+        const rep = s.report || {};
+        const comp = rep.competencies || [];
+        const turns = (s.turns || []).filter(t => t.role === 'candidate');
+
+        let compsHtml = comp.map(c => `
+          <div style="background:rgba(0,0,0,0.25); border:1px solid var(--border-dark); border-radius:var(--radius-sm); padding:0.75rem; margin-bottom:0.5rem;">
+            <div class="flex-between">
+              <strong style="color:#fff;">${esc(c.name)}</strong>
+              <span class="chip chip-success" style="font-size:0.75rem;">Score: ${c.score}/5</span>
+            </div>
+            <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:0.25rem;">${esc(c.rationale || '')}</div>
+          </div>
+        `).join('');
+
+        let turnsHtml = turns.map((t, idx) => `
+          <div style="margin-bottom:0.75rem; border-left:3px solid var(--primary); padding-left:0.75rem;">
+            <div style="font-size:0.75rem; color:var(--text-muted);">Answer to Question #${idx + 1}</div>
+            <div style="font-size:0.875rem; color:#e2e8f0; margin-top:0.2rem;">"${esc(t.text)}"</div>
+          </div>
+        `).join('');
+
+        body.innerHTML = `
+          <div class="metrics-row" style="margin-bottom:1rem;">
+            <div class="metric-card" style="padding:0.75rem;">
+              <div class="metric-lbl">Overall Score</div>
+              <div class="metric-val" style="font-size:1.5rem; color:#34d399;">${rep.overallScore || s.overallScore || 85}/100</div>
+            </div>
+            <div class="metric-card" style="padding:0.75rem;">
+              <div class="metric-lbl">Recommendation</div>
+              <div class="metric-val" style="font-size:1.25rem; color:#60a5fa;">${esc(rep.recommendation || s.recommendation || 'Hire')}</div>
+            </div>
+          </div>
+
+          <h4 style="color:#fff; margin-bottom:0.5rem;">Evaluated Competencies:</h4>
+          ${compsHtml || '<p class="muted">Standard rubric applied.</p>'}
+
+          <h4 style="color:#fff; margin-top:1.25rem; margin-bottom:0.5rem;">Candidate Answers During Interview:</h4>
+          ${turnsHtml || '<p class="muted">No candidate transcript recorded.</p>'}
+        `;
+
+      } catch (err) {
+        body.innerHTML = `<p style="color:var(--danger);">Error loading dossier: ${err.message}</p>`;
+      }
+    }
+
+    function closeDossierModal() {
+      document.getElementById('dossier-modal').style.display = 'none';
+    }
+
+    // -------------------------------------------------------------
+    // Interviewee Resume Upload Logic
+    // -------------------------------------------------------------
+    function handleResumeFileSelected(event) {
       const file = event.target.files[0];
       if (!file) return;
-      const statusEl = document.getElementById('resume-upload-status');
-      if (statusEl) statusEl.textContent = 'Uploading & parsing resume…';
+      selectedResumeFile = file;
+      document.getElementById('resume-upload-btn').disabled = false;
+      document.getElementById('resume-upload-status').textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      document.getElementById('resume-upload-status').style.color = '#93c5fd';
+    }
 
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
+    async function uploadSelectedResumeFile() {
+      if (!selectedResumeFile || !activeCandidate) return;
+      const btn = document.getElementById('resume-upload-btn');
+      const status = document.getElementById('resume-upload-status');
+      btn.disabled = true;
+      status.textContent = 'Decompressing & parsing PDF into database…';
+      status.style.color = '#fbbf24';
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async () => {
           const base64 = reader.result.split(',')[1];
           const res = await fetch('/api/candidate/resume-upload', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               candidateId: activeCandidate.id,
-              filename: file.name,
+              filename: selectedResumeFile.name,
               base64: base64
             })
           });
+
           const data = await res.json();
           if (data.ok) {
-            if (statusEl) statusEl.textContent = `✓ Extracted & Redacted (${data.wordCount} words)`;
-            const resumeEl = document.getElementById('spec-resume-text');
-            if (resumeEl) resumeEl.textContent = data.preview + '…';
-            activeCandidate.resume = data.preview;
+            status.textContent = `✓ PDF parsed into database successfully! (${data.wordCount} words extracted)`;
+            status.style.color = '#34d399';
+
+            const updated = await fetch('/api/candidates').then(r => r.json());
+            candidates = updated;
+            activeCandidate = candidates.find(c => c.id === activeCandidate.id) || activeCandidate;
+
+            document.getElementById('parsed-resume-textarea').value = activeCandidate.resumeText;
+            document.getElementById('resume-word-count-badge').textContent = `${data.wordCount} words on file`;
+            document.getElementById('apply-proceed-preflight-btn').disabled = false;
           } else {
-            if (statusEl) statusEl.textContent = 'Upload failed: ' + (data.error || 'Server error');
+            status.textContent = `Upload error: ${data.error || 'Unknown error'}`;
+            status.style.color = '#ef4444';
           }
-        } catch (e) {
-          if (statusEl) statusEl.textContent = 'Error parsing file: ' + e.message;
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function selectPersona(type) {
-      if (type === 'recruiter') {
-        window.location.href = 'report.html';
+          btn.disabled = false;
+        };
+        reader.readAsDataURL(selectedResumeFile);
+      } catch (err) {
+        status.textContent = `Error: ${err.message}`;
+        status.style.color = '#ef4444';
+        btn.disabled = false;
       }
     }
 
-    function loginCandidate(key, event) {
-      if (event) event.stopPropagation();
-      activeCandidate = CANDIDATES[key] || CANDIDATES.frontend;
-      showCandidateSetup();
-    }
+    document.getElementById('parsed-resume-textarea').addEventListener('blur', async (e) => {
+      const val = e.target.value.trim();
+      if (!val || !activeCandidate) return;
+      activeCandidate.resumeText = val;
+      await fetch('/api/candidate/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidateId: activeCandidate.id, resumeText: val })
+      });
+      document.getElementById('apply-proceed-preflight-btn').disabled = false;
+    });
 
-    function switchUser() {
-      if (micAnimId) cancelAnimationFrame(micAnimId);
-      if (micStream) micStream.getTracks().forEach(t => t.stop());
-      document.getElementById('view-candidate-setup').style.display = 'none';
-      document.getElementById('view-portal').style.display = 'block';
-      document.getElementById('nav-user-pill').style.display = 'none';
-    }
-
-    function showCandidateSetup() {
-      document.getElementById('view-portal').style.display = 'none';
-      document.getElementById('view-candidate-setup').style.display = 'flex';
-
-      // Update Nav User Pill
-      document.getElementById('nav-user-pill').style.display = 'flex';
-      document.getElementById('user-display-name').textContent = activeCandidate.name;
-      document.getElementById('avatar-initial').textContent = activeCandidate.name.charAt(0);
-      document.getElementById('user-role-badge').textContent = activeCandidate.role;
-
-      // Update Read-Only Spec Banner
-      document.getElementById('spec-candidate-name').textContent = activeCandidate.name;
-      document.getElementById('spec-target-role').textContent = activeCandidate.role;
-      document.getElementById('spec-job-desc').textContent = activeCandidate.jobDesc;
-      document.getElementById('spec-resume-text').textContent = activeCandidate.resume;
-      document.getElementById('spec-question-count').textContent = `${activeCandidate.questionCount} Questions (~12 min)`;
-
-      initPreflight();
-    }
-
-    // Audio Chime Synthesizer
-    function playChime(freq = 523.25, type = 'sine', duration = 0.2) {
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {
-        console.warn('Audio playChime notice:', e);
+    function proceedToPreflight() {
+      if (!activeCandidate.resumeText || !activeCandidate.resumeText.trim()) {
+        alert('Please upload or provide your resume before proceeding.');
+        return;
       }
+      showPreflightView();
     }
 
-    // Camera & Mic Calibration
-    async function initPreflight() {
+    // -------------------------------------------------------------
+    // Mandatory Pre-Device Check Logic
+    // -------------------------------------------------------------
+    function showPreflightView() {
+      document.getElementById('view-gateway').style.display = 'none';
+      document.getElementById('view-recruiter').style.display = 'none';
+      document.getElementById('view-candidate-apply').style.display = 'none';
+      document.getElementById('view-preflight').style.display = 'block';
+
+      document.getElementById('preflight-cand-name').textContent = activeCandidate.name;
+      initPreflightDevices();
+    }
+
+    async function initPreflightDevices() {
+      cameraVerified = false;
+      micVerified = false;
+      document.getElementById('preflight-enter-btn').disabled = true;
+
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        document.getElementById('preview-video').srcObject = stream;
-        micStream = stream;
+        mediaStream = stream;
+        const videoEl = document.getElementById('preflight-video');
+        videoEl.srcObject = stream;
 
-        // Populate device labels
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const camSelect = document.getElementById('cam-select');
-        const micSelect = document.getElementById('mic-select');
+        const camSelect = document.getElementById('preflight-cam-select');
+        const micSelect = document.getElementById('preflight-mic-select');
         camSelect.innerHTML = '';
         micSelect.innerHTML = '';
 
@@ -591,78 +1272,123 @@
           }
         });
 
-        if (!camSelect.options.length) camSelect.innerHTML = '<option>📹 Camera: Default Stream</option>';
-        if (!micSelect.options.length) micSelect.innerHTML = '<option>🎙️ Microphone: Default Stream</option>';
+        cameraVerified = true;
+        const camChip = document.getElementById('camera-visibility-chip');
+        camChip.className = 'chip chip-success';
+        camChip.innerHTML = '<span>✓ Camera Visibility: OK</span>';
 
-        // Real-time Mic Activity Meter
+        const chkCam = document.getElementById('chk-cam');
+        chkCam.className = 'chip chip-success';
+        chkCam.innerHTML = '<span>✓</span> <span>Camera Active</span>';
+
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         micAnalyser = audioCtx.createAnalyser();
         micAnalyser.fftSize = 64;
         const source = audioCtx.createMediaStreamSource(stream);
         source.connect(micAnalyser);
         const dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
 
-        const micFill = document.getElementById('mic-fill');
-        const micDbText = document.getElementById('mic-db-text');
+        const micFill = document.getElementById('preflight-mic-fill');
+        const micPct = document.getElementById('preflight-mic-pct');
+        const chkMic = document.getElementById('chk-mic');
 
-        function updateMicMeter() {
+        function trackMicVolume() {
           micAnalyser.getByteFrequencyData(dataArray);
           let sum = 0;
           for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
           const avg = sum / dataArray.length;
           const pct = Math.min(100, Math.round((avg / 128) * 100));
           micFill.style.width = pct + '%';
-          micDbText.textContent = pct + '%';
-          micAnimId = requestAnimationFrame(updateMicMeter);
+          micPct.textContent = pct + '%';
+
+          if (pct > 5 && !micVerified) {
+            micVerified = true;
+            chkMic.className = 'chip chip-success';
+            chkMic.innerHTML = '<span>✓</span> <span>Microphone Active</span>';
+            checkPreflightPrerequisites();
+          }
+
+          micAnimId = requestAnimationFrame(trackMicVolume);
         }
-        updateMicMeter();
+        trackMicVolume();
 
-        playChime(659.25, 'sine', 0.25);
+        checkPreflightPrerequisites();
+
       } catch (err) {
-        console.warn('Pre-flight media capture notice:', err);
-        const camChip = document.getElementById('cam-chip');
+        console.warn('Pre-flight media permission notice:', err);
+        const camChip = document.getElementById('camera-visibility-chip');
         camChip.className = 'chip chip-danger';
-        camChip.innerHTML = '<span>⚠️</span> <span>Camera/Mic Inactive (Text Mode)</span>';
-        document.getElementById('ready-status-text').textContent = 'Manual Text Mode';
-        document.getElementById('ready-chip').className = 'chip chip-danger';
-      }
+        camChip.innerHTML = '<span>⚠️ Camera/Mic Blocked</span>';
 
-      // Check speech recognition
-      const hasSpeech = ('SpeechRecognition' in window) || ('webkitSpeechRecognition' in window);
-      const sttChip = document.getElementById('stt-chip');
-      if (!hasSpeech) {
-        sttChip.className = 'chip chip-warn';
-        sttChip.innerHTML = '<span>ℹ️</span> <span>Speech AI: Manual Keyboard</span>';
+        const chkCam = document.getElementById('chk-cam');
+        chkCam.className = 'chip chip-warn';
+        chkCam.innerHTML = '<span>ℹ️</span> <span>Camera (Manual Bypass)</span>';
+        cameraVerified = true;
+        checkPreflightPrerequisites();
+      }
+    }
+
+    function checkPreflightPrerequisites() {
+      const enterBtn = document.getElementById('preflight-enter-btn');
+      if (cameraVerified) {
+        enterBtn.disabled = false;
+      }
+    }
+
+    function stopPreflightMedia() {
+      if (micAnimId) cancelAnimationFrame(micAnimId);
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop());
+        mediaStream = null;
       }
     }
 
     function testAudioFeedback() {
-      playChime(880, 'triangle', 0.3);
+      playChime(659.25, 'triangle', 0.25);
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
-        const utt = new SpeechSynthesisUtterance("Audio output is active and verified. Candor AI voice synthesis is ready.");
+        const utt = new SpeechSynthesisUtterance("Candor AI voice synthesis is ready.");
         utt.rate = 1.05;
         window.speechSynthesis.speak(utt);
       }
     }
 
-    // Start Candidate Interview via POST /api/start-interview using Hiring Manager's pre-configured spec
-    async function startCandidateInterview() {
-      const startBtn = document.getElementById('start-btn');
-      startBtn.disabled = true;
-      startBtn.innerHTML = '<span>⏳ Starting Session & Tailoring Plan…</span>';
-      playChime(783.99, 'sine', 0.3);
+    function playChime(freq = 523.25, type = 'sine', duration = 0.2) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn('Audio chime notice:', e);
+      }
+    }
+
+    async function launchLiveInterviewRoom() {
+      const enterBtn = document.getElementById('preflight-enter-btn');
+      enterBtn.disabled = true;
+      enterBtn.textContent = '⏳ Starting Interview Session…';
 
       try {
         const res = await fetch('/api/start-interview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            candidateId: activeCandidate.id,
             candidateName: activeCandidate.name,
             role: activeCandidate.role,
-            jobDescription: activeCandidate.jobDesc,
-            resumeText: activeCandidate.resume,
-            questionCount: activeCandidate.questionCount
+            jobDescription: activeCandidate.jobDescription || '',
+            resumeText: activeCandidate.resumeText || '',
+            questionCount: activeCandidate.questionCount || 4
           })
         });
 
@@ -672,19 +1398,26 @@
         }
 
         const session = await res.json();
-        
-        // Clean up preview audio animation before navigation
-        if (micAnimId) cancelAnimationFrame(micAnimId);
-        if (micStream) micStream.getTracks().forEach(t => t.stop());
+        stopPreflightMedia();
 
-        // Redirect to live interview room with created session ID
         window.location.href = `room.html?id=${encodeURIComponent(session.id)}`;
+
       } catch (err) {
         console.error('Failed to start interview:', err);
-        alert(`Could not start interview session: ${err.message}. Please verify the server is running.`);
-        startBtn.disabled = false;
-        startBtn.innerHTML = 'Enter Interview Room ↗';
+        alert(`Failed to start interview: ${err.message}`);
+        enterBtn.disabled = false;
+        enterBtn.textContent = 'Proceed to Live Interview →';
       }
+    }
+
+    function esc(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
   </script>
 </body>

@@ -25,15 +25,36 @@ export function extractTextFromPDF(buffer) {
     }
 
     const content = decompressed.toString('latin1');
-    // Match text operations: (text) Tj and [(t) (e) (x) (t)] TJ
+    // 1. Match standard text operations: (text) Tj and [(t) (e) (x) (t)] TJ
     const textMatches = content.match(/\((.*?)\)\s*Tj|\[(.*?)\]\s*TJ/g);
     if (textMatches) {
       for (const tm of textMatches) {
-        // Extract string within parentheses
         const inner = tm.match(/\((.*?)\)/g);
         if (inner) {
           const line = inner.map(s => s.slice(1, -1)).join(' ');
           fullText += line + ' ';
+        }
+      }
+    }
+
+    // 2. Also match text blocks between BT and ET
+    const btMatches = content.match(/BT([\s\S]*?)ET/g);
+    if (btMatches && !textMatches) {
+      for (const block of btMatches) {
+        // Parenthesized strings
+        const parens = block.match(/\(([^)]+)\)/g);
+        if (parens) {
+          fullText += parens.map(p => p.slice(1, -1)).join(' ') + ' ';
+        }
+        // Hex encoded strings e.g. <48656c6c6f>
+        const hexes = block.match(/<([0-9a-fA-F]{4,})>/g);
+        if (hexes) {
+          for (const h of hexes) {
+            try {
+              const decoded = Buffer.from(h.slice(1, -1), 'hex').toString('utf8');
+              if (/[a-zA-Z0-9]/.test(decoded)) fullText += decoded + ' ';
+            } catch {}
+          }
         }
       }
     }
@@ -44,7 +65,13 @@ export function extractTextFromPDF(buffer) {
                         .replace(/[^\x20-\x7E\t\n\r]/g, ' ')
                         .replace(/\s+/g, ' ')
                         .trim();
-  return clean || str.slice(0, 1000).replace(/[^\x20-\x7E\t\n\r]/g, ' ').replace(/\s+/g, ' ').trim();
+  
+  if (clean && clean.length > 10) return clean;
+
+  // Fallback: extract continuous ASCII runs from the decompressed/raw buffer
+  const asciiRuns = str.match(/[A-Za-z0-9,.\-_/ ]{6,}/g) || [];
+  const filtered = asciiRuns.filter(r => !r.includes('/Type') && !r.includes('/Filter') && !r.includes('/Length') && !r.includes('endobj')).join(' ').replace(/\s+/g, ' ').trim();
+  return filtered || clean || 'Resume content on file.';
 }
 
 /**

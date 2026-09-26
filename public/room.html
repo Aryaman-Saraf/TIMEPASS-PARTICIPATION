@@ -215,8 +215,29 @@
   <div id="evaluation-modal" class="modal-loading">
     <div class="spinner"></div>
     <div style="text-align: center;">
-      <h2 style="font-size: 1.35rem; margin-bottom: 0.35rem;">Evaluating Candidate Dossier</h2>
-      <p style="color: var(--text-muted); font-size: 0.875rem;">Compiling BARS competency scoring, STAR quotes, and verified integrity audit…</p>
+      <h2 style="font-size: 1.35rem; margin-bottom: 0.35rem;">Evaluating Interview Session</h2>
+      <p style="color: var(--text-muted); font-size: 0.875rem;">Recording responses, evaluating competencies, and finalizing submission…</p>
+    </div>
+  </div>
+
+  <!-- Dedicated Candidate Completion Screen -->
+  <div id="completion-screen" style="display: none; position: fixed; inset: 0; background: rgba(11, 15, 23, 0.96); backdrop-filter: blur(12px); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; padding: 2rem; text-align: center;">
+    <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); border: 2px solid #10b981; display: grid; place-items: center; font-size: 2.25rem; margin-bottom: 1.5rem; color: #10b981; box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);">
+      ✓
+    </div>
+    <h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 0.75rem; color: #fff;">
+      Interview done. Results will be with you soon.
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 580px; margin-bottom: 2.5rem; line-height: 1.6;">
+      Thank you for completing your interview. Your answers and interview submission have been securely stored in the database. The recruiting team will review your session and communicate the next steps.
+    </p>
+    <div class="flex gap-4" style="flex-wrap: wrap; justify-content: center;">
+      <a href="index.html" class="btn btn-primary" style="padding: 0.875rem 2rem; font-size: 1rem; text-decoration: none;">
+        ← Return to Home Gateway
+      </a>
+      <a id="completion-recruiter-link" href="#" class="btn btn-outline" style="padding: 0.875rem 1.5rem; font-size: 0.875rem; text-decoration: none;">
+        📊 View Recruiter Dossier (Recruiter Preview)
+      </a>
     </div>
   </div>
 

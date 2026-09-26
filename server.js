@@ -91,12 +91,25 @@ const routes = {
   },
   'POST /api/start-interview': async b => {
     const s = await startInterview(b);
+    if (b.candidateId) s.candidateId = b.candidateId;
     await saveSession(s);
     return s;
   },
   'POST /api/chat-turn': b => locked(b.sessionId, s => chatTurn(s, b.answer)),
   'POST /api/evaluate': b => locked(b.sessionId, async s => {
     await evaluate(s, b.integrity);
+    try {
+      if (s.candidateId) {
+        const cand = await getCandidate(s.candidateId);
+        if (cand) { cand.status = 'completed'; await saveCandidate(cand); }
+      } else if (s.candidateName) {
+        const all = await listCandidates();
+        const cand = all.find(c => c.name.toLowerCase() === s.candidateName.toLowerCase());
+        if (cand) { cand.status = 'completed'; await saveCandidate(cand); }
+      }
+    } catch (e) {
+      console.warn('[evaluate candidate update notice]', e.message);
+    }
     return s;
   }),
 
