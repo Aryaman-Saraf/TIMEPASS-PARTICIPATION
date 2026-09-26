@@ -97,6 +97,14 @@
   - Verified complete system flow via browser agent: setup pre-flight, live interview, attention detection, real-time AI reply, and Recruiter Dossier dashboard navigation.
   - Verified automated test suite: 17/17 tests passing.
 
+### 15. Repository Directory Restructuring & Archive Consolidation
+- **Target Directories**: `archive/teammate-proposals/prathul-interview-bot/`, `docs/briefs/`
+- **Details**:
+  - Relocated initial candidate draft directory `Interview_bot/` into `archive/teammate-proposals/prathul-interview-bot/` preserving all commit history and teammate drafts.
+  - Organized hackathon problem PDFs and grading sheets into `docs/briefs/`.
+  - Enforced strict repository root cleanliness: only configuration files, core architecture documentation, core backend/test files, and 4 primary directories (`public/`, `data/`, `docs/`, `archive/`).
+  - Verified test suite: 17/17 tests passing.
+
 ---
 
 ## Pending Staged Actions (Awaiting User Execution / End-of-Session)
