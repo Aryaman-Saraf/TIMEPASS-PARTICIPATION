@@ -134,6 +134,15 @@
     - `POST /api/candidate/resume`: candidate pre-upload / update resume text.
   - Verified API contracts and automated test suite: 17/17 tests passing.
 
+### 18. New Teammate Onboarding (Tanay - T1 Frontend Lead) & Master Build Guide
+- **Target Files**: `docs/TANAY_FRONTEND_MASTER_GUIDE.md`, `TEAM_TASKS.md`, `docs/PROJECT_MASTER_KNOWLEDGE_INDEX.md`
+- **Details**:
+  - Authored dedicated, zero-to-hero onboarding and build guide for incoming frontend engineer Tanay (`docs/TANAY_FRONTEND_MASTER_GUIDE.md`).
+  - Outlined the 6-screen journey, browser Web APIs (speech recognition, voice synthesis, Web Audio analyzer), and ready-to-copy-paste API `fetch()` snippets.
+  - Granted complete creative styling and layout freedom to Tanay while locking functional contracts and DOM hooks.
+  - Formally updated `TEAM_TASKS.md` and `docs/PROJECT_MASTER_KNOWLEDGE_INDEX.md` transferring T1 ownership to Tanay.
+  - Verified automated test suite: 17/17 tests passing.
+
 ---
 
 ## Pending Staged Actions (Awaiting User Execution / End-of-Session)

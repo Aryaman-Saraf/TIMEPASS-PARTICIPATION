@@ -7,7 +7,7 @@ This page tells each teammate what they own, what they build, and when it has to
 
 | | Teammate | Assigned Branch | Owns (only you edit these files) | Your part of the demo |
 |---|---|---|---|---|
-| **T1** | **Prathul** (Candidate experience) | `Prathul` | `public/styles.css`, `public/index.html`, `public/room.html`, `public/room.js` | "The AI talks to me and listens" |
+| **T1** | **Tanay** (Candidate & Recruiter Frontend) | `tanay` / `trial/integration` | `public/styles.css`, `public/index.html`, `public/room.html`, `public/room.js`, candidate/recruiter views | "The candidate journey & recruiter portal" |
 | **T2** | **Aryaman** (AI backend + report) | `feat/aryaman-dev` | `engine.js`, `engine.test.js`, `server.js`, `data/mock-session.json`, `public/report.html`, `public/report.js` | "It asks smart follow-ups and writes a fair report" |
 | **T3** | **Suryansh** (Integrity + QA) | `suryansh` | `public/integrity.js`, `README.md` | "It notices when I look away or switch tabs" |
 

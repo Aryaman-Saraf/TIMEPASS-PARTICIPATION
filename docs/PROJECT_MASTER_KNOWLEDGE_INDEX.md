@@ -14,7 +14,7 @@
 
 | Teammate | Assigned Branch | Owned Files | Core Deliverable |
 |---|---|---|---|
-| **T1: Prathul** | `Prathul` | `public/styles.css`<br>`public/index.html`<br>`public/room.html`<br>`public/room.js` | Candidate experience: Setup form, interview room UI, Web Audio visualizer, and voice turn loop. |
+| **T1: Tanay** | `trial/integration` / `tanay` | `public/styles.css`<br>`public/index.html`<br>`public/room.html`<br>`public/room.js`<br>Candidate & Recruiter UI views | Candidate & Recruiter Experience: Dual-portal gateway, candidate hub, pre-flight device calibration, live voice room, completion confirmation, and recruiter pipeline. |
 | **T2: Aryaman** | `feat/aryaman-dev` | `server.js`<br>`server.test.js`<br>`engine.js`<br>`engine.test.js`<br>`data/mock-session.json`<br>`public/report.html`<br>`public/report.js` | AI backend & Recruiter Report: LLM engine, HTTP server, test suites, Evidence Dossier, adaptive path visualization. |
 | **T3: Suryansh** | `suryansh` | `public/integrity.js`<br>`README.md` | Integrity & QA: MediaPipe face/gaze tracker, integrity audit table, end-to-end resilience testing, demo video. |
 
@@ -40,6 +40,7 @@
 | [`public/integrity.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/integrity.js) | Vision / QA | ✅ Active | On-device MediaPipe FaceLandmarker: gaze deviation, head pose, liveness micro-movement, screen sharing, full-screen confinement, and Evidence Dossier renderer. |
 | [`public/report.html`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/report.html) | Recruiter UI | ✅ Active | Recruiter report dashboard shell with dark tokens, responsive layout, print media styles, and module loader. |
 | [`public/report.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/report.js) | Recruiter UI | ✅ Active | Recruiter dashboard: session catalog list, Evidence Dossier 3-tile header, BARS scorecard, adaptive path, STAR breakdown, coaching, transcript, and integrity audit. |
+| [`docs/TANAY_FRONTEND_MASTER_GUIDE.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/docs/TANAY_FRONTEND_MASTER_GUIDE.md) | Onboarding / UI | ✅ Active | Complete zero-to-hero onboarding and frontend build guide for Tanay (T1): 6-screen flow, API copy-paste snippets, and Web API integration. |
 | [`docs/FRONTEND_BACKEND_INTEGRATION_SPEC.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/docs/FRONTEND_BACKEND_INTEGRATION_SPEC.md) | Architecture / UI | ✅ Active | Master integration specification: 6-screen flow (Auth ➔ Candidate Hub ➔ Pre-Device Check ➔ Live Room ➔ Completion ➔ Recruiter Portal), data hooks, and API contracts. |
 | [`AGENTS.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/AGENTS.md) | Governance | ✅ Active | Workspace rules: unbiased delegation, file protection, commit protocol, clean Unicode formatting, and staging protocols. |
 
