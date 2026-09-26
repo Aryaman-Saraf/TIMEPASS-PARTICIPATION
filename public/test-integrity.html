@@ -507,6 +507,19 @@
         btnStop.disabled = false;
         placeholderEl.style.display = 'none';
 
+        log('Requesting desktop screen share (click "Entire Screen" in picker)…');
+        // CRITICAL: Call getDisplayMedia as the immediate first operation to preserve Chrome transient user activation!
+        let screenStream = null;
+        try {
+          screenStream = await navigator.mediaDevices.getDisplayMedia({
+            video: { displaySurface: 'monitor' },
+            audio: false,
+          });
+          log('✅ Desktop screen share authorized.');
+        } catch (screenErr) {
+          log(`⚠️ Screen share declined or dismissed: ${screenErr.message}. Continuing with webcam proctoring.`);
+        }
+
         log('Requesting webcam access…');
         stream = await navigator.mediaDevices.getUserMedia({
           video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
@@ -516,9 +529,12 @@
         videoEl.srcObject = stream;
         await videoEl.play();
 
-        log('Webcam connected. Initializing IntegrityMonitor with full desktop screen share…');
+        log('Webcam connected. Initializing IntegrityMonitor…');
         monitor = new IntegrityMonitor(videoEl, canvasEl, updateHud);
-        await monitor.start(true, true);
+        if (screenStream) {
+          monitor.attachScreenStream(screenStream);
+        }
+        await monitor.start(true, false);
 
         startTime = Date.now();
         timerInterval = setInterval(() => {
@@ -528,7 +544,7 @@
           timerEl.textContent = `${m}:${s}`;
         }, 500);
 
-        log('Monitoring and Screen Verification started. Calibrating baseline…');
+        log('Monitoring and Screen Verification active. Calibrating baseline…');
       } catch (err) {
         log(`❌ Setup error: ${err.message}. Switching to tab/blur mode.`);
         window.startNoCamera();

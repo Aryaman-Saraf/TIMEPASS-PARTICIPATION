@@ -207,49 +207,62 @@ export class IntegrityMonitor {
   }
 
   /**
+   * Attaches an existing desktop screen stream and wires up anti-tamper monitoring.
+   * @param {MediaStream} stream
+   * @returns {boolean}
+   */
+  attachScreenStream(stream) {
+    if (!stream) return false;
+    this.screenStream = stream;
+    const track = this.screenStream.getVideoTracks ? this.screenStream.getVideoTracks()[0] : null;
+    if (track) {
+      this.screenShareActive = true;
+      const settings = track.getSettings ? track.getSettings() : {};
+      const surface = settings.displaySurface || 'monitor';
+
+      // Anomaly: Candidate clicked "Stop sharing" on the floating Chrome bar
+      track.onended = () => {
+        if (this.running) {
+          const now = Date.now();
+          this._pushEvent('TAB_HIDDEN', now - this.startTime, now - 3000, 3000, {
+            reason: 'Desktop screen share terminated by candidate',
+          });
+          this.screenStream = null;
+          this._emitHud('Screen sharing stopped!');
+        }
+      };
+
+      this._emitHud(`Screen sharing active (${surface})`);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Prompts candidate for desktop screen sharing and monitors anti-tampering.
    * @returns {Promise<boolean>}
    */
   async startScreenShare() {
+    if (this.screenStream) {
+      return true;
+    }
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getDisplayMedia) {
       return false;
     }
     try {
-      this.screenStream = await navigator.mediaDevices.getDisplayMedia({
+      const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { displaySurface: 'monitor' },
         audio: false,
       });
-
-      const track = this.screenStream.getVideoTracks()[0];
-      if (track) {
-        this.screenShareActive = true;
-        const settings = track.getSettings ? track.getSettings() : {};
-        const surface = settings.displaySurface || 'monitor';
-
-        // Anomaly: Candidate clicked "Stop sharing" on the floating Chrome bar
-        track.onended = () => {
-          if (this.running) {
-            const now = Date.now();
-            this._pushEvent('TAB_HIDDEN', now - this.startTime, now - 3000, 3000, {
-              reason: 'Desktop screen share terminated by candidate',
-            });
-            this.screenStream = null;
-            this._emitHud('Screen sharing stopped!');
-          }
-        };
-
-        this._emitHud(`Screen sharing active (${surface})`);
-        return true;
-      }
+      return this.attachScreenStream(stream);
     } catch (err) {
       console.warn('[Candor Screen] Screen share declined or failed', err);
       const now = Date.now();
-      this._pushEvent('WINDOW_BLUR', now - this.startTime, now - 1000, 1000, {
+      this._pushEvent('WINDOW_BLUR', now - (this.startTime || now), now - 1000, 1000, {
         reason: 'Desktop screen sharing declined by candidate',
       });
       return false;
     }
-    return false;
   }
 
   _onFullscreenChange() {
