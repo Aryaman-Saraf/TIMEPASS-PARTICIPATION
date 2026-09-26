@@ -147,7 +147,17 @@
   - Implemented disk persistence for candidate roster to `data/candidates.json` via `saveCandidates()` and `loadCandidates()`.
   - Recruiter additions (`POST /api/candidates`), deletions (`DELETE /api/candidates`), and candidate resume updates (`POST /api/candidate/resume`) now persist across server restarts.
   - Added full automated contract test in `server.test.js` exercising the complete pipeline lifecycle.
-  - Verified test suite: 18/18 tests passing (`npm test`). Local commit created: `d36fd35`.
+### 20. Supabase Cloud DB Adapter, RBAC Authentication, Resume File Parser, AI Rankings & Vercel Deployment
+- **Target Files**: `db.js`, `auth.js`, `resumeParser.js`, `supabase_schema.sql`, `vercel.json`, `api/index.js`, `server.js`, `server.test.js`, `public/index.html`, `public/report.js`
+- **Details**:
+  - Implemented universal database adapter (`db.js`) supporting Supabase Cloud PostgreSQL via REST API with automatic local persistent fallback.
+  - Authored `supabase_schema.sql` providing production table definitions for candidates, sessions, and users with Row Level Security (RLS) policies.
+  - Implemented real RBAC authentication engine (`auth.js`) supporting Recruiter (`recruiter@candor.ai`) and Candidate logins, session token generation, and authorization guards.
+  - Implemented zero-dependency resume parsing engine (`resumeParser.js`) extracting text from PDFs (via `node:zlib` stream inflate), raw text, and base64 with automatic PII sanitization.
+  - Implemented AI candidate ranking leaderboard (`GET /api/recruiter/rankings`) calculating percentiles, score distributions, and recruiter pipeline metrics.
+  - Configured zero-config Vercel cloud serverless deployment with `vercel.json` routing and `api/index.js` serverless function handler.
+  - Added live file upload control to candidate pre-flight interface in `public/index.html` and pipeline metrics to `public/report.js`.
+  - Verified test suite: 21/21 tests passing (`npm test`). Local commit created: `11d8ebb`.
 
 ---
 
