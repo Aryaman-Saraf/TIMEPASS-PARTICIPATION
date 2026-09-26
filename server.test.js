@@ -112,3 +112,42 @@ test('persistence: sessions written to DATA_DIR, reloaded on load(), bad files s
   assert.equal((await fetch(`${base}/api/session?id=seeded-1`)).status, 200);
   assert.equal((await fetch(`${base}/api/session?id=mock-session-001`)).status, 200);
 });
+
+test('candidate pipeline: list, add, update resume, delete', async () => {
+  // 1. List candidates
+  const listRes = await fetch(`${base}/api/candidates`);
+  assert.equal(listRes.status, 200);
+  const list = await listRes.json();
+  assert.ok(Array.isArray(list));
+  assert.ok(list.length >= 1);
+
+  // 2. Add new candidate
+  const addRes = await post('/api/candidates', {
+    name: 'Morgan Smith',
+    email: 'morgan.smith@example.com',
+    role: 'Staff Site Reliability Engineer',
+    department: 'Cloud Infrastructure',
+    jobDescription: 'Kubernetes, multi-region failover, Terraform',
+    resumeText: 'Morgan Smith - 8 years SRE at CloudCorp.'
+  });
+  assert.equal(addRes.status, 200);
+  const created = await addRes.json();
+  assert.ok(created.id);
+  assert.equal(created.name, 'Morgan Smith');
+
+  // 3. Update candidate resume
+  const updateRes = await post('/api/candidate/resume', {
+    candidateId: created.id,
+    resumeText: 'Morgan Smith - Updated Resume with Chaos Engineering experience.'
+  });
+  assert.equal(updateRes.status, 200);
+  const updated = await updateRes.json();
+  assert.equal(updated.ok, true);
+
+  // 4. Delete candidate
+  const delRes = await fetch(`${base}/api/candidates?id=${created.id}`, { method: 'DELETE' });
+  assert.equal(delRes.status, 200);
+  const delData = await delRes.json();
+  assert.equal(delData.ok, true);
+  assert.equal(delData.id, created.id);
+});

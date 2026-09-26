@@ -61,15 +61,32 @@ export const candidates = new Map([
   }]
 ]);
 
+const CANDIDATES_FILE = path.join(ROOT, 'data', 'candidates.json');
 const save = s => writeFile(path.join(DATA, `${s.id}.json`), JSON.stringify(s, null, 1)).catch(e => console.warn(`[save] ${e.message}`));
+const saveCandidates = () => writeFile(CANDIDATES_FILE, JSON.stringify([...candidates.values()], null, 2)).catch(e => console.warn(`[saveCandidates] ${e.message}`));
+
+export async function loadCandidates() {
+  try {
+    const list = JSON.parse(await readFile(CANDIDATES_FILE, 'utf8'));
+    if (Array.isArray(list) && list.length > 0) {
+      candidates.clear();
+      for (const c of list) {
+        if (c?.id) candidates.set(c.id, c);
+      }
+    }
+  } catch (e) {
+    // Keep defaults if file doesn't exist or is unparseable
+  }
+}
 
 // Top-level data/*.json are committed demo seeds (mock-session.json, backup demo runs); DATA copies load last and win.
 export async function load() {
   await mkdir(DATA, { recursive: true });
+  await loadCandidates();
   for (const dir of [path.join(ROOT, 'data'), DATA]) {
     try {
       const files = await readdir(dir);
-      for (const f of files.filter(f => f.endsWith('.json'))) {
+      for (const f of files.filter(f => f.endsWith('.json') && f !== 'candidates.json')) {
         try {
           const s = JSON.parse(await readFile(path.join(dir, f), 'utf8'));
           if (s?.id) sessions.set(String(s.id), s);
@@ -150,12 +167,14 @@ const routes = {
       createdAt: b.createdAt || new Date().toISOString()
     };
     candidates.set(id, cand);
+    await saveCandidates();
     return cand;
   },
-  'DELETE /api/candidates': (_, url) => {
+  'DELETE /api/candidates': async (_, url) => {
     const id = url.searchParams.get('id');
     if (!id) throw httpError(400, 'id required');
     const deleted = candidates.delete(id);
+    if (deleted) await saveCandidates();
     return { ok: deleted, id };
   },
   'POST /api/candidate/resume': async b => {
@@ -163,6 +182,7 @@ const routes = {
     const cand = candidates.get(b.candidateId);
     if (!cand) throw httpError(404, 'candidate not found');
     cand.resumeText = String(b.resumeText);
+    await saveCandidates();
     return { ok: true, characterCount: cand.resumeText.length };
   },
 };
