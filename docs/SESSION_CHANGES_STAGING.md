@@ -105,6 +105,13 @@
   - Enforced strict repository root cleanliness: only configuration files, core architecture documentation, core backend/test files, and 4 primary directories (`public/`, `data/`, `docs/`, `archive/`).
   - Verified test suite: 17/17 tests passing.
 
+### 16. Archiving Initial Frontend Assets
+- **Target Directories**: `public/` ➔ `archive/public-old/`
+- **Details**:
+  - Relocated original frontend codebase from `public/` to `archive/public-old/` per user request to start fresh on frontend development.
+  - Preserved all initial code (`index.html`, `room.html`, `room.js`, `report.html`, `report.js`, `integrity.js`, `styles.css`) for seamless dependency re-wiring.
+
+
 ---
 
 ## Pending Staged Actions (Awaiting User Execution / End-of-Session)
