@@ -126,6 +126,9 @@ export class IntegrityMonitor {
     this.staticFrameStart = null;
     this.screenStream = null;
     this.screenShareActive = false;
+    this.screenRecorder = null;
+    this.recordedScreenChunks = [];
+    this.onViolationTermination = null;
 
     // Event listener references for clean removal
     this._handleVisibility = this._onVisibilityChange.bind(this);
@@ -172,6 +175,7 @@ export class IntegrityMonitor {
         focus: 'ok',
         faces: 0,
         tab: 'visible',
+        screen: this.screenStream ? 'active' : 'off',
         lastEvent: 'Initializing vision model…',
         stats: this._getLiveStats(),
       });
@@ -239,6 +243,29 @@ export class IntegrityMonitor {
       const settings = track.getSettings ? track.getSettings() : {};
       const surface = settings.displaySurface || 'monitor';
 
+      // Start actual screen recording with MediaRecorder if available
+      try {
+        if (typeof MediaRecorder !== 'undefined') {
+          const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+            ? 'video/webm;codecs=vp9'
+            : MediaRecorder.isTypeSupported('video/webm')
+            ? 'video/webm'
+            : '';
+          this.recordedScreenChunks = [];
+          this.screenRecorder = mimeType
+            ? new MediaRecorder(this.screenStream, { mimeType })
+            : new MediaRecorder(this.screenStream);
+          this.screenRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              this.recordedScreenChunks.push(e.data);
+            }
+          };
+          this.screenRecorder.start(1000);
+        }
+      } catch (recErr) {
+        console.warn('[Candor Screen] MediaRecorder initialization notice:', recErr);
+      }
+
       // Anomaly: Candidate clicked "Stop sharing" on the floating Chrome bar
       track.onended = () => {
         if (this.running) {
@@ -247,11 +274,15 @@ export class IntegrityMonitor {
             reason: 'Desktop screen share terminated by candidate',
           });
           this.screenStream = null;
+          this.screenShareActive = false;
           this._emitHud('Screen sharing stopped!');
+          if (typeof this.onViolationTermination === 'function') {
+            this.onViolationTermination('Desktop screen recording was terminated by candidate');
+          }
         }
       };
 
-      this._emitHud(`Screen sharing active (${surface})`);
+      this._emitHud(`Screen recording active (${surface})`);
       return true;
     }
     return false;
@@ -269,10 +300,18 @@ export class IntegrityMonitor {
       return false;
     }
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { displaySurface: 'monitor' },
-        audio: false,
-      });
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { displaySurface: 'monitor' },
+          audio: false,
+        });
+      } catch (e) {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        });
+      }
       return this.attachScreenStream(stream);
     } catch (err) {
       console.warn('[Candor Screen] Screen share declined or failed', err);
@@ -307,6 +346,19 @@ export class IntegrityMonitor {
     if (this.rafId && typeof cancelAnimationFrame !== 'undefined') {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
+    }
+
+    // Stop screen recording if active
+    if (this.screenRecorder && this.screenRecorder.state !== 'inactive') {
+      try {
+        this.screenRecorder.stop();
+      } catch (e) {}
+    }
+
+    if (this.recordedScreenChunks && this.recordedScreenChunks.length > 0) {
+      try {
+        this.recordedScreenBlob = new Blob(this.recordedScreenChunks, { type: 'video/webm' });
+      } catch (e) {}
     }
 
     // Stop active screen share tracks
@@ -406,6 +458,7 @@ export class IntegrityMonitor {
       totalMs,
       visionAvailable: this.visionAvailable,
       screenShareActive: this.screenShareActive,
+      recordedScreenBlob: this.recordedScreenBlob,
       events: [...this.events],
     };
   }
@@ -453,6 +506,9 @@ export class IntegrityMonitor {
         };
         this.events.push(this.activeTabHiddenEvent);
       }
+      if (typeof this.onViolationTermination === 'function') {
+        this.onViolationTermination('Candidate opened another browser tab or minimized the interview');
+      }
     } else {
       if (this.tabHiddenStart) {
         const dur = now - this.tabHiddenStart;
@@ -476,6 +532,9 @@ export class IntegrityMonitor {
       const now = Date.now();
       this.blurStart = now;
       this.blurT = now - this.startTime;
+    }
+    if (typeof this.onViolationTermination === 'function') {
+      this.onViolationTermination('Candidate opened another application or switched to another Chrome window');
     }
   }
 

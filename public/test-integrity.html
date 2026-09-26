@@ -235,9 +235,205 @@
     }
     .log-entry { margin-bottom: 4px; }
     .log-entry .time { color: var(--accent); margin-right: 8px; }
+
+    /* Confinement Warning Banner */
+    .confinement-warning-banner {
+      background: linear-gradient(90deg, rgba(220, 38, 38, 0.22), rgba(245, 158, 11, 0.18));
+      border: 1px solid rgba(239, 68, 68, 0.55);
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.2);
+    }
+    .warning-banner-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .rec-pulsing-badge {
+      background: #dc2626;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.05em;
+    }
+    .rec-dot {
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border-radius: 50%;
+      animation: pulse-dot 1.2s infinite ease-in-out;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.8); }
+    }
+    .warning-title {
+      font-weight: 700;
+      color: #fca5a5;
+      font-size: 0.9rem;
+    }
+    .warning-banner-right {
+      font-size: 0.85rem;
+      color: #fef08a;
+    }
+    .danger-highlight {
+      color: #ff6b6b;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    /* Proximity Toast Alert when mouse leaves browser window */
+    .proximity-warning {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 99999;
+      background: #7f1d1d;
+      color: #fff;
+      border: 2px solid #ef4444;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 25px rgba(239, 68, 68, 0.6);
+      animation: shake-toast 0.4s ease-in-out;
+    }
+    @keyframes shake-toast {
+      0%, 100% { transform: translateX(-50%); }
+      25% { transform: translateX(calc(-50% - 6px)); }
+      75% { transform: translateX(calc(-50% + 6px)); }
+    }
+
+    /* Picture-in-Picture Screen Recording Feed */
+    .screen-pip-box {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      width: 140px;
+      aspect-ratio: 16 / 9;
+      border-radius: 8px;
+      border: 2px solid var(--accent);
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+      z-index: 10;
+    }
+    #screen-preview-cam {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .screen-pip-badge {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #93c5fd;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    /* Fullscreen Violation Modal */
+    .violation-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 16, 0.9);
+      backdrop-filter: blur(8px);
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .violation-card {
+      background: #141a2e;
+      border: 2px solid #ef4444;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 28px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 30px rgba(239, 68, 68, 0.4);
+      animation: modal-enter 0.25s ease-out;
+    }
+    @keyframes modal-enter {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .violation-icon { font-size: 3rem; margin-bottom: 8px; }
+    .violation-heading { color: #fff; font-size: 1.5rem; margin: 0 0 8px; }
+    .violation-tag {
+      display: inline-block;
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .violation-desc { color: #e2e8f0; font-size: 0.95rem; line-height: 1.5; margin: 0 0 16px; }
+    .violation-warning-reminder {
+      background: #0f172a;
+      border: 1px dashed rgba(245, 158, 11, 0.5);
+      border-radius: 8px;
+      padding: 10px;
+      color: #fef08a;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+    .violation-foot { color: var(--muted); font-size: 0.8rem; margin: 0 0 20px; }
+    .violation-actions { display: flex; gap: 12px; justify-content: center; }
   </style>
 </head>
 <body>
+  <!-- Proximity Leaving Warning Toast -->
+  <div id="proximity-warning" class="proximity-warning" style="display: none;">
+    <span class="proximity-icon">⚠️</span>
+    <span id="proximity-text">WARNING: Stay on this page! If you leave from here, the interview will end!</span>
+  </div>
+
+  <!-- Fullscreen Violation Modal -->
+  <div id="violation-modal" class="violation-modal" style="display: none;">
+    <div class="violation-card">
+      <div class="violation-icon">🚨</div>
+      <h2 class="violation-heading">Interview Ended</h2>
+      <div class="violation-tag">Confinement Violation</div>
+      <p class="violation-desc" id="violation-desc">
+        You attempted to leave the interview window or open another application.
+      </p>
+      <div class="violation-warning-reminder">
+        ⚠️ Rule Enforced: <em>"If you leave from here, the interview will end."</em>
+      </div>
+      <p class="violation-foot">
+        The proctoring engine has automatically finalized your assessment telemetry and generated the evidence dossier below.
+      </p>
+      <div class="violation-actions">
+        <button class="btn-primary" onclick="dismissViolationModal()">Inspect Evidence Dossier</button>
+        <button class="btn-secondary" onclick="resetSandbox()">Restart Session</button>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <div class="header">
       <div>
@@ -247,10 +443,21 @@
       <span class="badge-dev">T3 Sandbox · Dev Mode</span>
     </div>
 
+    <!-- Persistent Strict Confinement Warning Banner -->
+    <div id="confinement-warning-banner" class="confinement-warning-banner" style="display: none;">
+      <div class="warning-banner-left">
+        <span class="rec-pulsing-badge"><span class="rec-dot"></span> LIVE RECORDING</span>
+        <span class="warning-title">⚠️ STRICT PROCTORING CONFINEMENT ACTIVE</span>
+      </div>
+      <div class="warning-banner-right">
+        Do NOT open another tab or application. <span class="danger-highlight">If you leave from here, the interview will end immediately!</span>
+      </div>
+    </div>
+
     <!-- Interactive Control Bar -->
     <div class="control-bar">
-      <button id="btn-start" onclick="startCamera()">
-        ▶️ Start Live Camera &amp; Monitor
+      <button id="btn-start" onclick="startCameraAndScreen()">
+        ▶️ Start Proctored Interview (Camera + Screen Recording)
       </button>
       <button id="btn-start-screen" class="btn-secondary" onclick="startCameraAndScreen()">
         🖥️ Start with Screen Share
@@ -278,9 +485,13 @@
       <div class="video-card">
         <video id="cam" autoplay muted playsinline></video>
         <canvas id="overlay"></canvas>
+        <div id="screen-pip-box" class="screen-pip-box" style="display: none;">
+          <video id="screen-preview-cam" autoplay muted playsinline></video>
+          <div class="screen-pip-badge">🖥️ Screen Recording</div>
+        </div>
         <div id="video-placeholder" class="video-placeholder">
           📷 Camera inactive<br>
-          Click <strong>"Start Live Camera &amp; Monitor"</strong> or <strong>"Start with Screen Share"</strong>.
+          Click <strong>"Start Proctored Interview"</strong> or <strong>"Start with Screen Share"</strong>.
         </div>
       </div>
 
@@ -470,61 +681,113 @@
       }
     }
 
-    window.startCamera = async function() {
-      try {
-        btnStart.disabled = true;
-        btnStartScreen.disabled = true;
-        btnNoCam.disabled = true;
-        btnStop.disabled = false;
-        placeholderEl.style.display = 'none';
+    let sessionTerminated = false;
+    let proximityTimeout = null;
 
-        log('Requesting webcam access…');
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
-          audio: false
-        });
+    function attachProximityWarning() {
+      document.addEventListener('mouseleave', onMouseLeaveDoc);
+      document.addEventListener('mouseenter', onMouseEnterDoc);
+      window.addEventListener('beforeunload', onBeforeUnloadDoc);
+    }
 
-        videoEl.srcObject = stream;
-        await videoEl.play();
+    function removeProximityWarning() {
+      document.removeEventListener('mouseleave', onMouseLeaveDoc);
+      document.removeEventListener('mouseenter', onMouseEnterDoc);
+      window.removeEventListener('beforeunload', onBeforeUnloadDoc);
+      hideProximityWarning();
+    }
 
-        log('Webcam connected. Initializing IntegrityMonitor…');
-        monitor = new IntegrityMonitor(videoEl, canvasEl, updateHud);
-        await monitor.start(true);
-
-        startTime = Date.now();
-        timerInterval = setInterval(() => {
-          const sec = Math.floor((Date.now() - startTime) / 1000);
-          const m = String(Math.floor(sec / 60)).padStart(2, '0');
-          const s = String(sec % 60).padStart(2, '0');
-          timerEl.textContent = `${m}:${s}`;
-        }, 500);
-
-        log('Monitoring started. Calibrating resting baseline…');
-      } catch (err) {
-        log(`❌ Camera error: ${err.message}. Switching to tab/blur mode.`);
-        window.startNoCamera();
+    function onMouseLeaveDoc() {
+      if (monitor && monitor.running && !sessionTerminated) {
+        showProximityWarning('⚠️ WARNING: If you leave from here, the interview will end!');
       }
+    }
+
+    function onMouseEnterDoc() {
+      hideProximityWarning();
+    }
+
+    function onBeforeUnloadDoc(e) {
+      if (monitor && monitor.running && !sessionTerminated) {
+        e.preventDefault();
+        e.returnValue = 'If you leave from here, the interview will end.';
+        return e.returnValue;
+      }
+    }
+
+    function showProximityWarning(msg) {
+      const toast = document.getElementById('proximity-warning');
+      const text = document.getElementById('proximity-text');
+      if (toast && text) {
+        text.textContent = msg;
+        toast.style.display = 'flex';
+        clearTimeout(proximityTimeout);
+        proximityTimeout = setTimeout(() => {
+          hideProximityWarning();
+        }, 4000);
+      }
+    }
+
+    function hideProximityWarning() {
+      const toast = document.getElementById('proximity-warning');
+      if (toast) toast.style.display = 'none';
+      clearTimeout(proximityTimeout);
+    }
+
+    function handleViolationTermination(reason) {
+      if (sessionTerminated || !monitor || !monitor.running) return;
+      sessionTerminated = true;
+
+      log(`🚨 CRITICAL CONFINEMENT VIOLATION: ${reason}. Interview ended automatically.`);
+
+      // Stop monitor and capture report payload
+      window.stopAndReport(reason);
+
+      // Show termination modal with clear warning reminder
+      const modal = document.getElementById('violation-modal');
+      const desc = document.getElementById('violation-desc');
+      if (desc) {
+        desc.textContent = `Violation Detected: ${reason}. You attempted to open another tab, application, or Chrome window during screen recording.`;
+      }
+      if (modal) modal.style.display = 'flex';
+      hideProximityWarning();
+    }
+
+    window.dismissViolationModal = function() {
+      const modal = document.getElementById('violation-modal');
+      if (modal) modal.style.display = 'none';
+      reportContainer.scrollIntoView({ behavior: 'smooth' });
     };
 
     window.startCameraAndScreen = async function() {
       try {
+        sessionTerminated = false;
         btnStart.disabled = true;
         btnStartScreen.disabled = true;
         btnNoCam.disabled = true;
         btnStop.disabled = false;
         placeholderEl.style.display = 'none';
 
-        log('Requesting desktop screen share (click "Entire Screen" in picker)…');
-        // CRITICAL: Call getDisplayMedia as the immediate first operation to preserve Chrome transient user activation!
+        log('Requesting desktop screen share (select "Entire Screen" in browser prompt)…');
+        // CRITICAL: Call getDisplayMedia as immediate first operation to preserve transient user activation!
         let screenStream = null;
         try {
           screenStream = await navigator.mediaDevices.getDisplayMedia({
             video: { displaySurface: 'monitor' },
             audio: false,
           });
-          log('✅ Desktop screen share authorized.');
+          log('✅ Desktop screen recording authorized.');
         } catch (screenErr) {
-          log(`⚠️ Screen share declined or dismissed: ${screenErr.message}. Continuing with webcam proctoring.`);
+          try {
+            // Standard fallback without displaySurface constraint
+            screenStream = await navigator.mediaDevices.getDisplayMedia({
+              video: true,
+              audio: false,
+            });
+            log('✅ Desktop screen recording authorized (standard mode).');
+          } catch (fallbackErr) {
+            log(`⚠️ Screen recording dismissed: ${fallbackErr.message}. Continuing with camera.`);
+          }
         }
 
         log('Requesting webcam access…');
@@ -536,11 +799,32 @@
         videoEl.srcObject = stream;
         await videoEl.play();
 
-        log('Webcam connected. Initializing IntegrityMonitor…');
+        // Connect screen stream to live PIP preview if available
+        if (screenStream) {
+          const screenVideoEl = document.getElementById('screen-preview-cam');
+          if (screenVideoEl) {
+            screenVideoEl.srcObject = screenStream;
+            screenVideoEl.play().catch(() => {});
+          }
+          const screenPipBox = document.getElementById('screen-pip-box');
+          if (screenPipBox) screenPipBox.style.display = 'block';
+        }
+
+        // Show persistent confinement warning banner
+        const bannerEl = document.getElementById('confinement-warning-banner');
+        if (bannerEl) bannerEl.style.display = 'flex';
+
+        log('Webcam connected. Initializing IntegrityMonitor with strict confinement…');
         monitor = new IntegrityMonitor(videoEl, canvasEl, updateHud);
         if (screenStream) {
           monitor.attachScreenStream(screenStream);
         }
+
+        // Wire up auto-termination on tab / application switch violations
+        monitor.onViolationTermination = (reason) => {
+          handleViolationTermination(reason);
+        };
+
         await monitor.start(true, false);
 
         startTime = Date.now();
@@ -551,14 +835,20 @@
           timerEl.textContent = `${m}:${s}`;
         }, 500);
 
-        log('Monitoring and Screen Verification active. Calibrating baseline…');
+        // Attach mouseleave proximity warning
+        attachProximityWarning();
+
+        log('Monitoring and Screen Recording active. Confinement rules enforced.');
       } catch (err) {
         log(`❌ Setup error: ${err.message}. Switching to tab/blur mode.`);
         window.startNoCamera();
       }
     };
 
+    window.startCamera = window.startCameraAndScreen;
+
     window.startNoCamera = async function() {
+      sessionTerminated = false;
       btnStart.disabled = true;
       btnStartScreen.disabled = true;
       btnNoCam.disabled = true;
@@ -567,6 +857,9 @@
 
       log('Starting in camera-disabled fallback mode…');
       monitor = new IntegrityMonitor(null, null, updateHud);
+      monitor.onViolationTermination = (reason) => {
+        handleViolationTermination(reason);
+      };
       await monitor.start(false);
 
       startTime = Date.now();
@@ -577,23 +870,36 @@
         timerEl.textContent = `${m}:${s}`;
       }, 500);
 
+      attachProximityWarning();
       log('Tab/blur fallback monitoring active.');
     };
 
-    window.stopAndReport = function() {
-      if (!monitor) return;
+    window.stopAndReport = function(violationReason = null) {
+      if (!monitor && !stream) return;
 
       clearInterval(timerInterval);
+      removeProximityWarning();
       log('Stopping monitor and collecting payload…');
-      const payload = monitor.stop();
+      const payload = monitor ? monitor.stop() : { totalMs: Date.now() - (startTime || Date.now()), events: [], visionAvailable: false, screenShareActive: false };
 
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         stream = null;
       }
       videoEl.srcObject = null;
+
+      const screenVideoEl = document.getElementById('screen-preview-cam');
+      if (screenVideoEl) screenVideoEl.srcObject = null;
+      const screenPipBox = document.getElementById('screen-pip-box');
+      if (screenPipBox) screenPipBox.style.display = 'none';
+
+      const bannerEl = document.getElementById('confinement-warning-banner');
+      if (bannerEl) bannerEl.style.display = 'none';
+
       placeholderEl.style.display = 'block';
-      placeholderEl.textContent = '⏹️ Monitoring stopped. Dossier generated below.';
+      placeholderEl.textContent = violationReason 
+        ? `🚨 Interview Ended: ${violationReason}. Dossier generated below.`
+        : '⏹️ Monitoring stopped. Dossier generated below.';
 
       btnStart.disabled = false;
       btnStartScreen.disabled = false;
@@ -602,6 +908,16 @@
 
       chipScreen.className = 'chip';
       chipScreen.textContent = '🖥️ Screen: Inactive';
+
+      if (violationReason) {
+        payload.events.push({
+          type: 'TAB_HIDDEN',
+          t: Math.round(payload.totalMs || 1000),
+          at: new Date().toISOString(),
+          durationMs: 5000,
+          detail: { reason: `Terminated: ${violationReason}` }
+        });
+      }
 
       log(`Collected ${payload.events.length} episode(s) across ${((payload.totalMs || 0)/1000).toFixed(1)}s.`);
 
@@ -621,7 +937,8 @@
         + 15 * multiFaceEvents.length
         + 8 * tabHiddenEvents.length
         + tabHiddenMs / 2000
-        + 2 * blurEvents.length;
+        + 2 * blurEvents.length
+        + (violationReason ? 40 : 0);
 
       const score = Math.max(0, Math.min(100, Math.round(100 - penalty)));
       const onScreenPct = Math.max(0, Math.min(100, Math.round(100 * (1 - (lookAwayMs + tabHiddenMs + faceMissingMs) / payload.totalMs))));
@@ -631,7 +948,7 @@
         visionAvailable: payload.visionAvailable,
         screenShareActive: payload.screenShareActive,
         score,
-        riskLevel: score >= 80 ? 'low' : score >= 55 ? 'medium' : 'high',
+        riskLevel: violationReason ? 'high' : score >= 80 ? 'low' : score >= 55 ? 'medium' : 'high',
         stats: {
           totalMs: payload.totalMs,
           screenShareActive: payload.screenShareActive,
@@ -646,7 +963,7 @@
         },
         events: payload.events.map(e => ({
           ...e,
-          severity: e.type === 'MULTIPLE_FACES' ? 'high' : e.type === 'TAB_HIDDEN' && e.durationMs > 5000 ? 'high' : 'info'
+          severity: e.type === 'MULTIPLE_FACES' || String(e.detail?.reason || '').includes('Terminated') ? 'high' : e.type === 'TAB_HIDDEN' && e.durationMs > 5000 ? 'high' : 'info'
         }))
       };
 
@@ -665,6 +982,20 @@
     };
 
     window.resetSandbox = function() {
+      sessionTerminated = false;
+      removeProximityWarning();
+      const modal = document.getElementById('violation-modal');
+      if (modal) modal.style.display = 'none';
+
+      const bannerEl = document.getElementById('confinement-warning-banner');
+      if (bannerEl) bannerEl.style.display = 'none';
+
+      const screenPipBox = document.getElementById('screen-pip-box');
+      if (screenPipBox) screenPipBox.style.display = 'none';
+
+      const screenVideoEl = document.getElementById('screen-preview-cam');
+      if (screenVideoEl) screenVideoEl.srcObject = null;
+
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         stream = null;
@@ -676,7 +1007,7 @@
       clearInterval(timerInterval);
       videoEl.srcObject = null;
       placeholderEl.style.display = 'block';
-      placeholderEl.textContent = '📷 Camera inactive. Click "Start Live Camera & Monitor" to begin.';
+      placeholderEl.textContent = '📷 Camera inactive. Click "Start Proctored Interview" to begin.';
 
       btnStart.disabled = false;
       btnStartScreen.disabled = false;
