@@ -669,6 +669,7 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
 
     // Find the latest AI turn before or at event time
     let activeAiTurn = null;
+    let activeAiTurnIndex = -1;
     let nextCandidateTurn = null;
 
     for (let i = 0; i < turns.length; i++) {
@@ -676,6 +677,7 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
       const turnTime = turn.t || 0;
       if (turn.role === 'ai' && turnTime <= eventTime) {
         activeAiTurn = turn;
+        activeAiTurnIndex = i;
         // Check if there is a corresponding candidate response turn
         const next = turns[i + 1];
         if (next && next.role === 'candidate' && (next.t || 0) >= eventTime) {
@@ -685,13 +687,14 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
     }
 
     if (!activeAiTurn) {
-      return { qText: 'Opening / Pre-question', duringAnswer: false };
+      return { qText: 'Opening / Pre-question', turnIndex: -1, duringAnswer: false };
     }
 
     const qNum = (activeAiTurn.qIndex !== undefined ? activeAiTurn.qIndex + 1 : '?');
     const comp = activeAiTurn.competency || activeAiTurn.kind || 'General';
     return {
       qText: `Q${qNum} · ${comp}`,
+      turnIndex: activeAiTurnIndex,
       duringAnswer: !!nextCandidateTurn,
     };
   }
@@ -729,6 +732,10 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
           ? `<span class="during-answer-pill" title="Event occurred while candidate was formulating or speaking their answer">⚡ During Answer</span>`
           : '';
 
+        const contextHtml = ctx.turnIndex >= 0
+          ? `<a href="#turn-${ctx.turnIndex}" class="q-context-link" title="Jump to transcript question">${esc(ctx.qText)}</a>`
+          : `<span class="q-context">${esc(ctx.qText)}</span>`;
+
         return `
           <tr>
             <td class="font-mono">${esc(formatOffset(e.t))}</td>
@@ -736,7 +743,7 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
             <td class="font-mono">${esc(formatDuration(e.durationMs))}</td>
             <td><span class="sev-pill ${sevClass}">${esc((e.severity || 'info').toUpperCase())}</span></td>
             <td>
-              <span class="q-context">${esc(ctx.qText)}</span>
+              ${contextHtml}
               ${duringAnswerBadge}
             </td>
             <td class="text-muted text-sm">${esc(detailText || '—')}</td>
@@ -868,6 +875,7 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
       .text-green { color: #34d399; }
       .text-amber { color: #fbbf24; }
       .text-red { color: #f87171; }
+      .text-muted { color: #64748b; }
       .integrity-table-container {
         overflow-x: auto;
       }
@@ -933,6 +941,14 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
         font-size: 0.7rem;
         font-weight: 600;
       }
+      .q-context-link {
+        color: var(--accent, #6c8cff);
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .q-context-link:hover {
+        text-decoration: underline;
+      }
       .font-mono { font-family: monospace; }
       .integrity-empty-row {
         text-align: center;
@@ -969,7 +985,7 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
       ${
         !visionAvailable
           ? `<div class="integrity-notice-banner">
-               📷 <strong>Camera Disabled / Vision Unavailable:</strong> Visual tracking was not active for this session. Tab switches and application focus changes were monitored.
+               📷 <strong>Camera Disabled / Vision Unavailable:</strong> Camera was not available; only tab switching and window focus were monitored.
              </div>`
           : ''
       }
@@ -978,10 +994,10 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
       <div class="integrity-stats-grid">
         <div class="stat-tile">
           <div class="stat-tile-label">Integrity Confidence</div>
-          <div class="stat-tile-value ${stats.onScreenPct >= 90 ? 'text-green' : stats.onScreenPct >= 70 ? 'text-amber' : 'text-red'}">
-            ${esc(stats.onScreenPct)}%
+          <div class="stat-tile-value ${visionAvailable ? (stats.onScreenPct >= 90 ? 'text-green' : stats.onScreenPct >= 70 ? 'text-amber' : 'text-red') : 'text-muted'}">
+            ${visionAvailable ? esc(stats.onScreenPct) + '%' : 'n/a'}
           </div>
-          <div class="stat-tile-sub">Active on-screen focus</div>
+          <div class="stat-tile-sub">${visionAvailable ? 'Active on-screen focus' : 'Vision tracking disabled'}</div>
         </div>
 
         <div class="stat-tile">
