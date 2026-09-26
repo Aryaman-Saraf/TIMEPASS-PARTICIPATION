@@ -258,6 +258,12 @@
       <button id="btn-no-camera" class="btn-secondary" onclick="startNoCamera()">
         🛡️ Test Denied Camera Mode
       </button>
+      <button id="btn-test-devtools" class="btn-secondary" onclick="simulateDevTools()">
+        ⚡ Simulate F12 / DevTools
+      </button>
+      <button id="btn-test-paste" class="btn-secondary" onclick="simulatePaste()">
+        📋 Simulate AI Paste (80 chars)
+      </button>
       <button id="btn-reset" class="btn-secondary" onclick="resetSandbox()">
         🔄 Reset
       </button>
@@ -611,6 +617,28 @@
 
       reportContainer.innerHTML = '<p class="muted" style="text-align: center; padding: 40px 0;">Sandbox reset. Ready for next test.</p>';
       log('Sandbox reset.');
+    };
+
+    window.simulateDevTools = function() {
+      if (!monitor || !monitor.running) {
+        log('⚠️ Please start monitoring first before simulating shortcuts.');
+        return;
+      }
+      log('Simulating F12 DevTools keyboard shortcut…');
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F12', bubbles: true }));
+    };
+
+    window.simulatePaste = function() {
+      if (!monitor || !monitor.running) {
+        log('⚠️ Please start monitoring first before simulating paste.');
+        return;
+      }
+      log('Simulating suspicious 80-character clipboard injection…');
+      const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+      pasteEvent.clipboardData = {
+        getData: () => 'In high-throughput microservices, circuit breakers with exponential backoff prevent cascading service failure.'
+      };
+      document.dispatchEvent(pasteEvent);
     };
   </script>
 </body>

@@ -21,6 +21,9 @@ export const CONFIG = {
   WINDOW_BLUR_MIN_MS: 500,    // Ignore momentary window focus changes
   CALIBRATION_SAMPLES: 25,    // ~1.5s baseline resting pose calibration
   FPS_INTERVAL_MS: 66,        // Target ~15 FPS to keep client CPU/GPU usage minimal
+  EYE_LOOK_SIDE_THRESHOLD: 0.52, // Blendshape threshold for reading off secondary screens
+  EYE_LOOK_DOWN_THRESHOLD: 0.58, // Blendshape threshold for looking down at desk/phone
+  PASTE_CHAR_THRESHOLD: 25,      // Clipboard paste character threshold
 };
 
 // Safe HTML escaping for report rendering
@@ -98,10 +101,18 @@ export class IntegrityMonitor {
     this.baselineYaw = 0;
     this.baselinePitch = 0;
 
+    // Advanced anti-cheat tracking state
+    this.activeGazeReason = '';
+    this.noseHistory = [];
+    this.staticFrameStart = null;
+
     // Event listener references for clean removal
     this._handleVisibility = this._onVisibilityChange.bind(this);
     this._handleBlur = this._onWindowBlur.bind(this);
     this._handleFocus = this._onWindowFocus.bind(this);
+    this._handleKeyDown = this._onKeyDown.bind(this);
+    this._handlePaste = this._onPaste.bind(this);
+    this._handleContextMenu = this._onContextMenu.bind(this);
   }
 
   /**
@@ -113,13 +124,16 @@ export class IntegrityMonitor {
     this.startTime = Date.now();
     this.running = true;
 
-    // 1. Attach document & window visibility listeners
+    // 1. Attach document & window listeners
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this._handleVisibility);
+      document.addEventListener('paste', this._handlePaste);
+      document.addEventListener('contextmenu', this._handleContextMenu);
     }
     if (typeof window !== 'undefined') {
       window.addEventListener('blur', this._handleBlur);
       window.addEventListener('focus', this._handleFocus);
+      window.addEventListener('keydown', this._handleKeyDown);
     }
 
     // 2. Initialize MediaPipe Vision if camera enabled
@@ -194,13 +208,16 @@ export class IntegrityMonitor {
       this.rafId = null;
     }
 
-    // Remove window event listeners
+    // Remove window & document event listeners
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this._handleVisibility);
+      document.removeEventListener('paste', this._handlePaste);
+      document.removeEventListener('contextmenu', this._handleContextMenu);
     }
     if (typeof window !== 'undefined') {
       window.removeEventListener('blur', this._handleBlur);
       window.removeEventListener('focus', this._handleFocus);
+      window.removeEventListener('keydown', this._handleKeyDown);
     }
 
     // Flush any pending active episodes upon session stop
@@ -330,6 +347,40 @@ export class IntegrityMonitor {
     }
   }
 
+  _onKeyDown(e) {
+    if (!this.running) return;
+    // Intercept F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
+    const isDevToolsKey =
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) ||
+      (e.ctrlKey && ['U', 'u'].includes(e.key));
+
+    if (isDevToolsKey) {
+      const now = Date.now();
+      this._pushEvent('WINDOW_BLUR', now - this.startTime, now - 1500, 1500, {
+        reason: `DevTools inspection shortcut attempted (${e.key})`,
+      });
+      this._emitHud('DevTools shortcut intercepted');
+    }
+  }
+
+  _onPaste(e) {
+    if (!this.running) return;
+    const text = e.clipboardData ? e.clipboardData.getData('text') : '';
+    if (text && text.length >= CONFIG.PASTE_CHAR_THRESHOLD) {
+      const now = Date.now();
+      this._pushEvent('WINDOW_BLUR', now - this.startTime, now - 1000, 1000, {
+        reason: `Suspicious clipboard paste (${text.length} chars)`,
+      });
+      this._emitHud(`Paste detected (${text.length} chars)`);
+    }
+  }
+
+  _onContextMenu() {
+    if (!this.running) return;
+    this._emitHud('Context menu opened');
+  }
+
   // -------------------------------------------------------------
   // Vision Loop & Landmark Processing
   // -------------------------------------------------------------
@@ -421,7 +472,59 @@ export class IntegrityMonitor {
     const yaw = pose.rawYaw - this.baselineYaw;
     const pitch = pose.rawPitch - this.baselinePitch;
 
-    const isLookingAway = Math.abs(yaw) > CONFIG.YAW_THRESHOLD_DEG || Math.abs(pitch) > CONFIG.PITCH_THRESHOLD_DEG;
+    // 4. Eye-Gaze Deviation Detection (Secondary monitor / off-screen reading)
+    let isEyeAway = false;
+    let gazeDirection = '';
+    const blendCategories = results?.faceBlendshapes?.[0]?.categories || [];
+    if (blendCategories.length > 0) {
+      const blendMap = new Map();
+      for (let i = 0; i < blendCategories.length; i++) {
+        blendMap.set(blendCategories[i].categoryName, blendCategories[i].score || 0);
+      }
+      const lookLeft = ((blendMap.get('eyeLookOutLeft') || 0) + (blendMap.get('eyeLookInRight') || 0)) / 2;
+      const lookRight = ((blendMap.get('eyeLookInLeft') || 0) + (blendMap.get('eyeLookOutRight') || 0)) / 2;
+      const lookDown = ((blendMap.get('eyeLookDownLeft') || 0) + (blendMap.get('eyeLookDownRight') || 0)) / 2;
+
+      if (lookLeft > CONFIG.EYE_LOOK_SIDE_THRESHOLD) {
+        isEyeAway = true;
+        gazeDirection = 'left (secondary monitor)';
+      } else if (lookRight > CONFIG.EYE_LOOK_SIDE_THRESHOLD) {
+        isEyeAway = true;
+        gazeDirection = 'right (secondary monitor)';
+      } else if (lookDown > CONFIG.EYE_LOOK_DOWN_THRESHOLD) {
+        isEyeAway = true;
+        gazeDirection = 'downward (desk/phone)';
+      }
+    }
+
+    const isHeadAway = Math.abs(yaw) > CONFIG.YAW_THRESHOLD_DEG || Math.abs(pitch) > CONFIG.PITCH_THRESHOLD_DEG;
+    const isLookingAway = isHeadAway || isEyeAway;
+
+    // 5. Micro-motion liveness check (Anti-freeze / anti-photo spoof)
+    this.noseHistory.push({ x: pose.nose.x, y: pose.nose.y, t: now });
+    if (this.noseHistory.length > 20) this.noseHistory.shift();
+    if (this.noseHistory.length >= 20) {
+      let varX = 0, varY = 0;
+      const meanX = this.noseHistory.reduce((a, b) => a + b.x, 0) / 20;
+      const meanY = this.noseHistory.reduce((a, b) => a + b.y, 0) / 20;
+      for (const pt of this.noseHistory) {
+        varX += (pt.x - meanX) ** 2;
+        varY += (pt.y - meanY) ** 2;
+      }
+      // Real human webcams always have sensor micro-noise (var > 0)
+      if (varX + varY === 0) {
+        if (!this.staticFrameStart) {
+          this.staticFrameStart = now;
+        } else if (now - this.staticFrameStart >= 6000) {
+          this._pushEvent('FACE_MISSING', now - this.startTime, this.staticFrameStart, 6000, {
+            reason: 'Static image or frozen video stream detected',
+          });
+          this.staticFrameStart = now;
+        }
+      } else {
+        this.staticFrameStart = null;
+      }
+    }
 
     if (isLookingAway) {
       if (!this.lookAwayStart) {
@@ -429,22 +532,27 @@ export class IntegrityMonitor {
         this.lookAwayT = now - this.startTime;
         this.activeMaxYaw = yaw;
         this.activeMaxPitch = pitch;
+        this.activeGazeReason = isEyeAway && !isHeadAway
+          ? `Sustained eye-gaze deviation (${gazeDirection})`
+          : 'Head turned off-screen';
       } else {
         if (Math.abs(yaw) > Math.abs(this.activeMaxYaw)) this.activeMaxYaw = yaw;
         if (Math.abs(pitch) > Math.abs(this.activeMaxPitch)) this.activeMaxPitch = pitch;
       }
-      this._emitHud('Looking away');
+      this._emitHud(this.activeGazeReason || 'Looking away');
     } else if (this.lookAwayStart) {
       const dur = now - this.lookAwayStart;
       if (dur >= CONFIG.LOOK_AWAY_MIN_MS) {
         this._pushEvent('LOOK_AWAY', this.lookAwayT, this.lookAwayStart, dur, {
           yaw: Math.round(this.activeMaxYaw),
           pitch: Math.round(this.activeMaxPitch),
+          reason: this.activeGazeReason || undefined,
         });
       }
       this.lookAwayStart = null;
       this.activeMaxYaw = 0;
       this.activeMaxPitch = 0;
+      this.activeGazeReason = '';
       this._emitHud('Focused');
     } else {
       this._emitHud();
