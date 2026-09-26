@@ -1,0 +1,59 @@
+IDEA/PITCH
+
+System Concept: Dual-Portal AI Recruitment & Interview Platform
+An end-to-end recruitment platform that automates candidate screening, conducts interactive audio-visual interviews tailored to employer requirements, enforces test integrity, and outputs a three-tier hiring decision.
+
+1. Dual-Portal Architecture
+Administrator (Recruiter) Portal:
+
+Allows employers to input specific job requirements, required competencies, and day-to-day responsibilities.
+
+Aggregates existing resume evaluation techniques into a single intake engine to assess and score applicant fitness against the defined role criteria.
+
+Receives final candidate dossiers containing behavioral observations, interview transcripts, and automated hiring recommendations.
+
+Applicant (Candidate) Portal:
+
+Serves as the candidate-facing assessment terminal.
+
+Hosts the interactive, camera-enabled interview tailored dynamically to the administrator's role parameters and the candidate's submitted background.
+
+2. Live Interview Interface & Behavioral Evaluation
+Visual Representation:
+
+Features an on-screen interviewer persona (a professional static image or 2D seated animation) to give the applicant the feeling of an in-person, face-to-face conversation.
+
+Spoken Interaction:
+
+Requires the candidate to turn on their webcam and microphone to answer questions verbally in real time rather than typing.
+
+Evaluation Metrics:
+
+Domain Competency: Alignment of answers with the specific hiring demands set by the administrator.
+
+Communication & Delivery: Articulation, response structure, and tone.
+
+Behavioral Indicators: General conduct, composure, and manner of speaking throughout the session.
+
+3. Application Security & Integrity Monitoring
+Screen & Environment Confinement:
+
+Monitors candidate activity to verify that no secondary applications, browser tabs, or external windows are active during the session.
+
+Visual Authenticity Tracking:
+
+Observes camera video feeds in real time to detect whether the applicant is answering naturally or reading prepared responses from off-screen displays.
+
+4. The Decision Methodology: Explainable Evidence Dossier
+The platform explicitly avoids arbitrary "Accept" or "Reject" classifications, which are legally problematic and prone to algorithmic bias. Instead, it compiles an Explainable Evidence Dossier:
+
+Technical Relevancy Index (0–100): Semantic alignment between questions and domain-specific answers.
+
+Articulation & Delivery Index (0–100): Speech continuity, structure, and pacing.
+
+Integrity Confidence Score (0–100): Percentage of interview time spent maintaining active screen focus during answer generation.
+
+Timestamped Evidence Reel: Recruiter can click any flagged anomaly or low-scoring answer to inspect the exact 10-second synchronized video clip and transcript segment.
+
+5. Future Roadmap
+Immersive VR Environment: Transitioning the 2D visual interface into a spatial Virtual Reality setting, placing the candidate inside a realistic virtual interview room to enhance presence and assess candidate reactions in a true-to-life interview atmosphere.

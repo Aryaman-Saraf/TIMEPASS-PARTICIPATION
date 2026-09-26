@@ -4,6 +4,8 @@
 Hackathon brief: build an AI interviewer with three pillars. (1) Questions and evaluation based on the resume and the job description. (2) A spoken interview that adapts as it goes. (3) Integrity monitoring (attention, tab switches) that recruiters can see. The budget is $0 (no credit cards) and the work must split cleanly across 3 people. The project folder `C:\Users\aryam\TIMEPASS PARTICIPATION` was empty, except for `engine.js`, which was written before the switch to plan mode (details below).
 
 > **v2 (refined for a first-time team):** owners rebalanced (§3), MVP vs Stretch split (§3a), stub-first roadmap with checkpoints (§8), git workflow (§8a). Per-person instructions are in **`TEAM_TASKS.md`**.
+>
+> **v3 (unified master plan):** merges the teammate proposals from `Prathul` and `suryansh`. Adds the Evidence Dossier and device pre-flight check (§3a), a production roadmap (§2b), and a roadmap re-timed for **4.5 h** (§8). The §4 contracts are unchanged. What came from whom: §10. The original proposals are kept in `archive/teammate-proposals/`.
 
 ## 0. Tools & keys (everything is free, no credit card)
 **Every teammate gets their own Groq key** (60 s): https://console.groq.com/keys → Create API Key → `copy .env.example .env` → paste it into `GROQ_API_KEY=`.
@@ -31,6 +33,18 @@ Models to use instead:
 - Gemini fallback: `gemini-flash-lite-latest` through the OpenAI-compatible endpoint (about 500 requests/day on the free tier).
 - Every model name can be overridden in `.env`.
 
+## 0a. How we're judged (BitNBuild26, 50 points), ordered by weight
+| Criterion | Pts | What earns it for us | Owner |
+|---|---|---|---|
+| **Functionality** | 14 | The MVP flow (setup → spoken interview → report) works on **every** run. The offline, no-camera and no-mic paths still finish. | All; T3 verifies |
+| **Innovation** | 10 | Adaptive follow-ups made **visible**: a live "Follow-up / Next question" badge in the room + the adaptive path in the report. Integrity kept **out** of the hire score (fairness). An **Explainable Evidence Dossier** (3 indices) with an **advisory** hire recommendation computed by code, not the LLM; a human makes the final call. Face tracking on the candidate's device. Coaching tips for the candidate. | T1 (live badge), T2 (path, eval), T3 (integrity) |
+| **Demonstration** | 8 | A rehearsed 3-min pitch mapped to these criteria (see TEAM_TASKS.md), run twice, plus a backup video. | All; T3 records |
+| **Feasibility** | 7 | $0 per interview, no npm installs, runs on any laptop with Chrome, offline fallback. Say this out loud in the pitch. | T3 (README), presenter |
+| **Scalability** | 6 | §2a: vision is client-side, the server is thin, provider/model swaps via `.env`, capacity numbers, a clear upgrade path. | T2 (facts), presenter |
+| **Design** | 5 | One consistent dark theme; a room and report readable at a glance; a score ring + recommendation pill. | T1 (room), T2 (report) |
+
+**Rule:** Functionality is 28% of the score. A reliable MVP beats any stretch feature.
+
 ## 1. Market research: the findings the design is built on
 | Finding | Design decision |
 |---|---|
@@ -56,40 +70,71 @@ Sources:
 - **Storage:** an in-memory Map, written to `data/sessions/<uuid>.json` after every change. It survives restarts and needs no database.
 - **Fail-safe:** if every LLM provider fails, `engine.js` switches to heuristics: a question bank templated with the role and skills, STAR-keyword scoring, and averaged live scores. The demo never stops.
 
-## 3. File layout and owners (v2: rebalanced, one owner per file means no merge conflicts)
-- **T1: Candidate experience.** Everything the candidate sees and hears.
-- **T2: AI backend + report.** LLM engine, server, and the recruiter report.
-- **T3: Integrity + QA.** The computer-vision monitor, its report section, and end-to-end testing.
+## 2a. Scalability & cost (the pitch facts; the numbers are estimates)
+- **Vision costs the server nothing.** MediaPipe runs in the candidate's browser, and only small event lists (JSON) are uploaded. No video ever leaves the device.
+- **The server is thin.** Each request is one LLM call plus a small JSON session write. To scale:
+  1. move sessions from `data/sessions/*.json` to Redis/Postgres;
+  2. run several copies of `server.js` behind a load balancer.
+
+  No other changes are needed.
+- **LLM calls per interview** ≈ 1 planning + 1 per answer + 1 grading, so ~8–14 calls for 5 questions.
+- **Free-tier ceiling per Groq key:** 30 requests/min, 1K requests/day per model, 8K tokens/min.
+  - That is ≈ 5 interviews at the same time.
+  - It is ≈ 70 full interviews/day on the fast model.
+  - The bottleneck is tokens/min: one turn ≈ 1.5K tokens.
+- **Upgrade path with no code change:** a paid Groq key, or any OpenAI-compatible provider/model via the `.env` overrides. Next steps: a pool of keys + a request queue.
+- **Works for any role:** competencies and questions are generated from the JD, so there is no hard-coded question bank per job.
+- **Cost:** $0 at hackathon scale. Speech (browser), vision (browser) and hosting (a laptop) are all free.
+
+## 2b. Production roadmap (pitch only, NOT built today)
+Taken from Prathul's architecture proposal and Suryansh's core technical idea (`archive/teammate-proposals/`). **Say it in the pitch; do not build it.**
+| Area | Next step at scale |
+|---|---|
+| Media | WebRTC media server + a message bus (Kafka / Pub/Sub) so ASR, vision and audio analysis scale independently |
+| Services | Containerised orchestrator + report service on Kubernetes, sessions in Postgres/Redis, multi-region failover |
+| Speech | Server-side Whisper with word-level timestamps → true pause, WPM and filler-word analysis |
+| Relevance | Embeddings of JD requirements, resume claims and answers (cosine similarity), plus an NER "vagueness" penalty |
+| Fairness | A stronger PII redactor + a nightly **name-swap bias audit** (the same transcript with a different name must score the same); human review of AI scores |
+| Integrity | Speaker diarization (a second voice), screen-share OCR for unauthorised apps, time-aligned audio + gaze "attention anomalies" |
+| Experience | A 2D/3D interviewer avatar, then a VR interview room |
+
+## 3. File layout and owners (v3: rebalanced, one owner per file means no merge conflicts)
+- **T1: Prathul (Candidate experience).** Everything the candidate sees and hears (Branch: `Prathul`).
+- **T2: Aryaman (AI backend + report).** LLM engine, server, and the recruiter report (Branch: `feat/aryaman-dev`).
+- **T3: Suryansh (Integrity + QA).** The computer-vision monitor, its report section, and end-to-end testing (Branch: `suryansh`).
 
 ```
 package.json        ✅ DONE: start/test scripts, "type":"module", no dependencies
 .env.example        ✅ DONE: GROQ_API_KEY, GEMINI_API_KEY, model overrides, PORT
 .gitignore          ✅ DONE: .env, data/sessions/
-engine.js           ✅ ALREADY WRITTEN: LLM client, prompts, adaptive policy, BARS eval, integrity risk, offline fallback (T2)
-engine.test.js      node:test tests: nextStep policy, computeIntegrity, overallScore/recommend, parseJSON, heuristic, full offline run (T2)
-server.js           HTTP routes, static files, JSON persistence, per-session busy lock, 1 MB body limit, path-traversal guard (T2)
-data/mock-session.json  an evaluated session, so the report and room can be built before the server exists (T2, by H0:30)
-public/styles.css   dark design tokens, shared components (T1)
-public/index.html   setup page: name, role, JD, resume text, question count (3/5/7), consent, "Load sample" (T1)
-public/room.html    interview room layout; must contain #cam, #overlay, #hud for the monitor (T1)
-public/room.js      speech loop, TTS, live transcript, progress, finish → evaluate (T1)
-public/integrity.js IntegrityMonitor class + renderIntegrity(el, integrity, turns) for the report (T3)
-public/report.html  recruiter shell; no ?id = candidate list, with ?id = scorecard (T2)
-public/report.js    scorecard, BARS bars, STAR table, transcript; calls T3's renderIntegrity() (T2)
-README.md           run steps + demo script (T3)
+engine.js           ✅ ALREADY WRITTEN: LLM client, prompts, adaptive policy, BARS eval, integrity risk, offline fallback (T2 - Aryaman)
+engine.test.js      node:test tests: nextStep policy, computeIntegrity, overallScore/recommend, parseJSON, heuristic, full offline run (T2 - Aryaman)
+server.js           HTTP routes, static files, JSON persistence, per-session busy lock, 1 MB body limit, path-traversal guard (T2 - Aryaman)
+data/mock-session.json  an evaluated session, so the report and room can be built before the server exists (T2 - Aryaman, by H0:30)
+public/styles.css   dark design tokens, shared components (T1 - Prathul)
+public/index.html   setup page: name, role, JD, resume text, question count (3/5/7), consent, "Load sample" (T1 - Prathul)
+public/room.html    interview room layout; must contain #cam, #overlay, #hud for the monitor (T1 - Prathul)
+public/room.js      speech loop, TTS, live transcript, progress, finish → evaluate (T1 - Prathul)
+public/integrity.js IntegrityMonitor class + renderIntegrity(el, integrity, turns) for the report (T3 - Suryansh)
+public/report.html  recruiter shell; no ?id = candidate list, with ?id = scorecard (T2 - Aryaman)
+public/report.js    scorecard, BARS bars, STAR table, transcript; calls T3's renderIntegrity() (T2 - Aryaman)
+README.md           run steps + demo script (T3 - Suryansh)
 ```
 
-## 3a. MVP vs Stretch (MVP must work end-to-end by **H3:00**)
+## 3a. MVP vs Stretch (MVP must work end-to-end by **H2:45**)
 | | MVP (must have) | Stretch (only after MVP is green) |
 |---|---|---|
 | Setup | Pasted resume + JD text, "Load sample" button | PDF upload via pdf.js |
-| Interview | Spoken Q&A (TTS + speech recognition) with typed fallback; adaptive probe/advance (already in engine) | Mic visualizer, orb animation |
-| Integrity | Tab hidden, window blur, face missing, multiple faces, look-away using **fixed** yaw/pitch thresholds; HUD badges | 2 s calibration baseline, eye-blendshape gaze, gaze line on overlay |
-| Report | Score + recommendation, competency bars + evidence quotes, strengths/gaps, STAR table, integrity stats + event table, transcript | Radar SVG, timeline lanes, adaptive-path badges, print styling |
-| Resilience | Offline fallback (already in engine), no-camera path | Edge browser testing |
-| **Cut** | Resuming an interview after a page reload | |
+| Interview | Spoken Q&A (TTS + speech recognition) with typed fallback; adaptive probe/advance (already in engine); **live badge from `progress.action`** ("↻ Follow-up" / "→ Next question" / "✓ Wrap-up") + difficulty; **device pre-flight chips** after "Begin" (✓/✗ Camera, Mic, Speech supported); **static Ava avatar card** with status text | Mic visualizer, orb animation; **low-confidence re-ask** (a final result that is empty or has confidence < 0.5 → "Sorry, I didn't catch that. Could you repeat, or type it?", with no server call) |
+| Integrity | Tab hidden, window blur, face missing, multiple faces, look-away using **fixed** yaw/pitch thresholds; HUD badges; on-screen % tile labelled **"Integrity confidence"** | 2 s calibration baseline, eye-blendshape gaze, gaze line on overlay; pause look-away while the face is missing (poor lighting); **"during answer" flag** on events inside a candidate-answer window |
+| Report | **Evidence Dossier header** (Technical Relevancy = `overallScore`, Articulation & Delivery = communication mean mapped to 0–100, Integrity Confidence = `onScreenPct`) + recommendation labelled **"Advisory, a human makes the final call"**; competency bars + evidence quotes, strengths/gaps, STAR table, integrity stats + event table, **adaptive path** (Main/Probe/Wrap badge + difficulty + live score per AI turn), transcript | Radar SVG, timeline lanes, print styling; filler words per 100 words + rough WPM; click an integrity event → scroll to that transcript turn |
+| Engine | Offline fallback (already in engine) | **PII redaction first** (regex strips email, phone, URLs and the candidate name from `resumeText` before prompts); fast-tier timeout 15 s → ~8 s |
+| Resilience | Offline fallback, no-camera path, typed path | Edge browser testing |
+| **Cut** | Resuming an interview after a page reload; a separate recruiter JD-entry portal; everything in §2b | |
 
-## 4. Interface contracts (freeze these at H0:30)
+## 4. Interface contracts (freeze these at H0:20)
+> **Frozen.** The v3 synthesis added no fields. The Evidence Dossier, device chips and every stretch item are built only from the fields below.
+
 **POST /api/start-interview**
 - Request: `{candidateName, role*, jobDescription, resumeText, questionCount 3–8}`
 - Response: the full Session:
@@ -166,10 +211,16 @@ Report = {summary, competencies:[{name, score 1-5, rationale, evidence[] verbati
 - Loop: `say()` (TTS split by sentence, preferring Natural/Google voices, with a safety timeout) → `listen()` (continuous recognition with interim results; restarts in `onend`; 2.5 s silence timer that starts after speech) → `send()` → the reply comes back.
 - The transcript shows interim text in italics. Typed input and Enter always work.
 - End button → `finish()` → `/api/evaluate` with `monitor.stop()` → redirect to the report, with a retry button if it fails.
-- Sets `document.body.dataset.state` (speaking/listening/thinking) to drive the orb animation.
+- After "Begin", shows pre-flight chips: Camera ✓/✗ (the `getUserMedia` video result), Mic ✓/✗ (the audio result), Speech ✓/✗ (`'webkitSpeechRecognition' in window`). ✗ on Speech → typed mode, announced up front.
+- Sets `document.body.dataset.state` (speaking/listening/thinking), which drives the Ava card's status text (MVP) and the orb animation (stretch).
 
-**report.js (T2; the integrity section comes from T3's `renderIntegrity`; radar, timeline and adaptive path are stretch):**
+**report.js (T2; the integrity section comes from T3's `renderIntegrity`; radar and timeline are stretch):**
 - Everything that came from the LLM or the candidate is escaped with `esc()`.
+- **Evidence Dossier header (MVP):** three index tiles.
+  - Technical Relevancy = `report.overallScore`.
+  - Articulation & Delivery = `Math.round(((clarity+structure+conciseness)/3 - 1) / 4 * 100)` from `report.communication`.
+  - Integrity Confidence = `integrity.stats.onScreenPct` (shows "n/a" if there is no integrity data).
+  - Below them, the recommendation pill with the caption "Advisory, a human makes the final call".
 - Radar chart as inline SVG (labels wrap onto 2 lines).
 - The integrity timeline is made of HTML lanes (one per type, with severity colours).
 - The audit log has a "During Qn · competency" column, mapped from `event.at` to the most recent AI turn.
@@ -181,33 +232,37 @@ Report = {summary, competencies:[{name, score 1-5, rationale, evidence[] verbati
   - Right card: Ava persona orb with status; difficulty dots; mic visualizer; chat-style transcript; controls.
   - Top bar: role, "Q2/5 · competency" progress, timer, End button.
 - **Recruiter dashboard:**
-  - Header: name, role, duration, score ring (conic-gradient), recommendation pill.
+  - Header: name, role, duration, score ring (conic-gradient), Evidence Dossier tiles, advisory recommendation pill.
   - Radar next to BARS bars with evidence quotes.
   - Strengths and Gaps side by side.
   - Integrity section: risk pill, disclaimer, stats, timeline, audit log.
   - STAR table next to communication and coaching.
   - Adaptive path, transcript, Export PDF (`window.print`).
 
-## 8. 5-hour roadmap (v2: stub-first, so nobody waits on anybody)
+## 8. 4.5-hour roadmap (v3: stub-first, re-timed for the time left)
 | Time | T1: Candidate experience | T2: AI backend + report | T3: Integrity + QA |
 |---|---|---|---|
-| 0:00–0:30 | **All:** keys + `.env`, clone repo, `npm test` smoke, read §4 contracts together | | |
+| 0:00–0:20 | **All:** keys + `.env`, clone repo, `npm test` smoke, read §4 contracts together | | |
 | | `room.html` skeleton with `#cam #overlay #hud` | `data/mock-session.json` from an offline run | stub `integrity.js` (same API, tab/blur events only) |
-| 0:30–1:30 | `index.html` form + "Load sample"; `say()` TTS | `server.js`: all 6 routes + persistence | MediaPipe load, face box on overlay, face-missing + multi-face |
-| **1:30** | **Checkpoint 1:** setup page → server → room speaks the opening | | |
-| 1:30–3:00 | `listen()` + silence endpointing, transcript, chat loop, End → evaluate → redirect | `engine.test.js`; `report.js` MVP sections (build against the mock) | look-away (fixed thresholds), episodes, HUD `onChange`, `renderIntegrity()` |
-| **3:00** | **Checkpoint 2, MVP freeze:** one full spoken interview → report with integrity section. Fix bugs before any stretch work. | | |
-| 3:00–4:15 | stretch: visualizer, polish, typed-fallback + aria-live | prompt tuning on 3 sample resumes, latency < 1.5 s/turn, bad-key offline drill | test runs: no camera, denied mic, tab switch; README + demo script; stretch: calibration/gaze |
-| **4:15** | **Checkpoint 3, code freeze.** Only bug fixes after this point. | | |
-| 4:15–5:00 | **All:** run the demo script twice (strong candidate + "looks at phone, switches tab"), save one good session JSON in `data/` as a backup | | |
+| 0:20–1:20 | `index.html` form + "Load sample"; `say()` TTS | `server.js`: all 6 routes + persistence | MediaPipe load, face box on overlay, face-missing + multi-face |
+| **1:20** | **Checkpoint 1** (everyone merges their branch into `main` first, §8a): setup page → server → room speaks the opening | | |
+| 1:20–2:45 | `listen()` + silence endpointing, transcript, chat loop, live badge, device chips + Ava card, End → evaluate → redirect | `engine.test.js`; `report.js` MVP sections incl. Evidence Dossier + adaptive path (build against the mock) | look-away (fixed thresholds), episodes, HUD `onChange`, `renderIntegrity()` with the "Integrity confidence" tile |
+| **2:45** | **Checkpoint 2, MVP freeze:** one full spoken interview → report with dossier + integrity section. Fix bugs before any stretch work. | | |
+| 2:45–3:50 | stretch: low-confidence re-ask, visualizer, polish, aria-live | PII redaction, timeout 8 s, prompt tuning on 3 resumes, bad-key offline drill; then delivery metrics / event → transcript links | QA runs: no camera, denied mic, tab switch; README; stretch: "during answer" flag, calibration/gaze |
+| **3:50** | **Checkpoint 3, code freeze.** Only bug fixes after this point. | | |
+| 3:50–4:30 | **All:** run the 3-min pitch twice (strong candidate + "looks at phone, switches tab"), save one good session JSON in `data/` as a backup. **T3 records a 2-min backup demo video.** | | |
 
 **Rescue rule:** stuck for more than 20 min → use the fallback listed in `TEAM_TASKS.md`, or cut the item to MVP and tell the team.
 
-## 8a. Git workflow
-- One GitHub repo. The person who has this folder runs `git init`, commits, pushes, and invites the other two.
-- Work on `main` only; no branches are needed with one owner per file.
-- `git pull` before you start, commit small, `git push` often (at least every 30 min).
-- **Never edit a file you don't own.** Need a change? Ask the owner.
+## 8a. Git workflow (matches `TEAM_ONBOARDING.md`)
+- Repo: https://github.com/Aryaman-Saraf/TIMEPASS-PARTICIPATION.
+- Each teammate works on **their own feature branch** (names are in TEAM_ONBOARDING.md). **Never commit directly to `main`.**
+- Commit small and push your branch at least every 30 min.
+- **Before each checkpoint** (1:20, 2:45, 3:50):
+  1. open a PR from your branch into `main`;
+  2. the repo owner merges it;
+  3. everyone runs `git pull origin main` into their branch.
+- One owner per file means these merges don't conflict. **Never edit a file you don't own.** Need a change? Ask the owner.
 - Never commit `.env` (it is already in `.gitignore`).
 
 ## 9. Verification
@@ -223,3 +278,31 @@ Report = {summary, competencies:[{name, score 1-5, rationale, evidence[] verbati
 - Recruiter authentication and a separate candidate-only session view. The API currently returns the full plan to anyone.
 - Semantic end-of-turn detection.
 - HTTPS for LAN demos (use localhost, or a tunnel).
+- Everything in §2b.
+
+## 10. Synthesis changelog (v3: what came from whom)
+The originals are in `archive/teammate-proposals/`. Every idea was filtered with three questions: can it be built in the time left, does it cost $0 with no installs, and does it earn rubric points?
+
+**From Prathul** (`architecture_design.md`, `architecture_deep_dive.md`, `preadme.md`)
+- Pre-flight checks → **MVP** device chips (T1).
+- ASR confidence scorer → **Stretch** low-confidence re-ask (T1).
+- PII redactor → **Stretch priority 1** regex redaction in `engine.js` (T2).
+- Circuit breaker + fallback agent → already built (provider chain + offline heuristics). Timeout tightened to ~8 s (Stretch, T2).
+- Text fallback chat → already MVP. Session recovery → stays Cut.
+- Lighting validator → **Stretch** "pause look-away while the face is missing" (T3).
+- WebRTC / Kafka / K8s / Vector DB / fine-tuning / bias audit / diarization / OCR / failover → **§2b roadmap** (pitch only).
+
+**From Suryansh** (`CORE TECHNICAL IDEA.txt`, `bit&build_IDEA.txt`)
+- Explainable Evidence Dossier (Technical Relevancy, Articulation & Delivery, Integrity Confidence) → **MVP** report header, built only from §4 fields.
+- "Avoid a bare Accept/Reject" → the recommendation stays, computed by code, but is labelled **advisory**.
+- Interviewer persona → **MVP** static Ava card; animation Stretch.
+- Dual portal → pitch framing (candidate portal = setup + room, recruiter portal = report list + scorecard).
+- Filler-word density / WPM → **Stretch** (T2).
+- Temporal audio-visual sync → **Stretch** "during answer" flag on integrity events (T3).
+- Timestamped evidence reel → **Stretch** event → transcript links (no video; video never leaves the device).
+- Whisper timestamps, triple embeddings, NER penalty, VR → **§2b roadmap**.
+
+**Changed from v2**
+- Roadmap re-timed from 5 h to 4.5 h (CP1 1:20, MVP freeze 2:45, code freeze 3:50, pitch until 4:30).
+- New MVP rows (dossier, device chips, Ava card, "Integrity confidence" label), each ≤ 15 min.
+- §2b added. §4 is explicitly frozen and unchanged.

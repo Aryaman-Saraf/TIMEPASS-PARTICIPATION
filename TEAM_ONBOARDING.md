@@ -14,20 +14,23 @@ git clone https://github.com/Aryaman-Saraf/TIMEPASS-PARTICIPATION.git
 cd TIMEPASS-PARTICIPATION
 ```
 
-### 2. Create Your Feature Branch IMMEDIATELY
-Depending on your assigned role, create and switch to your branch:
+### 2. Switch to Your Assigned Feature Branch IMMEDIATELY
+Each teammate has their dedicated branch configured:
 
-- **Teammate 1 (Candidate Experience & Voice UI)**:
+- **Prathul (Teammate 1 — Candidate Experience & Voice UI)**:
   ```bash
-  git checkout -b feat/t1-candidate-experience
+  git checkout Prathul
+  git pull origin main
   ```
-- **Teammate 2 (AI Engine, Server & Report)**:
+- **Aryaman (Teammate 2 — AI Brain, Backend Server & Report)**:
   ```bash
-  git checkout -b feat/t2-ai-backend-report
+  git checkout feat/aryaman-dev
+  git pull origin main
   ```
-- **Teammate 3 (Vision Integrity & Testing/QA)**:
+- **Suryansh (Teammate 3 — Vision Integrity & Testing/QA Lead)**:
   ```bash
-  git checkout -b feat/t3-integrity-qa
+  git checkout suryansh
+  git pull origin main
   ```
 
 ### 3. Commit Small and Push Regularly
@@ -38,6 +41,15 @@ git commit -m "feat(scope): describe what you built"
 git push -u origin <your-branch-name>
 ```
 
+### 4. Merge into `main` at Each Checkpoint (H1:20, H2:45, H3:50)
+1. Open a Pull Request from your branch into `main` on GitHub.
+2. The repo owner merges it.
+3. Pull `main` back into your branch:
+   ```bash
+   git pull origin main
+   ```
+Because every file has exactly one owner, these merges should never conflict.
+
 ---
 
 ## 📖 What You Must Read & Refer To
@@ -47,6 +59,7 @@ Follow this exact reading order before touching any code:
 1. **[README.md](README.md)** (3 min): 
    - Understand the project mission, architecture, and how to run the app.
 2. **[TEAM_TASKS.md](TEAM_TASKS.md)** (5 min - **MOST IMPORTANT**):
+   - Start with **"How we're judged"** at the top: Functionality 14, Innovation 10, Demonstration 8, Feasibility 7, Scalability 6, Design 5.
    - Find your section (`T1`, `T2`, or `T3`).
    - Read your **5-Minute Primer**, check your **Files Owned**, and follow your **Timed Checklist**.
    - Notice the **"If stuck"** fallbacks: if an issue takes more than 20 minutes, switch immediately to the documented fallback.
@@ -83,8 +96,8 @@ Do not share API keys! The free tier limits requests per minute per key.
 
 | Time | Checkpoint | Goal |
 | :--- | :--- | :--- |
-| **H0:00 – H0:30** | **Setup & Stubs** | Everyone clones, creates their branch, gets keys, and pushes stubs. |
-| **H1:30** | **Checkpoint 1** | Form setup → room page opens and speaks the opening question aloud. |
-| **H3:00** | **Checkpoint 2 (MVP Freeze)** | Complete spoken interview from start to finish + report generated. |
-| **H4:15** | **Code Freeze** | Bug fixes only. Run the full demo script twice. |
-| **H4:30 – H5:00** | **Rehearsal & Video** | Record a 2-minute backup demo video. |
+| **H0:00 – H0:20** | **Setup & Stubs** | Everyone clones, creates their branch, gets keys, and pushes stubs. |
+| **H1:20** | **Checkpoint 1** | Form setup → room page opens and speaks the opening question aloud. |
+| **H2:45** | **Checkpoint 2 (MVP Freeze)** | Complete spoken interview from start to finish + report generated. |
+| **H3:50** | **Code Freeze** | Bug fixes only. Run the full demo script twice. |
+| **H3:50 – H4:30** | **Rehearsal & Video** | Record a 2-minute backup demo video. |
