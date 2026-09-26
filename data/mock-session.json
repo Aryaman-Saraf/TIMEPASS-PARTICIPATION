@@ -1,0 +1,341 @@
+{
+  "id": "mock-session-001",
+  "createdAt": "2026-09-26T05:00:00.000Z",
+  "status": "evaluated",
+  "candidateName": "Alex Chen",
+  "role": "Senior Backend Engineer",
+  "jobDescription": "Senior Backend Engineer to design and scale distributed microservices handling 50k RPS. Requirements: 5+ years experience with Node.js, TypeScript, PostgreSQL, and AWS (ECS, SQS, Redis). Strong track record in system architecture, API reliability, caching strategies, and mentoring junior engineers.",
+  "resumeText": "Alex Chen - Senior Backend Engineer with 6 years experience building cloud-native distributed systems. Led redesign of core payment processing service at FinFlow using Node.js, PostgreSQL and Redis, cutting p99 latency from 450ms to 85ms and supporting 3x traffic spike. Architected asynchronous event pipeline using AWS SQS for real-time fraud scoring. Mentored 4 engineers and established automated integration testing.",
+  "engine": "groq → gemini",
+  "profile": {
+    "summary": "Senior backend engineer with 6 years building distributed Node.js and PostgreSQL systems under high RPS. Demonstrated depth in caching layers, asynchronous message pipelines, and latency reduction.",
+    "seniority": "senior",
+    "yearsExperience": 6,
+    "skills": [
+      "Node.js",
+      "TypeScript",
+      "PostgreSQL",
+      "AWS",
+      "Redis",
+      "System Design",
+      "Microservices",
+      "Docker"
+    ],
+    "highlights": [
+      "Cut payment service p99 latency from 450ms to 85ms under a 3x traffic spike",
+      "Architected async fraud-scoring event pipeline using AWS SQS and Lambda",
+      "Mentored team of 4 engineers and drove automated integration test coverage"
+    ],
+    "probeAreas": [
+      "Deep PostgreSQL query optimization and lock contention handling",
+      "Concrete failure recovery patterns during AWS dependency outages"
+    ]
+  },
+  "competencies": [
+    {
+      "name": "Role Expertise",
+      "weight": 0.35,
+      "description": "Applies Node.js, database internals, and distributed architecture patterns effectively in production."
+    },
+    {
+      "name": "Problem Solving",
+      "weight": 0.25,
+      "description": "Breaks down ambiguous scalability bottlenecks, weighs trade-offs, and arrives at sound technical decisions."
+    },
+    {
+      "name": "Ownership & Impact",
+      "weight": 0.2,
+      "description": "Takes direct accountability during production incidents and delivers measurable engineering outcomes."
+    },
+    {
+      "name": "Collaboration",
+      "weight": 0.2,
+      "description": "Communicates complex technical trade-offs clearly, resolves team disagreements constructively, and mentors others."
+    }
+  ],
+  "plan": [
+    {
+      "competency": "Role Expertise",
+      "difficulty": 3,
+      "text": "Walk me through the architecture of the payment processing service you redesigned at FinFlow. What were the key bottlenecks and how did you resolve them?",
+      "rationale": "Evaluates core backend architecture, distributed caching, and database scaling."
+    },
+    {
+      "competency": "Problem Solving",
+      "difficulty": 3,
+      "text": "Tell me about a time an external dependency or service failed unexpectedly in production. How did you diagnose the issue and mitigate the impact?",
+      "rationale": "Assesses resilience engineering, error handling, and trade-offs under pressure."
+    },
+    {
+      "competency": "Collaboration",
+      "difficulty": 4,
+      "text": "Describe a technical disagreement you had with another engineer regarding system design or technology choice. How did you navigate the trade-offs and reach alignment?",
+      "rationale": "Verifies interpersonal communication, influence with data, and team alignment."
+    }
+  ],
+  "difficulty": 4,
+  "cursor": 2,
+  "followUps": 0,
+  "turns": [
+    {
+      "role": "ai",
+      "text": "Hi Alex, I'm Ava, and I'll be your interviewer today. We'll go through about 3 questions with a few follow-ups, so just speak naturally. To start, walk me through the architecture of the payment processing service you redesigned at FinFlow. What were the key bottlenecks and how did you resolve them?",
+      "t": 1727326800000,
+      "kind": "main",
+      "qIndex": 0,
+      "competency": "Role Expertise",
+      "difficulty": 3
+    },
+    {
+      "role": "candidate",
+      "text": "I've spent the past 6 years building backend services with Node.js and PostgreSQL. Most recently at FinFlow, I worked on our payment APIs and made them faster using caching.",
+      "t": 1727326835000,
+      "qIndex": 0,
+      "competency": "Role Expertise",
+      "score": 2,
+      "note": "Generic response lacking architectural specifics, bottlenecks, and personal contribution.",
+      "star": {
+        "situation": true,
+        "task": false,
+        "action": false,
+        "result": false
+      }
+    },
+    {
+      "role": "ai",
+      "text": "Let's make that more concrete. Can you pick one specific bottleneck you encountered, what you personally did to resolve it, and what the measurable outcome was?",
+      "t": 1727326840000,
+      "kind": "probe",
+      "qIndex": 0,
+      "competency": "Role Expertise",
+      "difficulty": 3
+    },
+    {
+      "role": "candidate",
+      "text": "When we prepared for Black Friday, our checkout service experienced severe database latency and database CPU hit 95%. I needed to ensure the service wouldn't crash under peak traffic. I personally profiled the slowest queries, introduced a multi-tier Redis cache with stale-while-revalidate invalidation, and optimized our PostgreSQL connection pooling. As a result, our p99 response time dropped from 450ms to 85ms and database CPU dropped to 35%, allowing us to handle a 3x traffic surge with zero downtime.",
+      "t": 1727326900000,
+      "qIndex": 0,
+      "competency": "Role Expertise",
+      "score": 5,
+      "note": "Exceptional STAR answer citing specific technologies, personal actions, and quantifiable p99 latency reduction.",
+      "star": {
+        "situation": true,
+        "task": true,
+        "action": true,
+        "result": true
+      }
+    },
+    {
+      "role": "ai",
+      "text": "Got it, that is helpful context. Now, tell me about a time an external dependency or service failed unexpectedly in production. How did you diagnose the issue and mitigate the impact?",
+      "t": 1727326905000,
+      "kind": "advance",
+      "qIndex": 1,
+      "competency": "Problem Solving",
+      "difficulty": 4
+    },
+    {
+      "role": "candidate",
+      "text": "At FinFlow, our primary third-party payment gateway began dropping webhooks intermittently during high-volume hours. My goal was to eliminate silent checkout failures. I designed and built an asynchronous circuit breaker and fallback queue using AWS SQS with exponential backoff retry logic. Because of this implementation, zero orders were lost, and we preserved over $120,000 in at-risk transactions during the provider outage.",
+      "t": 1727326960000,
+      "qIndex": 1,
+      "competency": "Problem Solving",
+      "score": 4,
+      "note": "Strong response detailing circuit breaker architecture and quantifiable transaction protection.",
+      "star": {
+        "situation": true,
+        "task": true,
+        "action": true,
+        "result": true
+      }
+    },
+    {
+      "role": "ai",
+      "text": "Understood. Finally, describe a technical disagreement you had with another engineer regarding system design or technology choice. How did you navigate the trade-offs and reach alignment?",
+      "t": 1727326965000,
+      "kind": "advance",
+      "qIndex": 2,
+      "competency": "Collaboration",
+      "difficulty": 4
+    },
+    {
+      "role": "candidate",
+      "text": "During a major service rewrite, a senior teammate wanted to use GraphQL while I advocated for gRPC for internal service communication. My goal was to avoid architectural stagnation and reach consensus with data. I proposed and built a 2-day benchmark prototype testing latency, serialization overhead, and developer ergonomics. When we reviewed the benchmark data together, the numbers clearly favored gRPC for high-throughput microservices, and we agreed to use gRPC internally while keeping REST for public clients. The project shipped ahead of schedule.",
+      "t": 1727327025000,
+      "qIndex": 2,
+      "competency": "Collaboration",
+      "score": 4,
+      "note": "Constructive and collaborative; leveraged empirical benchmarking rather than opinion to reach team consensus.",
+      "star": {
+        "situation": true,
+        "task": true,
+        "action": true,
+        "result": true
+      }
+    },
+    {
+      "role": "ai",
+      "text": "Thank you, Alex. That's all the questions I have. Your feedback report will be ready in a moment. It was great speaking with you!",
+      "t": 1727327030000,
+      "kind": "wrap_up",
+      "qIndex": 2,
+      "competency": "Collaboration",
+      "difficulty": 4
+    }
+  ],
+  "integrity": {
+    "captured": true,
+    "visionAvailable": true,
+    "score": 87,
+    "riskLevel": "low",
+    "stats": {
+      "totalMs": 315000,
+      "lookAwayMs": 4200,
+      "lookAwayCount": 2,
+      "faceMissingMs": 0,
+      "multiFaceCount": 0,
+      "tabHiddenCount": 1,
+      "tabHiddenMs": 2400,
+      "blurCount": 1,
+      "onScreenPct": 98
+    },
+    "events": [
+      {
+        "type": "LOOK_AWAY",
+        "t": 48000,
+        "at": "2026-09-26T05:00:48.000Z",
+        "durationMs": 2200,
+        "severity": "info",
+        "detail": {
+          "yaw": 27,
+          "pitch": -4
+        }
+      },
+      {
+        "type": "TAB_HIDDEN",
+        "t": 135000,
+        "at": "2026-09-26T05:02:15.000Z",
+        "durationMs": 2400,
+        "severity": "warn",
+        "detail": {
+          "reason": "tab switched"
+        }
+      },
+      {
+        "type": "WINDOW_BLUR",
+        "t": 135000,
+        "at": "2026-09-26T05:02:15.000Z",
+        "durationMs": 2400,
+        "severity": "info",
+        "detail": {}
+      },
+      {
+        "type": "LOOK_AWAY",
+        "t": 225000,
+        "at": "2026-09-26T05:03:45.000Z",
+        "durationMs": 2000,
+        "severity": "info",
+        "detail": {
+          "yaw": -26,
+          "pitch": 5
+        }
+      }
+    ]
+  },
+  "report": {
+    "summary": "Alex demonstrated exceptional technical depth across distributed systems design, PostgreSQL performance tuning, and resilient architecture. Answers followed structured STAR formatting with clear personal ownership and quantified business outcomes. Communication was articulate, structured, and concise. Recommended for Senior Backend Engineer.",
+    "competencies": [
+      {
+        "name": "Role Expertise",
+        "score": 5,
+        "rationale": "Exceptional domain depth; articulated multi-tier caching trade-offs, database connection pooling constraints, and p99 latency optimization with concrete numbers.",
+        "evidence": [
+          "I implemented a multi-tier Redis cache with stale-while-revalidate invalidation",
+          "p99 latency dropped from 450ms to 85ms under a 3x traffic surge",
+          "optimized PostgreSQL connection pooling and added composite indexes"
+        ]
+      },
+      {
+        "name": "Problem Solving",
+        "score": 4,
+        "rationale": "Strong analytical problem solving; diagnosed asynchronous failure modes and designed a circuit breaker and dead-letter queue with exponential backoff.",
+        "evidence": [
+          "I designed and built an asynchronous circuit breaker with AWS SQS",
+          "prevented silent transaction loss and protected over $120,000 in volume"
+        ]
+      },
+      {
+        "name": "Ownership & Impact",
+        "score": 5,
+        "rationale": "High ownership; proactively resolved production performance bottlenecks and took direct accountability for incident mitigation.",
+        "evidence": [
+          "I took ownership of the bottleneck during our Black Friday preparation",
+          "database CPU utilization decreased from 95% to 35%"
+        ]
+      },
+      {
+        "name": "Collaboration",
+        "score": 4,
+        "rationale": "Very effective collaboration; used empirical benchmarking to resolve architectural disagreement over gRPC vs REST constructively.",
+        "evidence": [
+          "I proposed running a 2-day prototype benchmark measuring latency and serialization overhead",
+          "we analyzed the data together and aligned on gRPC for internal RPCs"
+        ]
+      }
+    ],
+    "strengths": [
+      "Deep understanding of distributed caching, PostgreSQL indexing, and connection pool scaling",
+      "Quantified business results and latency metrics across all technical examples",
+      "Data-driven approach to technical disagreements and architectural decisions",
+      "Proactive resilience engineering using circuit breakers and dead-letter queues"
+    ],
+    "gaps": [
+      "Could elaborate more on long-term observability and distributed tracing (e.g. OpenTelemetry)",
+      "Initial answer was brief before prompting, though follow-up response was comprehensive"
+    ],
+    "star": [
+      {
+        "question": "Payment service architecture and bottleneck resolution",
+        "situation": true,
+        "task": true,
+        "action": true,
+        "result": true,
+        "note": "Complete STAR structure with quantified latency reduction and CPU impact."
+      },
+      {
+        "question": "Mitigating unexpected third-party payment gateway outages",
+        "situation": true,
+        "task": true,
+        "action": true,
+        "result": true,
+        "note": "Clear explanation of circuit breaker pattern and financial impact saved."
+      },
+      {
+        "question": "Resolving technical disagreement regarding gRPC vs REST",
+        "situation": true,
+        "task": true,
+        "action": true,
+        "result": true,
+        "note": "Collaborative, benchmark-driven resolution resulting in zero regressions."
+      }
+    ],
+    "communication": {
+      "clarity": 5,
+      "structure": 4,
+      "conciseness": 4,
+      "note": "Answers were well-structured, easy to follow, and directly addressed the questions."
+    },
+    "coaching": [
+      "Lead with the high-level business impact right away before diving into technical details.",
+      "Highlight automated testing and monitoring practices alongside architecture changes."
+    ],
+    "nextSteps": [
+      "System design round focused on multi-region active-active data replication.",
+      "Team fit conversation with engineering leadership."
+    ],
+    "overallScore": 89,
+    "recommendation": "Strong Hire",
+    "engine": "groq → gemini",
+    "generatedAt": "2026-09-26T05:05:30.000Z"
+  }
+}

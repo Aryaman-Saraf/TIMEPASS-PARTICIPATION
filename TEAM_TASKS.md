@@ -120,22 +120,27 @@ import { startInterview, chatTurn, evaluate, llmStatus, httpError } from './engi
 ```
 
 ### Checklist
-- [ ] **0:00–0:20:** produce `data/mock-session.json` by running `startInterview` → a few `chatTurn`s → `evaluate` **with no key** (the offline fallback). Write the session to that file and push it.
-- [ ] **0:20–1:20:** `server.js` with `node:http` (no Express):
+- [x] **0:00–0:20:** produce `data/mock-session.json` by running `startInterview` → a few `chatTurn`s → `evaluate` **with no key** (the offline fallback). Write the session to that file and push it.
+- [x] **0:20–1:20:** `server.js` with `node:http` (no Express):
   - static files from `public/` (`/` → `index.html`), with a **path-traversal guard** (the resolved path must stay inside `public/`);
   - JSON body reader capped at **1 MB**;
   - a `Map` of sessions, written to `data/sessions/<id>.json` after every change and loaded at startup;
   - a **busy lock** per session (a `Set` of ids in flight → reply 409 if the id is already there);
   - errors → `res.statusCode = err.status || 500` with `{error: message}`.
+  - `server.test.js` automated contract tests passing (6/6).
+  - auto-loading demo seeds from `data/*.json`.
+- [x] **0:20–1:20:** `TEAM_DIRECTIVES.md` documenting shared CSS tokens, busy locks, dynamic MediaPipe import, and transcript anchors.
 - [ ] **1:20:** Checkpoint 1.
-- [ ] **1:20–2:45:** `engine.test.js` with `node:test` + `assert`:
+- [x] **1:20–2:45:** `engine.test.js` with `node:test` + `assert`:
   - `nextStep` never goes over 2 follow-ups and wraps up at the last question;
   - `computeIntegrity` gives 100 for no events and a lower score for a tab switch;
   - `recommend(80) === 'Strong Hire'`;
   - `parseJSON` handles code-fenced JSON;
   - `heuristic` scores a full STAR answer higher than "ok";
-  - a full offline interview produces a report.
-- [ ] **1:20–2:45:** `report.html` + `report.js`:
+  - a full offline interview produces a report;
+  - hardened 8s fast-tier timeout;
+  - fixed edge-case bugs in `computeIntegrity` and `evaluate` totalMs fallback.
+- [x] **1:20–2:45:** `report.html` shell ready (`public/report.html`). Report UI rendering logic (`public/report.js`) next:
   - with no `?id`, a table of sessions from `/api/sessions`;
   - with `?id`, the scorecard: header (name, role, score, recommendation pill), competency bars with rationale + evidence quotes, strengths/gaps, STAR table, communication, coaching, and a collapsible transcript;
   - call `renderIntegrity(document.getElementById('integrity'), s.integrity, s.turns)` from T3's `integrity.js`;
