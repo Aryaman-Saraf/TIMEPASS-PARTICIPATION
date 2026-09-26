@@ -117,6 +117,23 @@
   - Verified in live browser subagent: verified zero editable dropdowns, verified audio speaker test, and verified dynamic mic activity meter.
   - Verified test suite: 17/17 tests passing.
 
+### 17. Frontend-Backend Integration Specification & Pipeline API Hardening
+- **Target Files**: `docs/FRONTEND_BACKEND_INTEGRATION_SPEC.md`, `server.js`, `docs/PROJECT_MASTER_KNOWLEDGE_INDEX.md`
+- **Details**:
+  - Authored comprehensive integration specification document (`docs/FRONTEND_BACKEND_INTEGRATION_SPEC.md`) defining the 6-screen architecture:
+    1. Screen 1: Auth & Role Gateway (`auth.html` / `#view-auth`)
+    2. Screen 2: Candidate Dashboard (`candidate-dashboard.html` / `#view-candidate-dashboard`) with locked criteria and resume upload/extraction.
+    3. Screen 3: Pre-Device Check (`preflight.html` / `#view-preflight`) with pure camera/mic/audio calibration.
+    4. Screen 4: Live Interview Room (`room.html` / `#view-room`) with voice STT/TTS loop, 3D orb, and Attention HUD.
+    5. Screen 5: Interview Completion Confirmation (`completion.html` / `#view-completion`) displaying "Results under review" without raw recruiter scoring.
+    6. Screen 6: Recruiter Pipeline Portal (`report.html` / `recruiter.html`) with candidate roster management (Add/Remove candidates) and Evidence Dossier inspection.
+  - Implemented recruiter pipeline management endpoints in `server.js`:
+    - `GET /api/candidates`: list all candidates in pipeline.
+    - `POST /api/candidates`: add new candidate with locked criteria.
+    - `DELETE /api/candidates?id=`: remove candidate from pipeline.
+    - `POST /api/candidate/resume`: candidate pre-upload / update resume text.
+  - Verified API contracts and automated test suite: 17/17 tests passing.
+
 ---
 
 ## Pending Staged Actions (Awaiting User Execution / End-of-Session)

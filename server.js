@@ -1,6 +1,7 @@
 // HTTP server (Teammate 2): §4 API routes, static files from public/, JSON session persistence, per-session busy lock.
 import http from 'node:http';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { readFile, writeFile, readdir, mkdir } from 'node:fs/promises';
 import { startInterview, chatTurn, evaluate, llmStatus, httpError } from './engine.js';
@@ -21,6 +22,44 @@ const TYPES = {
 
 export const sessions = new Map();
 export const busy = new Set();
+export const candidates = new Map([
+  ['cand-001', {
+    id: 'cand-001',
+    name: 'Sarah Jenkins',
+    email: 'sarah.jenkins@example.com',
+    role: 'Senior Frontend Engineer',
+    department: 'Platform Engineering',
+    status: 'ready',
+    questionCount: 4,
+    jobDescription: 'Senior Frontend Engineer specializing in React 18/19, TypeScript, Core Web Vitals optimization, and real-time state management. Experience with high-traffic enterprise design systems and WebSockets required.',
+    resumeText: 'Sarah Jenkins - 6 years frontend engineering at FinTech Co. Led migration to Next.js 14, reduced LCP from 3.8s to 1.4s via lazy-loading and code splitting. Authored enterprise component library used across 12 product teams.',
+    createdAt: '2026-09-26T08:00:00.000Z'
+  }],
+  ['cand-002', {
+    id: 'cand-002',
+    name: 'Alex Chen',
+    email: 'alex.chen@example.com',
+    role: 'Senior Backend Engineer',
+    department: 'Infrastructure & Distributed Systems',
+    status: 'ready',
+    questionCount: 4,
+    jobDescription: 'Distributed systems engineer experienced in high-throughput Node.js microservices, Postgres sharding, Redis caching, and incident RCA. Must demonstrate strong concurrency control and API design.',
+    resumeText: 'Alex Chen - 7 years backend engineering at ScaleStream. Designed event-driven payment reconciliation pipeline processing 15k TPS with zero data loss. Implemented distributed Redis locks and multi-region failover.',
+    createdAt: '2026-09-26T08:15:00.000Z'
+  }],
+  ['cand-003', {
+    id: 'cand-003',
+    name: 'Jordan Lee',
+    email: 'jordan.lee@example.com',
+    role: 'Full Stack AI Engineer',
+    department: 'Conversational Applications',
+    status: 'ready',
+    questionCount: 4,
+    jobDescription: 'Full Stack Engineer to build AI-powered conversational tools. Deep proficiency in modern JavaScript, REST/WebSocket APIs, responsive UI design, and cloud deployments.',
+    resumeText: 'Jordan Lee - 4 years full stack experience at HealthAI. Built real-time clinician dashboard using WebRTC and Node.js. Optimized database query performance and implemented OAuth2 authentication.',
+    createdAt: '2026-09-26T08:30:00.000Z'
+  }]
+]);
 
 const save = s => writeFile(path.join(DATA, `${s.id}.json`), JSON.stringify(s, null, 1)).catch(e => console.warn(`[save] ${e.message}`));
 
@@ -94,6 +133,38 @@ const routes = {
   },
   'POST /api/chat-turn': b => locked(b.sessionId, s => chatTurn(s, b.answer)),
   'POST /api/evaluate': b => locked(b.sessionId, async s => { await evaluate(s, b.integrity); return s; }),
+  'GET /api/candidates': () => [...candidates.values()].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))),
+  'POST /api/candidates': async b => {
+    if (!b.name || !b.role) throw httpError(400, 'name and role required');
+    const id = b.id || `cand-${crypto.randomUUID().slice(0, 8)}`;
+    const cand = {
+      id,
+      name: String(b.name).trim(),
+      email: String(b.email || '').trim(),
+      role: String(b.role).trim(),
+      department: String(b.department || 'Engineering').trim(),
+      status: b.status || 'ready',
+      questionCount: Number(b.questionCount) || 4,
+      jobDescription: String(b.jobDescription || '').trim(),
+      resumeText: String(b.resumeText || '').trim(),
+      createdAt: b.createdAt || new Date().toISOString()
+    };
+    candidates.set(id, cand);
+    return cand;
+  },
+  'DELETE /api/candidates': (_, url) => {
+    const id = url.searchParams.get('id');
+    if (!id) throw httpError(400, 'id required');
+    const deleted = candidates.delete(id);
+    return { ok: deleted, id };
+  },
+  'POST /api/candidate/resume': async b => {
+    if (!b.candidateId || !b.resumeText) throw httpError(400, 'candidateId and resumeText required');
+    const cand = candidates.get(b.candidateId);
+    if (!cand) throw httpError(404, 'candidate not found');
+    cand.resumeText = String(b.resumeText);
+    return { ok: true, characterCount: cand.resumeText.length };
+  },
 };
 
 async function serveStatic(pathname, res) {

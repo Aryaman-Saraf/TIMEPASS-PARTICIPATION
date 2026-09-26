@@ -40,6 +40,7 @@
 | [`public/integrity.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/integrity.js) | Vision / QA | ✅ Active | On-device MediaPipe FaceLandmarker: gaze deviation, head pose, liveness micro-movement, screen sharing, full-screen confinement, and Evidence Dossier renderer. |
 | [`public/report.html`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/report.html) | Recruiter UI | ✅ Active | Recruiter report dashboard shell with dark tokens, responsive layout, print media styles, and module loader. |
 | [`public/report.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/report.js) | Recruiter UI | ✅ Active | Recruiter dashboard: session catalog list, Evidence Dossier 3-tile header, BARS scorecard, adaptive path, STAR breakdown, coaching, transcript, and integrity audit. |
+| [`docs/FRONTEND_BACKEND_INTEGRATION_SPEC.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/docs/FRONTEND_BACKEND_INTEGRATION_SPEC.md) | Architecture / UI | ✅ Active | Master integration specification: 6-screen flow (Auth ➔ Candidate Hub ➔ Pre-Device Check ➔ Live Room ➔ Completion ➔ Recruiter Portal), data hooks, and API contracts. |
 | [`AGENTS.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/AGENTS.md) | Governance | ✅ Active | Workspace rules: unbiased delegation, file protection, commit protocol, clean Unicode formatting, and staging protocols. |
 
 ---
@@ -47,7 +48,7 @@
 ## 4. Frozen API Contract Specifications (§4)
 
 ### 4.1 `POST /api/start-interview`
-- **Request**: `{ candidateName: string, role: string, jobDescription?: string, resumeText?: string, questionCount?: number }`
+- **Request**: `{ candidateId?: string, candidateName: string, role: string, jobDescription?: string, resumeText?: string, questionCount?: number }`
 - **Response**: Full `Session` object with `id`, `createdAt`, `status: "active"`, `plan`, `competencies`, and initial AI opening turn.
 
 ### 4.2 `POST /api/chat-turn`
@@ -67,6 +68,20 @@
 
 ### 4.6 `GET /api/health`
 - **Response**: `{ ok: true, llm: string }` reporting active LLM provider chain (`groq → gemini` or `offline fallback`).
+
+### 4.7 `GET /api/candidates`
+- **Response**: Array of scheduled candidates in the recruiter pipeline `[{ id, name, email, role, department, status, questionCount, jobDescription, resumeText, createdAt }]`.
+
+### 4.8 `POST /api/candidates`
+- **Request**: `{ name: string, email?: string, role: string, department?: string, jobDescription?: string, resumeText?: string, questionCount?: number }`
+- **Response**: Full created/updated candidate object with generated ID.
+
+### 4.9 `DELETE /api/candidates?id=<id>`
+- **Response**: `{ ok: boolean, id: string }`
+
+### 4.10 `POST /api/candidate/resume`
+- **Request**: `{ candidateId: string, resumeText: string }`
+- **Response**: `{ ok: boolean, characterCount: number }`
 
 ---
 
