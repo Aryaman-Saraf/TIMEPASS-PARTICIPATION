@@ -105,6 +105,8 @@ export class IntegrityMonitor {
     this.activeGazeReason = '';
     this.noseHistory = [];
     this.staticFrameStart = null;
+    this.screenStream = null;
+    this.screenShareActive = false;
 
     // Event listener references for clean removal
     this._handleVisibility = this._onVisibilityChange.bind(this);
@@ -113,14 +115,16 @@ export class IntegrityMonitor {
     this._handleKeyDown = this._onKeyDown.bind(this);
     this._handlePaste = this._onPaste.bind(this);
     this._handleContextMenu = this._onContextMenu.bind(this);
+    this._handleFullscreen = this._onFullscreenChange.bind(this);
   }
 
   /**
    * Start monitoring. If hasCamera is true, initializes MediaPipe FaceLandmarker.
    * If hasCamera is false or fails, degrades gracefully to tab/window monitoring.
    * @param {boolean} hasCamera
+   * @param {boolean} requestScreen - If true, requests full desktop screen sharing
    */
-  async start(hasCamera = true) {
+  async start(hasCamera = true, requestScreen = false) {
     this.startTime = Date.now();
     this.running = true;
 
@@ -129,11 +133,17 @@ export class IntegrityMonitor {
       document.addEventListener('visibilitychange', this._handleVisibility);
       document.addEventListener('paste', this._handlePaste);
       document.addEventListener('contextmenu', this._handleContextMenu);
+      document.addEventListener('fullscreenchange', this._handleFullscreen);
     }
     if (typeof window !== 'undefined') {
       window.addEventListener('blur', this._handleBlur);
       window.addEventListener('focus', this._handleFocus);
       window.addEventListener('keydown', this._handleKeyDown);
+    }
+
+    // 2. Request desktop screen share if requested
+    if (requestScreen) {
+      await this.startScreenShare();
     }
 
     // 2. Initialize MediaPipe Vision if camera enabled
@@ -197,8 +207,67 @@ export class IntegrityMonitor {
   }
 
   /**
+   * Prompts candidate for desktop screen sharing and monitors anti-tampering.
+   * @returns {Promise<boolean>}
+   */
+  async startScreenShare() {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getDisplayMedia) {
+      return false;
+    }
+    try {
+      this.screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: 'monitor' },
+        audio: false,
+      });
+
+      const track = this.screenStream.getVideoTracks()[0];
+      if (track) {
+        this.screenShareActive = true;
+        const settings = track.getSettings ? track.getSettings() : {};
+        const surface = settings.displaySurface || 'monitor';
+
+        // Anomaly: Candidate clicked "Stop sharing" on the floating Chrome bar
+        track.onended = () => {
+          if (this.running) {
+            const now = Date.now();
+            this._pushEvent('TAB_HIDDEN', now - this.startTime, now - 3000, 3000, {
+              reason: 'Desktop screen share terminated by candidate',
+            });
+            this.screenStream = null;
+            this._emitHud('Screen sharing stopped!');
+          }
+        };
+
+        this._emitHud(`Screen sharing active (${surface})`);
+        return true;
+      }
+    } catch (err) {
+      console.warn('[Candor Screen] Screen share declined or failed', err);
+      const now = Date.now();
+      this._pushEvent('WINDOW_BLUR', now - this.startTime, now - 1000, 1000, {
+        reason: 'Desktop screen sharing declined by candidate',
+      });
+      return false;
+    }
+    return false;
+  }
+
+  _onFullscreenChange() {
+    if (!this.running) return;
+    if (typeof document !== 'undefined' && !document.fullscreenElement) {
+      const now = Date.now();
+      this._pushEvent('WINDOW_BLUR', now - this.startTime, now - 1500, 1500, {
+        reason: 'Exited full-screen assessment confinement',
+      });
+      this._emitHud('Exited full-screen confinement');
+    } else {
+      this._emitHud('Full-screen active');
+    }
+  }
+
+  /**
    * Stop monitoring, flush any in-progress episodes, remove listeners, and return summary payload.
-   * @returns {{ totalMs: number, visionAvailable: boolean, events: Array }}
+   * @returns {{ totalMs: number, visionAvailable: boolean, screenShareActive: boolean, events: Array }}
    */
   stop() {
     this.running = false;
@@ -208,11 +277,20 @@ export class IntegrityMonitor {
       this.rafId = null;
     }
 
+    // Stop active screen share tracks
+    if (this.screenStream) {
+      try {
+        this.screenStream.getTracks().forEach(track => track.stop());
+      } catch (e) {}
+      this.screenStream = null;
+    }
+
     // Remove window & document event listeners
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this._handleVisibility);
       document.removeEventListener('paste', this._handlePaste);
       document.removeEventListener('contextmenu', this._handleContextMenu);
+      document.removeEventListener('fullscreenchange', this._handleFullscreen);
     }
     if (typeof window !== 'undefined') {
       window.removeEventListener('blur', this._handleBlur);
@@ -274,6 +352,7 @@ export class IntegrityMonitor {
     return {
       totalMs,
       visionAvailable: this.visionAvailable,
+      screenShareActive: this.screenShareActive,
       events: [...this.events],
     };
   }
@@ -706,6 +785,7 @@ export class IntegrityMonitor {
       multiFaceCount: multiFaceEvents.length,
       lookAwayMs,
       tabHiddenMs,
+      screenShareActive: !!this.screenStream,
     };
   }
 
@@ -715,6 +795,7 @@ export class IntegrityMonitor {
       focus: this.lookAwayStart ? 'away' : 'ok',
       faces: this.multiFaceStart ? (this.activeMaxFaces || 2) : this.faceMissingStart ? 0 : 1,
       tab: this.tabHiddenStart ? 'hidden' : 'visible',
+      screen: this.screenStream ? 'active' : 'off',
       lastEvent: lastEvent || (this.lookAwayStart ? 'Looking away' : this.tabHiddenStart ? 'Tab hidden' : 'All clear'),
       stats: this._getLiveStats(),
     };
@@ -1057,6 +1138,15 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
       .q-context-link:hover {
         text-decoration: underline;
       }
+      .integrity-screen-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(108, 140, 255, 0.15);
+        color: #93c5fd;
+        border: 1px solid rgba(108, 140, 255, 0.3);
+      }
       .font-mono { font-family: monospace; }
       .integrity-empty-row {
         text-align: center;
@@ -1067,6 +1157,8 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
     document.head.appendChild(styleEl);
   }
 
+  const hasScreenShare = data.screenShareActive || stats.screenShareActive || events.some(e => String(e.detail?.reason || '').toLowerCase().includes('screen share'));
+
   el.innerHTML = `
     <div class="integrity-card">
       <div class="integrity-header">
@@ -1075,6 +1167,7 @@ export function renderIntegrity(el, integrity = {}, turns = []) {
           <p class="integrity-subtitle">Real-time on-device posture, gaze, and application focus telemetry</p>
         </div>
         <div class="integrity-score-group">
+          ${hasScreenShare ? '<span class="integrity-screen-badge">🖥️ Desktop Screen Monitored</span>' : ''}
           <span class="integrity-risk-badge ${riskBadgeClass}">${esc(riskLabel)}</span>
           <span class="integrity-score-pill">${esc(score)} / 100</span>
         </div>

@@ -252,6 +252,9 @@
       <button id="btn-start" onclick="startCamera()">
         ▶️ Start Live Camera &amp; Monitor
       </button>
+      <button id="btn-start-screen" class="btn-secondary" onclick="startCameraAndScreen()">
+        🖥️ Start with Screen Share
+      </button>
       <button id="btn-stop" class="btn-danger" onclick="stopAndReport()" disabled>
         ⏹️ Stop &amp; Render Dossier
       </button>
@@ -277,7 +280,7 @@
         <canvas id="overlay"></canvas>
         <div id="video-placeholder" class="video-placeholder">
           📷 Camera inactive<br>
-          Click <strong>"Start Live Camera &amp; Monitor"</strong> to initialize Google MediaPipe.
+          Click <strong>"Start Live Camera &amp; Monitor"</strong> or <strong>"Start with Screen Share"</strong>.
         </div>
       </div>
 
@@ -291,6 +294,7 @@
         <!-- Dynamic Status Chips -->
         <div class="status-chips">
           <div id="chip-vision" class="chip">👁️ Vision: Inactive</div>
+          <div id="chip-screen" class="chip">🖥️ Screen: Inactive</div>
           <div id="chip-focus" class="chip chip-ok">🎯 Focus: Center</div>
           <div id="chip-faces" class="chip chip-ok">👤 Faces: 0</div>
           <div id="chip-tab" class="chip chip-ok">🗂️ Tab: Visible</div>
@@ -362,10 +366,12 @@
     const reportContainer = document.getElementById('report-container');
 
     const btnStart = document.getElementById('btn-start');
+    const btnStartScreen = document.getElementById('btn-start-screen');
     const btnStop = document.getElementById('btn-stop');
     const btnNoCam = document.getElementById('btn-no-camera');
 
     const chipVision = document.getElementById('chip-vision');
+    const chipScreen = document.getElementById('chip-screen');
     const chipFocus = document.getElementById('chip-focus');
     const chipFaces = document.getElementById('chip-faces');
     const chipTab = document.getElementById('chip-tab');
@@ -400,6 +406,15 @@
       } else {
         chipVision.className = 'chip chip-danger';
         chipVision.textContent = '👁️ Vision: Unavailable';
+      }
+
+      // Screen chip
+      if (hud.screen === 'active') {
+        chipScreen.className = 'chip chip-ok';
+        chipScreen.textContent = '🖥️ Screen: Monitored';
+      } else {
+        chipScreen.className = 'chip';
+        chipScreen.textContent = '🖥️ Screen: Inactive';
       }
 
       // Focus chip
@@ -451,6 +466,7 @@
     window.startCamera = async function() {
       try {
         btnStart.disabled = true;
+        btnStartScreen.disabled = true;
         btnNoCam.disabled = true;
         btnStop.disabled = false;
         placeholderEl.style.display = 'none';
@@ -483,8 +499,45 @@
       }
     };
 
+    window.startCameraAndScreen = async function() {
+      try {
+        btnStart.disabled = true;
+        btnStartScreen.disabled = true;
+        btnNoCam.disabled = true;
+        btnStop.disabled = false;
+        placeholderEl.style.display = 'none';
+
+        log('Requesting webcam access…');
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+          audio: false
+        });
+
+        videoEl.srcObject = stream;
+        await videoEl.play();
+
+        log('Webcam connected. Initializing IntegrityMonitor with full desktop screen share…');
+        monitor = new IntegrityMonitor(videoEl, canvasEl, updateHud);
+        await monitor.start(true, true);
+
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+          const sec = Math.floor((Date.now() - startTime) / 1000);
+          const m = String(Math.floor(sec / 60)).padStart(2, '0');
+          const s = String(sec % 60).padStart(2, '0');
+          timerEl.textContent = `${m}:${s}`;
+        }, 500);
+
+        log('Monitoring and Screen Verification started. Calibrating baseline…');
+      } catch (err) {
+        log(`❌ Setup error: ${err.message}. Switching to tab/blur mode.`);
+        window.startNoCamera();
+      }
+    };
+
     window.startNoCamera = async function() {
       btnStart.disabled = true;
+      btnStartScreen.disabled = true;
       btnNoCam.disabled = true;
       btnStop.disabled = false;
       placeholderEl.textContent = '🛡️ Camera Disabled — Monitoring tab and window events only.';
@@ -520,8 +573,12 @@
       placeholderEl.textContent = '⏹️ Monitoring stopped. Dossier generated below.';
 
       btnStart.disabled = false;
+      btnStartScreen.disabled = false;
       btnNoCam.disabled = false;
       btnStop.disabled = true;
+
+      chipScreen.className = 'chip';
+      chipScreen.textContent = '🖥️ Screen: Inactive';
 
       log(`Collected ${payload.events.length} episode(s) across ${((payload.totalMs || 0)/1000).toFixed(1)}s.`);
 
@@ -549,10 +606,12 @@
       const integrityReport = {
         captured: true,
         visionAvailable: payload.visionAvailable,
+        screenShareActive: payload.screenShareActive,
         score,
         riskLevel: score >= 80 ? 'low' : score >= 55 ? 'medium' : 'high',
         stats: {
           totalMs: payload.totalMs,
+          screenShareActive: payload.screenShareActive,
           lookAwayMs,
           lookAwayCount: lookAwayEvents.length,
           faceMissingMs,
@@ -597,6 +656,7 @@
       placeholderEl.textContent = '📷 Camera inactive. Click "Start Live Camera & Monitor" to begin.';
 
       btnStart.disabled = false;
+      btnStartScreen.disabled = false;
       btnNoCam.disabled = false;
       btnStop.disabled = true;
 
@@ -608,6 +668,8 @@
 
       chipVision.className = 'chip';
       chipVision.textContent = '👁️ Vision: Inactive';
+      chipScreen.className = 'chip';
+      chipScreen.textContent = '🖥️ Screen: Inactive';
       chipFocus.className = 'chip chip-ok';
       chipFocus.textContent = '🎯 Focus: Center';
       chipFaces.className = 'chip chip-ok';
