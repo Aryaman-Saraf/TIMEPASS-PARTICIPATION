@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candor AI — Enterprise Interview Gateway</title>
+  <!-- Tailwind CSS CDN with arbitrary values enabled -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0b0f17',
+            card: {
+              surface: '#151b26',
+              elevated: '#1c2433',
+              border: '#2a3447',
+              hover: '#222d3f'
+            },
+            cobalt: {
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              glow: 'rgba(59, 130, 246, 0.18)'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'monospace']
+          },
+          animation: {
+            'glow-pulse': 'glowPulse 8s ease-in-out infinite',
+            'float-subtle': 'floatSubtle 6s ease-in-out infinite',
+            'fade-in': 'fadeIn 0.25s ease-out forwards',
+            'slide-down': 'slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          },
+          keyframes: {
+            glowPulse: {
+              '0%, 100%': { opacity: '0.12', transform: 'scale(1)' },
+              '50%': { opacity: '0.22', transform: 'scale(1.08)' }
+            },
+            floatSubtle: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-6px)' }
+            },
+            fadeIn: {
+              from: { opacity: '0', transform: 'scale(0.98)' },
+              to: { opacity: '1', transform: 'scale(1)' }
+            },
+            slideDown: {
+              from: { opacity: '0', transform: 'translateY(-12px)' },
+              to: { opacity: '1', transform: 'translateY(0)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #0b0f17;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .subtle-mesh {
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.22) 0%, transparent 60%),
+        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 15% 75%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+        linear-gradient(to bottom, transparent, rgba(11, 15, 23, 0.8));
+    }
+    .grid-pattern {
+      background-size: 40px 40px;
+      background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    }
+    .glass-card {
+      background: rgba(21, 27, 38, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid #2a3447;
+      box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    }
+    .glass-inner {
+      background: rgba(28, 36, 51, 0.5);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(42, 52, 71, 0.8);
+    }
+    .input-focus-glow:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0f17;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a3447;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen relative flex flex-col justify-between selection:bg-cobalt-500 selection:text-white">
+
+  <!-- Atmospheric Background Glows & Grid Pattern -->
+  <div class="fixed inset-0 subtle-mesh pointer-events-none z-0"></div>
+  <div class="fixed inset-0 grid-pattern pointer-events-none z-0 opacity-70"></div>
+  <div class="fixed top-12 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-blue-600/15 blur-[120px] rounded-full pointer-events-none z-0 animate-glow-pulse"></div>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none max-w-md w-full"></div>
+
+  <!-- Main Navigation / Top Utility Bar -->
+  <header class="relative z-10 w-full px-6 py-4 border-b border-card-border/60 bg-obsidian/60 backdrop-blur-md flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <!-- Candor AI Logo Mark -->
+      <div class="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/25 border border-blue-400/30">
+        <span class="text-white font-bold text-lg tracking-tight">C</span>
+        <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-obsidian ring-1 ring-emerald-500/50"></div>
+      </div>
+      <div class="flex flex-col">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-base tracking-tight text-white">Candor AI</span>
+          <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Gateway v2.4</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security & System Telemetry Status -->
+    <div class="flex items-center gap-4 text-xs text-slate-400">
+      <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-card-elevated/80 border border-card-border">
+        <span class="flex h-2 w-2 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="text-slate-300 font-medium">Evaluation Nodes: Operational</span>
+        <span class="text-slate-600">|</span>
+        <span class="text-emerald-400 font-mono">99.98% Latency &lt;32ms</span>
+      </div>
+
+      <a href="https://candor.ai" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-card-elevated border border-transparent hover:border-card-border">
+        <span>Platform Docs</span>
+        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- Central Gateway Container -->
+  <main class="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-10 md:py-14 max-w-4xl mx-auto w-full">
+    
+    <!-- Hero Branding & Badge -->
+    <div class="text-center mb-8 max-w-xl animate-fade-in">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-card-surface/90 border border-card-border mb-4 text-xs text-slate-300 shadow-sm shadow-black/40">
+        <span class="text-blue-400">🔒</span>
+        <span class="font-medium text-slate-200">Zero Bias AI</span>
+        <span class="text-slate-600">·</span>
+        <span class="text-slate-400">On-Device Cryptographic Verification</span>
+      </div>
+      <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-2.5">
+        Candor Interview Gateway
+      </h1>
+      <p class="text-slate-400 text-sm md:text-base leading-relaxed">
+        Welcome to Candor AI. Choose your portal access to proceed with your scheduled screening or candidate management.
+      </p>
+    </div>
+
+    <!-- Main Glassmorphic Auth Card -->
+    <div class="glass-card w-full max-w-[540px] rounded-2xl p-6 md:p-8 transition-all duration-300">
+      
+      <!-- Persona Segmented Switcher -->
+      <div class="relative bg-obsidian/80 p-1.5 rounded-xl border border-card-border flex items-center mb-6 shadow-inner">
+        <!-- Candidate Tab -->
+        <button 
+          id="tabCandidate" 
+          onclick="switchTab('candidate')"
+          class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 bg-card-elevated text-white shadow-sm border border-card-border/80"
+          type="button">
+          <span class="text-base">🎙️</span>
+          <span>Candidate Portal</span>
+          <span class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] rounded-md bg-blue-500/20 text-blue-300 font-mono">Fast Track</span>
+        </button>
+
+        <!-- Recruiter Tab -->
+        <button 
+          id="tabRecruiter" 
+          onclick="switchTab('recruiter')"
+          class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200"
+          type="button">
+          <span class="text-base">👔</span>
+          <span>Recruiter Console</span>
+          <span class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] rounded-md bg-slate-800 text-slate-400 font-mono">SSO / RBAC</span>
+        </button>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 1: CANDIDATE ACCESS VIEW                   -->
+      <!-- ============================================== -->
+      <div id="candidateView" class="space-y-5 animate-fade-in block">
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+            Interview Access Code or Email
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+              </svg>
+            </div>
+            <input 
+              type="text" 
+              id="candidateIdentifier" 
+              placeholder="e.g. sarah.jenkins@example.com or INV-8492" 
+              class="w-full pl-10 pr-4 py-3 bg-obsidian/70 border border-card-border rounded-xl text-sm text-white placeholder-slate-500 input-focus-glow transition-all"
+              autocomplete="off"
+            >
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-blue-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Unique invitation links bypass manual code entry automatically.</span>
+          </p>
+        </div>
+
+        <!-- 1-Click Demo Applicant Profiles Selector -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Quick Demo Profiles (1-Click Verification)
+            </span>
+            <span class="text-[11px] text-emerald-400 font-mono font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Live Sandbox
+            </span>
+          </div>
+
+          <div class="space-y-2">
+            <!-- Profile 1: Sarah Jenkins -->
+            <button 
+              type="button" 
+              onclick="selectCandidateProfile('cand-001', 'sarah.jenkins@example.com', 'Sarah Jenkins — Senior Frontend Engineer')" 
+              class="candidate-roster-btn w-full p-3 rounded-xl border border-card-border hover:border-blue-500/60 bg-card-elevated/40 hover:bg-card-elevated/90 transition-all text-left flex items-center justify-between group focus:ring-2 focus:ring-blue-500/40">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold text-xs">
+                  SJ
+                </div>
+                <div>
+                  <div class="text-xs md:text-sm font-semibold text-slate-200 group-hover:text-white flex items-center gap-2">
+                    <span>Sarah Jenkins</span>
+                    <span class="text-[10px] px-1.5 py-0.2 text-slate-400 font-normal bg-card-surface rounded border border-card-border">Frontend</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400">Platform Engineering · Technical Deep-Dive</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  Ready ↗
+                </span>
+              </div>
+            </button>
+
+            <!-- Profile 2: Alex Chen -->
+            <button 
+              type="button" 
+              onclick="selectCandidateProfile('cand-002', 'alex.chen@example.com', 'Alex Chen — Senior Backend Engineer')" 
+              class="candidate-roster-btn w-full p-3 rounded-xl border border-card-border hover:border-blue-500/60 bg-card-elevated/40 hover:bg-card-elevated/90 transition-all text-left flex items-center justify-between group focus:ring-2 focus:ring-blue-500/40">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold text-xs">
+                  AC
+                </div>
+                <div>
+                  <div class="text-xs md:text-sm font-semibold text-slate-200 group-hover:text-white flex items-center gap-2">
+                    <span>Alex Chen</span>
+                    <span class="text-[10px] px-1.5 py-0.2 text-slate-400 font-normal bg-card-surface rounded border border-card-border">Backend</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400">Infrastructure &amp; Distributed Systems</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  Ready ↗
+                </span>
+              </div>
+            </button>
+
+            <!-- Profile 3: Jordan Lee -->
+            <button 
+              type="button" 
+              onclick="selectCandidateProfile('cand-003', 'jordan.lee@example.com', 'Jordan Lee — Full Stack AI Engineer')" 
+              class="candidate-roster-btn w-full p-3 rounded-xl border border-card-border hover:border-blue-500/60 bg-card-elevated/40 hover:bg-card-elevated/90 transition-all text-left flex items-center justify-between group focus:ring-2 focus:ring-blue-500/40">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold text-xs">
+                  JL
+                </div>
+                <div>
+                  <div class="text-xs md:text-sm font-semibold text-slate-200 group-hover:text-white flex items-center gap-2">
+                    <span>Jordan Lee</span>
+                    <span class="text-[10px] px-1.5 py-0.2 text-slate-400 font-normal bg-card-surface rounded border border-card-border">Full Stack AI</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400">Conversational Applications &amp; LLMs</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  Ready ↗
+                </span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hidden candidate ID holder -->
+        <input type="hidden" id="selectedCandidateId" value="">
+
+        <!-- Primary Action Button: Join Interview Room -->
+        <div class="pt-2">
+          <button 
+            id="btnJoinCandidate" 
+            type="button" 
+            onclick="handleCandidateSubmit()" 
+            class="relative w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-200 transform active:scale-[0.99] flex items-center justify-center gap-2 border border-blue-400/30">
+            <span id="btnCandidateText">Join Interview Room →</span>
+            <div id="btnCandidateSpinner" class="hidden">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>Verifying screening ticket...</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Auxiliary Help Link -->
+        <div class="text-center pt-1">
+          <button type="button" onclick="pasteInvitationPrompt()" class="text-xs text-slate-400 hover:text-blue-400 transition-colors inline-flex items-center gap-1 underline underline-offset-4 decoration-slate-700 hover:decoration-blue-400">
+            <span>Have an invitation link? Paste code here</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 2: RECRUITER ACCESS VIEW                   -->
+      <!-- ============================================== -->
+      <div id="recruiterView" class="space-y-4 animate-fade-in hidden">
+        
+        <!-- Recruiter Email -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            Work Email
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206"></path>
+              </svg>
+            </div>
+            <input 
+              type="email" 
+              id="recruiterEmail" 
+              placeholder="recruiter@candor.ai" 
+              value="recruiter@candor.ai"
+              class="w-full pl-10 pr-4 py-2.5 bg-obsidian/70 border border-card-border rounded-xl text-sm text-white placeholder-slate-500 input-focus-glow transition-all"
+            >
+          </div>
+        </div>
+
+        <!-- Password Field with Show/Hide Eye Toggle -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Password
+            </label>
+            <a href="javascript:void(0)" onclick="showToast('Password reset link sent to registered email', 'info')" class="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+              Forgot?
+            </a>
+          </div>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+            </div>
+            <input 
+              type="password" 
+              id="recruiterPassword" 
+              placeholder="••••••••••••" 
+              value="admin123"
+              class="w-full pl-10 pr-11 py-2.5 bg-obsidian/70 border border-card-border rounded-xl text-sm text-white placeholder-slate-500 input-focus-glow transition-all"
+            >
+            <button 
+              type="button" 
+              onclick="togglePasswordVisibility()" 
+              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition-colors focus:outline-none"
+              title="Toggle password view">
+              <svg id="eyeIconOpen" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+              <svg id="eyeIconClosed" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Workstation Checkbox -->
+        <div class="flex items-center justify-between pt-1">
+          <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300">
+            <input type="checkbox" id="rememberWorkstation" checked class="w-4 h-4 rounded border-card-border bg-obsidian text-blue-600 focus:ring-blue-500 focus:ring-offset-obsidian">
+            <span>Remember this workstation for 24 hours</span>
+          </label>
+          <span class="text-[11px] text-slate-500 font-mono">TLS 1.3 Strict</span>
+        </div>
+
+        <!-- Primary Recruiter Submit Button -->
+        <div class="pt-2">
+          <button 
+            id="btnRecruiterLogin" 
+            type="button" 
+            onclick="handleRecruiterSubmit()" 
+            class="relative w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-200 transform active:scale-[0.99] flex items-center justify-center gap-2 border border-blue-400/30">
+            <span id="btnRecruiterText">Sign In to Recruiter Console →</span>
+            <div id="btnRecruiterSpinner" class="hidden">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>Verifying credentials...</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Demo Credentials Hint Pill -->
+        <div class="p-2.5 rounded-lg bg-card-elevated/70 border border-card-border flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2 text-slate-300">
+            <span class="text-amber-400 font-bold">💡 Hint:</span>
+            <span class="font-mono text-[11px] text-slate-400">recruiter@candor.ai / admin123</span>
+          </div>
+          <button type="button" onclick="fillRecruiterDemo()" class="text-[11px] font-semibold text-blue-400 hover:text-blue-300">
+            Auto-fill
+          </button>
+        </div>
+
+        <!-- Enterprise Identity Divider -->
+        <div class="relative py-2 flex items-center justify-center">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-card-border"></div>
+          </div>
+          <span class="relative px-3 bg-card-surface text-[11px] uppercase tracking-wider text-slate-500 font-medium">
+            Or authenticate via Enterprise Identity
+          </span>
+        </div>
+
+        <!-- SSO Federation Buttons -->
+        <div class="grid grid-cols-2 gap-3">
+          <button 
+            type="button" 
+            onclick="handleSSO('Google Workspace')" 
+            class="py-2.5 px-3 rounded-xl border border-card-border hover:border-slate-500 bg-card-elevated/60 hover:bg-card-elevated text-xs font-medium text-slate-200 flex items-center justify-center gap-2 transition-all">
+            <svg class="w-4 h-4" viewBox="0 0 24 24">
+              <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.4 8.9 5 12 5z"/>
+              <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5.1 3.7-8.9z"/>
+              <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.4s.2-1.7.4-2.4L1.6 7c-.8 1.6-1.3 3.4-1.3 5.3s.5 3.7 1.3 5.3l3.7-2.9z"/>
+              <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5L1.6 16.2C3.5 20.1 7.4 23 12 23z"/>
+            </svg>
+            <span>Google Workspace</span>
+          </button>
+
+          <button 
+            type="button" 
+            onclick="handleSSO('Microsoft Entra ID')" 
+            class="py-2.5 px-3 rounded-xl border border-card-border hover:border-slate-500 bg-card-elevated/60 hover:bg-card-elevated text-xs font-medium text-slate-200 flex items-center justify-center gap-2 transition-all">
+            <svg class="w-4 h-4" viewBox="0 0 24 24">
+              <path fill="#F25022" d="M1 1h10v10H1z"/>
+              <path fill="#7FBA00" d="M13 1h10v10H13z"/>
+              <path fill="#00A4EF" d="M1 13h10v10H1z"/>
+              <path fill="#FFB900" d="M13 13h10v10H13z"/>
+            </svg>
+            <span>Microsoft Entra</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Card Footer Security Badge -->
+      <div class="mt-6 pt-4 border-t border-card-border/60 flex items-center justify-between text-[11px] text-slate-500">
+        <div class="flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+          <span>SOC 2 Type II · GDPR Compliant</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span>End-to-End Encrypted</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Active Token / Session Inspector (Developer & Calibration Preview) -->
+    <div class="mt-8 max-w-[540px] w-full p-4 rounded-xl bg-obsidian/90 border border-card-border/80 text-xs">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-slate-400 font-mono text-[11px] flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+          REST Contract Simulator (/api/auth/login)
+        </span>
+        <button onclick="checkActiveToken()" class="text-blue-400 hover:text-blue-300 font-mono text-[10px] underline">
+          Verify GET /api/auth/me
+        </button>
+      </div>
+      <div id="sessionStatusDisplay" class="font-mono text-[11px] text-slate-400 bg-card-surface/90 p-2.5 rounded-lg border border-card-border overflow-x-auto whitespace-pre">No active session stored in localStorage (Key: candor_token)</div>
+    </div>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="relative z-10 w-full px-6 py-4 border-t border-card-border/50 bg-obsidian/70 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div class="flex items-center gap-4">
+      <span>© 2025 Candor AI Inc. All rights reserved.</span>
+      <span class="hidden sm:inline">·</span>
+      <a href="https://example.com/privacy" class="hover:text-slate-400 transition-colors">Privacy Policy</a>
+      <span>·</span>
+      <a href="https://example.com/security" class="hover:text-slate-400 transition-colors">BARS Rubric Standards</a>
+    </div>
+    <div class="flex items-center gap-2 font-mono text-[11px]">
+      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+      <span>Session Isolation: Active</span>
+    </div>
+  </footer>
+
+  <!-- Interactive Logic & REST Backend Mock Wiring -->
+  <script>
+    // Tab switching controller
+    let currentRole = 'candidate';
+
+    function switchTab(role) {
+      currentRole = role;
+      const tabCandidate = document.getElementById('tabCandidate');
+      const tabRecruiter = document.getElementById('tabRecruiter');
+      const candidateView = document.getElementById('candidateView');
+      const recruiterView = document.getElementById('recruiterView');
+
+      if (role === 'candidate') {
+        tabCandidate.className = 'flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 bg-card-elevated text-white shadow-sm border border-card-border/80';
+        tabRecruiter.className = 'flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200';
+        candidateView.classList.remove('hidden');
+        recruiterView.classList.add('hidden');
+      } else {
+        tabRecruiter.className = 'flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 bg-card-elevated text-white shadow-sm border border-card-border/80';
+        tabCandidate.className = 'flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200';
+        recruiterView.classList.remove('hidden');
+        candidateView.classList.add('hidden');
+      }
+    }
+
+    // Toggle Password Visibility
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('recruiterPassword');
+      const eyeOpen = document.getElementById('eyeIconOpen');
+      const eyeClosed = document.getElementById('eyeIconClosed');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        eyeOpen.classList.add('hidden');
+        eyeClosed.classList.remove('hidden');
+      } else {
+        pwd.type = 'password';
+        eyeOpen.classList.remove('hidden');
+        eyeClosed.classList.add('hidden');
+      }
+    }
+
+    // Quick select candidate profile
+    function selectCandidateProfile(id, email, title) {
+      document.getElementById('candidateIdentifier').value = email;
+      document.getElementById('selectedCandidateId').value = id;
+      
+      // Update UI button highlight states
+      const buttons = document.querySelectorAll('.candidate-roster-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('border-blue-500', 'bg-blue-900/20');
+      });
+      event.currentTarget.classList.add('border-blue-500', 'bg-blue-900/20');
+
+      showToast(`Selected Profile: ${title}`, 'info');
+    }
+
+    function pasteInvitationPrompt() {
+      const sampleCode = 'INV-8492-SARAH';
+      document.getElementById('candidateIdentifier').value = sampleCode;
+      document.getElementById('selectedCandidateId').value = 'cand-001';
+      showToast('Sample invitation code pasted into field', 'info');
+    }
+
+    function fillRecruiterDemo() {
+      document.getElementById('recruiterEmail').value = 'recruiter@candor.ai';
+      document.getElementById('recruiterPassword').value = 'admin123';
+      showToast('Filled demo recruiter credentials', 'info');
+    }
+
+    function handleSSO(provider) {
+      showToast(`Federating identity handshake with ${provider}...`, 'info');
+      setTimeout(() => {
+        const dummyToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.sso_demo_' + Date.now();
+        const userObj = { role: 'recruiter', email: 'sso.admin@enterprise.com', provider: provider };
+        localStorage.setItem('candor_token', dummyToken);
+        localStorage.setItem('candor_user', JSON.stringify(userObj));
+        renderSessionStatus();
+        showToast(`SSO Authenticated via ${provider}! Redirecting to recruiter pipeline...`, 'success');
+        setTimeout(() => {
+          window.location.href = '/report.html';
+        }, 1200);
+      }, 900);
+    }
+
+    // Toast notification manager
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let borderCol = 'border-blue-500/40';
+      let icon = 'ℹ️';
+      let textCol = 'text-blue-300';
+      
+      if (type === 'success') {
+        borderCol = 'border-emerald-500/50';
+        icon = '✅';
+        textCol = 'text-emerald-300';
+      } else if (type === 'error') {
+        borderCol = 'border-rose-500/50';
+        icon = '⚠️';
+        textCol = 'text-rose-300';
+      }
+
+      toast.className = `pointer-events-auto p-3.5 rounded-xl bg-card-surface/95 border ${borderCol} shadow-xl backdrop-blur-md flex items-center justify-between gap-3 text-xs text-white animate-slide-down`;
+      toast.innerHTML = `
+        <div class="flex items-center gap-2.5">
+          <span>${icon}</span>
+          <span class="${textCol} font-medium">${message}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white">&times;</button>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.4s ease';
+        setTimeout(() => toast.remove(), 400);
+      }, 4200);
+    }
+
+    // Technical REST API Auth Client Mock & Execution
+    async function executeLoginAPI(payload) {
+      // Simulating network trip to POST /api/auth/login
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (payload.role === 'recruiter') {
+            if (payload.email === 'recruiter@candor.ai' && payload.password === 'admin123') {
+              resolve({
+                status: 200,
+                data: {
+                  token: 'candor_jwt_sec_' + btoa(payload.email + ':' + Date.now()),
+                  user: {
+                    id: 'usr_recruiter_09',
+                    name: 'Alex Rivera',
+                    email: payload.email,
+                    role: 'recruiter',
+                    organization: 'Candor Enterprise Client',
+                    permissions: ['pipeline:read', 'rubrics:calibrate', 'feedback:publish']
+                  }
+                }
+              });
+            } else {
+              reject(new Error('Invalid email or password. Please verify credentials.'));
+            }
+          } else if (payload.role === 'candidate') {
+            const idVal = payload.candidateId || payload.email;
+            if (idVal && idVal.trim().length > 0) {
+              resolve({
+                status: 200,
+                data: {
+                  token: 'candor_jwt_cand_' + btoa(idVal + ':' + Date.now()),
+                  user: {
+                    id: payload.candidateId || 'cand-generic',
+                    identifier: idVal,
+                    role: 'candidate',
+                    interviewSession: 'room_cal_88301',
+                    stage: 'technical_preflight'
+                  }
+                }
+              });
+            } else {
+              reject(new Error('Candidate identifier or invitation code is required.'));
+            }
+          }
+        }, 850);
+      });
+    }
+
+    // Candidate Submit Handler
+    async function handleCandidateSubmit() {
+      const input = document.getElementById('candidateIdentifier');
+      const selectedId = document.getElementById('selectedCandidateId').value;
+      const val = input.value.trim();
+
+      if (!val) {
+        showToast('Please enter an Access Code, Email, or pick a Demo Profile', 'error');
+        input.focus();
+        return;
+      }
+
+      const btn = document.getElementById('btnJoinCandidate');
+      const btnText = document.getElementById('btnCandidateText');
+      const spinner = document.getElementById('btnCandidateSpinner');
+
+      btnText.classList.add('hidden');
+      spinner.classList.remove('hidden');
+      btn.disabled = true;
+
+      const payload = {
+        role: 'candidate',
+        candidateId: selectedId || 'cand-001',
+        email: val.includes('@') ? val : undefined
+      };
+
+      try {
+        const res = await executeLoginAPI(payload);
+        localStorage.setItem('candor_token', res.data.token);
+        localStorage.setItem('candor_user', JSON.stringify(res.data.user));
+        
+        showToast('Screening ticket verified! Routing to interview room...', 'success');
+        renderSessionStatus();
+
+        setTimeout(() => {
+          const targetUrl = res.data.user.id 
+            ? `/room.html?id=${encodeURIComponent(res.data.user.id)}` 
+            : `/index.html`;
+          window.location.href = targetUrl;
+        }, 1200);
+
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btnText.classList.remove('hidden');
+        spinner.classList.add('hidden');
+        btn.disabled = false;
+      }
+    }
+
+    // Recruiter Submit Handler
+    async function handleRecruiterSubmit() {
+      const email = document.getElementById('recruiterEmail').value.trim();
+      const password = document.getElementById('recruiterPassword').value.trim();
+
+      if (!email || !email.includes('@')) {
+        showToast('Please provide a valid enterprise work email', 'error');
+        document.getElementById('recruiterEmail').focus();
+        return;
+      }
+      if (!password) {
+        showToast('Please enter your recruiter password', 'error');
+        document.getElementById('recruiterPassword').focus();
+        return;
+      }
+
+      const btn = document.getElementById('btnRecruiterLogin');
+      const btnText = document.getElementById('btnRecruiterText');
+      const spinner = document.getElementById('btnRecruiterSpinner');
+
+      btnText.classList.add('hidden');
+      spinner.classList.remove('hidden');
+      btn.disabled = true;
+
+      const payload = {
+        email: email,
+        password: password,
+        role: 'recruiter'
+      };
+
+      try {
+        const res = await executeLoginAPI(payload);
+        localStorage.setItem('candor_token', res.data.token);
+        localStorage.setItem('candor_user', JSON.stringify(res.data.user));
+
+        showToast('Authenticated! Welcome back to Candor Console.', 'success');
+        renderSessionStatus();
+
+        setTimeout(() => {
+          window.location.href = '/report.html';
+        }, 1200);
+
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btnText.classList.remove('hidden');
+        spinner.classList.add('hidden');
+        btn.disabled = false;
+      }
+    }
+
+    // Update Session status indicator
+    function renderSessionStatus() {
+      const display = document.getElementById('sessionStatusDisplay');
+      const token = localStorage.getItem('candor_token');
+      const user = localStorage.getItem('candor_user');
+
+      if (token && user) {
+        try {
+          const parsed = JSON.parse(user);
+          display.textContent = `AUTHENTICATED [${parsed.role.toUpperCase()}]\nToken: ${token.substring(0, 32)}...\nUser: ${parsed.email || parsed.identifier || parsed.id} (Ready)`;
+          display.classList.remove('text-slate-400');
+          display.classList.add('text-emerald-400');
+        } catch(e) {
+          display.textContent = `Token: ${token.substring(0, 24)}...`;
+        }
+      } else {
+        display.textContent = `No active session stored in localStorage (Key: candor_token)`;
+        display.classList.remove('text-emerald-400');
+        display.classList.add('text-slate-400');
+      }
+    }
+
+    // Verify token GET /api/auth/me helper
+    async function checkActiveToken() {
+      const token = localStorage.getItem('candor_token');
+      if (!token) {
+        showToast('No active token in localStorage to inspect', 'error');
+        return;
+      }
+      showToast(`Calling GET /api/auth/me [Bearer ${token.substring(0, 10)}...]`, 'info');
+      setTimeout(() => {
+        showToast('Token verified valid with Candor Auth Service', 'success');
+      }, 500);
+    }
+
+    // Initialize display on load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderSessionStatus();
+    });
+  </script>
+</body>
+</html>
