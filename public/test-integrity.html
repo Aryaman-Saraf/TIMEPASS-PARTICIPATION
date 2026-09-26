@@ -324,11 +324,11 @@
         <div class="instructions-card">
           <strong>Quick Proctoring Test Checklist:</strong>
           <ol>
-            <li><strong>Pose Calibration:</strong> First 2s calibrates your resting posture.</li>
-            <li><strong>Look Away:</strong> Turn your head $>25^\circ$ or look at phone for 2s $\to$ turns amber.</li>
-            <li><strong>Tab Switch:</strong> Open a new browser tab for 3s, then return $\to$ logs tab switch.</li>
-            <li><strong>Face Missing:</strong> Cover webcam for 2s $\to$ logs absence.</li>
-            <li><strong>Generate Dossier:</strong> Click "Stop &amp; Render" to inspect the report below.</li>
+            <li><strong>Pose Calibration:</strong> First ~1.5s calibrates your resting posture.</li>
+            <li><strong>Look Away:</strong> Turn your head &gt;16&deg; or glance down at phone for 1.0s &rarr; logs look-away.</li>
+            <li><strong>Tab Switch:</strong> Open a new browser tab or minimize window for &gt;0.3s &rarr; logs tab switch.</li>
+            <li><strong>Face Missing:</strong> Cover webcam or leave camera for 1.0s &rarr; logs absence.</li>
+            <li><strong>Generate Dossier:</strong> Click "Stop &amp; Render Dossier" to inspect the report below.</li>
           </ol>
         </div>
 
@@ -359,6 +359,7 @@
     let stream = null;
     let timerInterval = null;
     let startTime = null;
+    let lastLoggedEvent = '';
 
     const videoEl = document.getElementById('cam');
     const canvasEl = document.getElementById('overlay');
@@ -417,13 +418,17 @@
         chipScreen.textContent = '🖥️ Screen: Inactive';
       }
 
-      // Focus chip
+      // Focus chip with real-time Euler angles
+      const angleStr = hud.angles?.yaw != null
+        ? ` (${hud.angles.yaw > 0 ? '+' : ''}${hud.angles.yaw}°, ${hud.angles.pitch > 0 ? '+' : ''}${hud.angles.pitch}°)`
+        : '';
+
       if (hud.focus === 'away') {
         chipFocus.className = 'chip chip-warn';
-        chipFocus.textContent = '👀 Focus: Looking Away';
+        chipFocus.textContent = `👀 Focus: Looking Away${angleStr}`;
       } else {
         chipFocus.className = 'chip chip-ok';
-        chipFocus.textContent = '🎯 Focus: Centered';
+        chipFocus.textContent = `🎯 Focus: Centered${angleStr}`;
       }
 
       // Faces chip
@@ -447,19 +452,21 @@
         chipTab.textContent = '🗂️ Tab: Visible';
       }
 
-      // Metrics
+      // Metrics updated immediately in real time
       if (hud.stats) {
         valOnScreen.textContent = `${hud.stats.onScreenPct}%`;
         valLookAway.textContent = hud.stats.lookAwayCount;
         valTab.textContent = hud.stats.tabHiddenCount;
-      }
-
-      if (monitor) {
+        valEpisodes.textContent = hud.stats.totalEvents != null ? hud.stats.totalEvents : (monitor?.events.length || 0);
+      } else if (monitor) {
         valEpisodes.textContent = monitor.events.length;
       }
 
-      if (hud.lastEvent && hud.lastEvent !== 'All clear' && hud.lastEvent !== 'Focused') {
+      if (hud.lastEvent && hud.lastEvent !== 'All clear' && hud.lastEvent !== 'Focused' && hud.lastEvent !== lastLoggedEvent) {
         log(`<strong>Event:</strong> ${hud.lastEvent}`);
+        lastLoggedEvent = hud.lastEvent;
+      } else if (hud.lastEvent === 'Focused' && lastLoggedEvent !== 'Focused') {
+        lastLoggedEvent = 'Focused';
       }
     }
 
