@@ -157,7 +157,16 @@
   - Implemented AI candidate ranking leaderboard (`GET /api/recruiter/rankings`) calculating percentiles, score distributions, and recruiter pipeline metrics.
   - Configured zero-config Vercel cloud serverless deployment with `vercel.json` routing and `api/index.js` serverless function handler.
   - Added live file upload control to candidate pre-flight interface in `public/index.html` and pipeline metrics to `public/report.js`.
-  - Verified test suite: 21/21 tests passing (`npm test`). Local commit created: `11d8ebb`.
+### 21. Candidate Completion Screen, Candidate Status Tracking, Enhanced PDF Parser & Recruiter/Interviewee Gateway
+- **Target Files**: `server.js`, `public/room.html`, `public/room.js`, `resumeParser.js`, `public/index.html`
+- **Details**:
+  - Attached `candidateId` to session start in `server.js` and automatically updated candidate `status = 'completed'` in Supabase upon interview evaluation.
+  - Implemented dedicated Candidate Completion modal (`#completion-screen`) in `public/room.html` and `public/room.js`, gracefully presenting *"Interview done. Results will be with you soon."* and stopping media tracks without exposing raw recruiter scorecards to candidates.
+  - Enhanced zero-dependency PDF text extraction in `resumeParser.js` with `BT ... ET` text block parsing and hex decoding.
+  - Redesigned main gateway in `public/index.html` featuring:
+    1. Recruiter Portal: Pipeline metrics (Total, Completed, Remaining), Add Candidate to Supabase with resume upload, and tabbed candidate management.
+    2. Interviewee Flow: Step 1 application with PDF resume upload, Step 2 mandatory pre-device check (camera, mic volume meter, speaker test), and live interview launch.
+  - Verified test suite: 21/21 tests passing (`npm test`). Local commit created: `401144a`.
 
 ---
 
