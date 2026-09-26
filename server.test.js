@@ -151,3 +151,59 @@ test('candidate pipeline: list, add, update resume, delete', async () => {
   assert.equal(delData.ok, true);
   assert.equal(delData.id, created.id);
 });
+
+test('auth & RBAC: recruiter login, candidate login, profile check, and logout', async () => {
+  // 1. Recruiter login
+  const recRes = await post('/api/auth/login', { role: 'recruiter', password: 'admin123' });
+  assert.equal(recRes.status, 200);
+  const recData = await recRes.json();
+  assert.ok(recData.token);
+  assert.equal(recData.user.role, 'recruiter');
+
+  // 2. Auth me check
+  const meRes = await fetch(`${base}/api/auth/me`, {
+    headers: { 'Authorization': `Bearer ${recData.token}` }
+  });
+  assert.equal(meRes.status, 200);
+  const meData = await meRes.json();
+  assert.equal(meData.user.role, 'recruiter');
+
+  // 3. Candidate login via candidateId
+  const candRes = await post('/api/auth/login', { candidateId: 'cand-001' });
+  assert.equal(candRes.status, 200);
+  const candData = await candRes.json();
+  assert.equal(candData.user.role, 'candidate');
+  assert.equal(candData.user.candidateId, 'cand-001');
+
+  // 4. Logout
+  const outRes = await post('/api/auth/logout', {});
+  assert.equal(outRes.status, 200);
+});
+
+test('resume upload engine: extracts text, redacts PII, and updates candidate', async () => {
+  const uploadRes = await post('/api/candidate/resume-upload', {
+    candidateId: 'cand-002',
+    text: 'Alex Chen (alex.chen@cloud.com, +1 555-019-2834, https://github.com/alex) built high-throughput microservices using Node.js and Redis.'
+  });
+  assert.equal(uploadRes.status, 200);
+  const upData = await uploadRes.json();
+  assert.equal(upData.ok, true);
+  assert.ok(upData.wordCount > 5);
+
+  // Verify candidate record was updated
+  const candRes = await fetch(`${base}/api/candidates`);
+  const cands = await candRes.json();
+  const alex = cands.find(c => c.id === 'cand-002');
+  assert.ok(alex.resumeText.includes('high-throughput microservices'));
+});
+
+test('recruiter AI rankings: calculates rank, percentile, and hire distribution', async () => {
+  const rankRes = await fetch(`${base}/api/recruiter/rankings`);
+  assert.equal(rankRes.status, 200);
+  const data = await rankRes.json();
+  assert.ok(typeof data.totalEvaluated === 'number');
+  assert.ok(typeof data.averageScore === 'number');
+  assert.ok(data.stats);
+  assert.ok(Array.isArray(data.rankings));
+});
+

@@ -362,6 +362,13 @@
                 <span class="pii-pill">🛡️ PII Redacted & Anonymized</span>
               </div>
               <div id="spec-resume-text" style="color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 0.625rem; border-radius: var(--radius-sm); line-height: 1.45;"></div>
+              <div style="margin-top: 0.625rem; display: flex; align-items: center; gap: 0.75rem;">
+                <label class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.625rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem;">
+                  <span>📎 Upload New Resume (.pdf / .txt)</span>
+                  <input type="file" id="resume-file-input" accept=".txt,.pdf,.docx,.md" style="display: none;" onchange="handleResumeFileUpload(event)">
+                </label>
+                <span id="resume-upload-status" style="font-size: 0.75rem; color: #a7f3d0;"></span>
+              </div>
             </div>
           </div>
         </details>
@@ -428,6 +435,7 @@
     // Pre-Configured Roster (Set by Hiring Manager)
     const CANDIDATES = {
       frontend: {
+        id: "cand-001",
         name: "Sarah Jenkins",
         role: "Senior Frontend Engineer",
         department: "Platform Engineering",
@@ -436,6 +444,7 @@
         resume: "Sarah Jenkins - 6 years frontend engineering at FinTech Co. Led migration to Next.js 14, reduced LCP from 3.8s to 1.4s via lazy-loading and code splitting. Authored enterprise component library used across 12 product teams."
       },
       backend: {
+        id: "cand-002",
         name: "Alex Chen",
         role: "Senior Backend Engineer",
         department: "Infrastructure & Distributed Systems",
@@ -444,6 +453,7 @@
         resume: "Alex Chen - 7 years backend engineering at ScaleStream. Designed event-driven payment reconciliation pipeline processing 15k TPS with zero data loss. Implemented distributed Redis locks and multi-region failover."
       },
       fullstack: {
+        id: "cand-003",
         name: "Jordan Lee",
         role: "Full Stack AI Engineer",
         department: "Conversational Applications",
@@ -458,6 +468,42 @@
     let micStream = null;
     let micAnalyser = null;
     let micAnimId = null;
+
+    // Automated Resume File Upload & Parsing Handler
+    async function handleResumeFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById('resume-upload-status');
+      if (statusEl) statusEl.textContent = 'Uploading & parsing resume…';
+
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64 = reader.result.split(',')[1];
+          const res = await fetch('/api/candidate/resume-upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              candidateId: activeCandidate.id,
+              filename: file.name,
+              base64: base64
+            })
+          });
+          const data = await res.json();
+          if (data.ok) {
+            if (statusEl) statusEl.textContent = `✓ Extracted & Redacted (${data.wordCount} words)`;
+            const resumeEl = document.getElementById('spec-resume-text');
+            if (resumeEl) resumeEl.textContent = data.preview + '…';
+            activeCandidate.resume = data.preview;
+          } else {
+            if (statusEl) statusEl.textContent = 'Upload failed: ' + (data.error || 'Server error');
+          }
+        } catch (e) {
+          if (statusEl) statusEl.textContent = 'Error parsing file: ' + e.message;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
 
     function selectPersona(type) {
       if (type === 'recruiter') {

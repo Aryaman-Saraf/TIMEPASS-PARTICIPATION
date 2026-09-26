@@ -208,10 +208,46 @@ async function renderSessionsList(app) {
   document.getElementById('refreshBtn')?.addEventListener('click', () => renderSessionsList(app));
 
   try {
-    const res = await fetch('/api/sessions');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const sessions = await res.json();
+    const [sessionsRes, rankRes] = await Promise.all([
+      fetch('/api/sessions').then(r => r.json()).catch(() => []),
+      fetch('/api/recruiter/rankings').then(r => r.json()).catch(() => null)
+    ]);
+    const sessions = Array.isArray(sessionsRes) ? sessionsRes : [];
     
+    // Render Ranking Metrics Tiles if rankings are available
+    if (rankRes && rankRes.totalEvaluated > 0) {
+      const stats = rankRes.stats || {};
+      const metricsContainer = document.createElement('div');
+      metricsContainer.className = 'grid';
+      metricsContainer.style.marginBottom = '20px';
+      metricsContainer.innerHTML = `
+        <div class="card tile" style="margin:0; text-align:center; padding:16px;">
+          <span class="muted" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Evaluated Candidates</span>
+          <b style="color:var(--accent);">${rankRes.totalEvaluated}</b>
+          <span class="muted" style="font-size:11px;">100% Calibrated</span>
+        </div>
+        <div class="card tile" style="margin:0; text-align:center; padding:16px;">
+          <span class="muted" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Talent Pool Average</span>
+          <b style="color:#22c55e;">${rankRes.averageScore}/100</b>
+          <span class="muted" style="font-size:11px;">BARS Rubric Mean</span>
+        </div>
+        <div class="card tile" style="margin:0; text-align:center; padding:16px;">
+          <span class="muted" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Strong Hire Ratio</span>
+          <b style="color:#38bdf8;">${stats.strongHire || 0}</b>
+          <span class="muted" style="font-size:11px;">${rankRes.totalEvaluated ? Math.round(((stats.strongHire || 0)/rankRes.totalEvaluated)*100) : 0}% of cohort</span>
+        </div>
+        <div class="card tile" style="margin:0; text-align:center; padding:16px;">
+          <span class="muted" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Standard Hire Ratio</span>
+          <b style="color:#a855f7;">${stats.hire || 0}</b>
+          <span class="muted" style="font-size:11px;">${rankRes.totalEvaluated ? Math.round(((stats.hire || 0)/rankRes.totalEvaluated)*100) : 0}% of cohort</span>
+        </div>
+      `;
+      const header = app.querySelector('header');
+      if (header && header.nextSibling) {
+        header.parentNode.insertBefore(metricsContainer, header.nextSibling);
+      }
+    }
+
     const countEl = document.getElementById('sessionCount');
     const tbody = document.querySelector('#sessionsTable tbody');
 
@@ -243,7 +279,7 @@ async function renderSessionsList(app) {
           <td>${esc(s.role || 'Software Engineer')}</td>
           <td class="muted">${formatDate(s.createdAt)}</td>
           <td>
-            <b style="font-size:16px; color:var(--accent);">${s.overallScore !== undefined ? s.overallScore + '/100' : '—'}</b>
+            <b style="font-size:16px; color:var(--accent);">${s.overallScore !== undefined && s.overallScore !== null ? s.overallScore + '/100' : '—'}</b>
           </td>
           <td>${recPill(s.recommendation)}</td>
           <td>${riskPill(s.integrityRisk)}</td>

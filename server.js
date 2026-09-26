@@ -1,15 +1,30 @@
-// HTTP server (Teammate 2): §4 API routes, static files from public/, JSON session persistence, per-session busy lock.
+// HTTP server (Teammate 2): §4 API routes, static files from public/, unified DB persistence (Supabase / local), RBAC auth, resume parsing, and AI candidate rankings.
 import http from 'node:http';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { readFile, writeFile, readdir, mkdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { startInterview, chatTurn, evaluate, llmStatus, httpError } from './engine.js';
+import {
+  initDB,
+  listCandidates,
+  getCandidate,
+  saveCandidate,
+  deleteCandidate,
+  listSessions,
+  getSession,
+  saveSession,
+  getRankings,
+  cacheCandidates,
+  cacheSessions,
+  IS_SUPABASE
+} from './db.js';
+import { login, getUserFromToken, logout } from './auth.js';
+import { parseResumePayload } from './resumeParser.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const MAX_BODY = 1 << 20; // 1 MB
 const PUBLIC = path.join(ROOT, 'public');
-const DATA = process.env.DATA_DIR || path.join(ROOT, 'data', 'sessions');
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -20,85 +35,11 @@ const TYPES = {
   '.ico': 'image/x-icon',
 };
 
-export const sessions = new Map();
+// Backwards-compatible exports for contract tests & modules
+export const sessions = cacheSessions;
+export const candidates = cacheCandidates;
 export const busy = new Set();
-export const candidates = new Map([
-  ['cand-001', {
-    id: 'cand-001',
-    name: 'Sarah Jenkins',
-    email: 'sarah.jenkins@example.com',
-    role: 'Senior Frontend Engineer',
-    department: 'Platform Engineering',
-    status: 'ready',
-    questionCount: 4,
-    jobDescription: 'Senior Frontend Engineer specializing in React 18/19, TypeScript, Core Web Vitals optimization, and real-time state management. Experience with high-traffic enterprise design systems and WebSockets required.',
-    resumeText: 'Sarah Jenkins - 6 years frontend engineering at FinTech Co. Led migration to Next.js 14, reduced LCP from 3.8s to 1.4s via lazy-loading and code splitting. Authored enterprise component library used across 12 product teams.',
-    createdAt: '2026-09-26T08:00:00.000Z'
-  }],
-  ['cand-002', {
-    id: 'cand-002',
-    name: 'Alex Chen',
-    email: 'alex.chen@example.com',
-    role: 'Senior Backend Engineer',
-    department: 'Infrastructure & Distributed Systems',
-    status: 'ready',
-    questionCount: 4,
-    jobDescription: 'Distributed systems engineer experienced in high-throughput Node.js microservices, Postgres sharding, Redis caching, and incident RCA. Must demonstrate strong concurrency control and API design.',
-    resumeText: 'Alex Chen - 7 years backend engineering at ScaleStream. Designed event-driven payment reconciliation pipeline processing 15k TPS with zero data loss. Implemented distributed Redis locks and multi-region failover.',
-    createdAt: '2026-09-26T08:15:00.000Z'
-  }],
-  ['cand-003', {
-    id: 'cand-003',
-    name: 'Jordan Lee',
-    email: 'jordan.lee@example.com',
-    role: 'Full Stack AI Engineer',
-    department: 'Conversational Applications',
-    status: 'ready',
-    questionCount: 4,
-    jobDescription: 'Full Stack Engineer to build AI-powered conversational tools. Deep proficiency in modern JavaScript, REST/WebSocket APIs, responsive UI design, and cloud deployments.',
-    resumeText: 'Jordan Lee - 4 years full stack experience at HealthAI. Built real-time clinician dashboard using WebRTC and Node.js. Optimized database query performance and implemented OAuth2 authentication.',
-    createdAt: '2026-09-26T08:30:00.000Z'
-  }]
-]);
-
-const CANDIDATES_FILE = path.join(ROOT, 'data', 'candidates.json');
-const save = s => writeFile(path.join(DATA, `${s.id}.json`), JSON.stringify(s, null, 1)).catch(e => console.warn(`[save] ${e.message}`));
-const saveCandidates = () => writeFile(CANDIDATES_FILE, JSON.stringify([...candidates.values()], null, 2)).catch(e => console.warn(`[saveCandidates] ${e.message}`));
-
-export async function loadCandidates() {
-  try {
-    const list = JSON.parse(await readFile(CANDIDATES_FILE, 'utf8'));
-    if (Array.isArray(list) && list.length > 0) {
-      candidates.clear();
-      for (const c of list) {
-        if (c?.id) candidates.set(c.id, c);
-      }
-    }
-  } catch (e) {
-    // Keep defaults if file doesn't exist or is unparseable
-  }
-}
-
-// Top-level data/*.json are committed demo seeds (mock-session.json, backup demo runs); DATA copies load last and win.
-export async function load() {
-  await mkdir(DATA, { recursive: true });
-  await loadCandidates();
-  for (const dir of [path.join(ROOT, 'data'), DATA]) {
-    try {
-      const files = await readdir(dir);
-      for (const f of files.filter(f => f.endsWith('.json') && f !== 'candidates.json')) {
-        try {
-          const s = JSON.parse(await readFile(path.join(dir, f), 'utf8'));
-          if (s?.id) sessions.set(String(s.id), s);
-        } catch (e) {
-          console.warn(`[load] skipped ${f}: ${e.message}`);
-        }
-      }
-    } catch {
-      // directory might not exist yet, handled by mkdir
-    }
-  }
-}
+export const load = initDB;
 
 async function readBody(req) {
   let size = 0; const chunks = [];
@@ -113,44 +54,54 @@ async function readBody(req) {
   return body && typeof body === 'object' ? body : {};
 }
 
-function get(id) {
-  const s = sessions.get(String(id));
-  if (!s) throw httpError(404, 'session not found');
-  return s;
-}
-
 async function locked(id, fn) {
-  const s = get(id);
+  const s = await getSession(id);
+  if (!s) throw httpError(404, 'session not found');
   if (busy.has(s.id)) throw httpError(409, 'session is busy, retry shortly');
   busy.add(s.id);
   try {
     const out = await fn(s);
-    await save(s);
+    await saveSession(s);
     return out;
   } finally {
     busy.delete(s.id);
   }
 }
 
-const summary = s => ({
-  id: s.id, candidateName: s.candidateName, role: s.role, createdAt: s.createdAt, status: s.status,
-  overallScore: s.report?.overallScore ?? null, recommendation: s.report?.recommendation ?? null,
-  integrityRisk: s.integrity?.captured ? s.integrity.riskLevel : null,
-});
-
 const routes = {
+  // 1. Health & Infrastructure
   'GET /api/health': () => ({ ok: true, llm: llmStatus() }),
-  'GET /api/sessions': () => [...sessions.values()].map(summary).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))),
-  'GET /api/session': (_, url) => get(url.searchParams.get('id')),
+
+  // 2. Authentication & Role-Based Access Control (RBAC)
+  'POST /api/auth/login': async b => login(b),
+  'GET /api/auth/me': (_, __, req) => {
+    const user = getUserFromToken(req.headers['authorization']);
+    if (!user) throw httpError(401, 'Unauthorized or session expired');
+    return { ok: true, user };
+  },
+  'POST /api/auth/logout': (_, __, req) => logout(req.headers['authorization']),
+
+  // 3. Interview Sessions
+  'GET /api/sessions': async () => listSessions(),
+  'GET /api/session': async (_, url) => {
+    const id = url.searchParams.get('id');
+    const s = await getSession(id);
+    if (!s) throw httpError(404, 'session not found');
+    return s;
+  },
   'POST /api/start-interview': async b => {
     const s = await startInterview(b);
-    sessions.set(s.id, s);
-    await save(s);
+    await saveSession(s);
     return s;
   },
   'POST /api/chat-turn': b => locked(b.sessionId, s => chatTurn(s, b.answer)),
-  'POST /api/evaluate': b => locked(b.sessionId, async s => { await evaluate(s, b.integrity); return s; }),
-  'GET /api/candidates': () => [...candidates.values()].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))),
+  'POST /api/evaluate': b => locked(b.sessionId, async s => {
+    await evaluate(s, b.integrity);
+    return s;
+  }),
+
+  // 4. Candidate Pipeline Management
+  'GET /api/candidates': async () => listCandidates(),
   'POST /api/candidates': async b => {
     if (!b.name || !b.role) throw httpError(400, 'name and role required');
     const id = b.id || `cand-${crypto.randomUUID().slice(0, 8)}`;
@@ -166,24 +117,54 @@ const routes = {
       resumeText: String(b.resumeText || '').trim(),
       createdAt: b.createdAt || new Date().toISOString()
     };
-    candidates.set(id, cand);
-    await saveCandidates();
+    await saveCandidate(cand);
     return cand;
   },
   'DELETE /api/candidates': async (_, url) => {
     const id = url.searchParams.get('id');
     if (!id) throw httpError(400, 'id required');
-    const deleted = candidates.delete(id);
-    if (deleted) await saveCandidates();
+    const deleted = await deleteCandidate(id);
     return { ok: deleted, id };
   },
   'POST /api/candidate/resume': async b => {
     if (!b.candidateId || !b.resumeText) throw httpError(400, 'candidateId and resumeText required');
-    const cand = candidates.get(b.candidateId);
+    const cand = await getCandidate(b.candidateId);
     if (!cand) throw httpError(404, 'candidate not found');
     cand.resumeText = String(b.resumeText);
-    await saveCandidates();
+    await saveCandidate(cand);
     return { ok: true, characterCount: cand.resumeText.length };
+  },
+
+  // 5. Automated Resume Upload & Parsing Engine (PDF / Text + PII Redaction)
+  'POST /api/candidate/resume-upload': async b => {
+    if (!b.candidateId) throw httpError(400, 'candidateId required');
+    const cand = await getCandidate(b.candidateId);
+    if (!cand) throw httpError(404, 'candidate not found');
+
+    const parsed = parseResumePayload({
+      text: b.text,
+      base64: b.base64,
+      filename: b.filename,
+      candidateName: cand.name
+    });
+
+    cand.resumeText = parsed.rawText;
+    await saveCandidate(cand);
+
+    return {
+      ok: true,
+      candidateId: cand.id,
+      wordCount: parsed.wordCount,
+      characterCount: parsed.characterCount,
+      preview: parsed.preview,
+      redactedSample: parsed.sanitizedText.slice(0, 200)
+    };
+  },
+
+  // 6. Recruiter AI Candidate Ranking Leaderboard
+  'GET /api/recruiter/rankings': async (_, url) => {
+    const roleFilter = url.searchParams.get('role');
+    return getRankings(roleFilter);
   },
 };
 
@@ -199,22 +180,25 @@ async function serveStatic(pathname, res) {
 
 const send = (res, status, data) => res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' }).end(JSON.stringify(data));
 
-export const server = http.createServer(async (req, res) => {
+// Core Request Handler (Exported for both Local Node Server and Vercel Serverless Function)
+export async function handleRequest(req, res) {
   const url = new URL(req.url, 'http://localhost');
   try {
     const route = routes[`${req.method} ${url.pathname}`];
-    if (route) send(res, 200, await route(req.method === 'POST' ? await readBody(req) : {}, url));
+    if (route) send(res, 200, await route(req.method === 'POST' ? await readBody(req) : {}, url, req));
     else if (req.method === 'GET' && !url.pathname.startsWith('/api/')) await serveStatic(url.pathname, res);
     else throw httpError(404, 'not found');
   } catch (e) {
     if (!e.status) console.error(e);
     if (!res.headersSent) send(res, e.status || 500, { error: e.message });
   }
-});
+}
 
-// Listen only when run directly (tests import `server`). Case-insensitive: Windows drive letters vary.
+export const server = http.createServer(handleRequest);
+
+// Listen only when run directly (tests and serverless import `server`).
 if (path.resolve(process.argv[1] || '').toLowerCase() === fileURLToPath(import.meta.url).toLowerCase()) {
   await load();
   const port = Number(process.env.PORT) || 3000;
-  server.listen(port, () => console.log(`Candor on http://localhost:${port} · LLM: ${llmStatus()} · ${sessions.size} session(s)`));
+  server.listen(port, () => console.log(`Candor on http://localhost:${port} · LLM: ${llmStatus()} · DB: ${IS_SUPABASE ? 'Supabase' : 'Local'}`));
 }
