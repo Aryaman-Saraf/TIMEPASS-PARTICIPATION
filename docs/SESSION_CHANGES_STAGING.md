@@ -169,6 +169,12 @@
   - Implemented Screen 6 Recruiter Portal supporting dual view modes:
     1. Pipeline Roster Table View: Candidate list, status pills, overall score, recommendation badges, integrity risk, and "+ Add Candidate" modal.
     2. Candidate Evidence Dossier Detail View: 3 quantitative indices (Technical Relevancy, Articulation & Delivery, Integrity Confidence), score ring, advisory recommendation pill, BARS competency breakdown, and timestamped attention anomaly audit log.
-  - Added print media styling for PDF export.
+### 24. Frontend-Backend Live Connection & Test Verification
+- **Target Files**: `public/`, `frontend/report.js`, `public/report.js`
+- **Details**:
+  - Synced all newly built frontend screens into `public/` so `server.js` serves the fresh UI on `http://localhost:3000/`.
+  - Added `report.js` backwards-compatible alias exporting `recruiter-portal.js`.
+  - Verified 100% API contract wire-up (`/api/health`, `/api/start-interview`, `/api/chat-turn`, `/api/evaluate`, `/api/sessions`).
+  - Ran automated test suite via `npm test`: all 17/17 backend contract and static serving tests pass cleanly.
 1. End-of-Session Batch Sync to Obsidian Vault (`C:\Users\aryam\ObsidianVault`) and Memanto (`candor` namespace).
 
