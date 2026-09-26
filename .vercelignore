@@ -1,0 +1,7 @@
+archive
+docs
+.claude
+*.md
+!README.md
+data/sessions
+.env
