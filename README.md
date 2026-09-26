@@ -120,7 +120,13 @@ Open **[http://localhost:3000](http://localhost:3000)** in Chrome to begin!
 
 ---
 
-## 👥 Team Workstreams & Documentation
+## 👥 Team Workstreams & Direct Assignments
+
+| Teammate | Assigned Role | Dedicated Branch | Primary Deliverables |
+| :--- | :--- | :--- | :--- |
+| **Prathul** | **Teammate 1** (Candidate Experience & Audio UX) | `Prathul` | `public/index.html`, `public/room.html`, `public/room.js`, `public/styles.css` (Web Speech voice loop, candidate setup, device pre-flight check) |
+| **Aryaman** | **Teammate 2** (AI Brain, Backend Server & Reports) | `feat/aryaman-dev` | `server.js`, `engine.test.js`, `public/report.html`, `public/report.js` (HTTP API routes, Evidence Dossier scorecard, BARS evaluation) |
+| **Suryansh** | **Teammate 3** (Vision Integrity, Proctoring & QA) | `suryansh` | `public/integrity.js`, `README.md`, Demo Video (MediaPipe gaze/attention tracker, tab-switch audit, pitch test) |
 
 - **Teammates**: Please read **[TEAM_ONBOARDING.md](TEAM_ONBOARDING.md)** immediately for your Git branch assignment.
 - **Task Checklist**: Open **[TEAM_TASKS.md](TEAM_TASKS.md)** to find your assigned track (`T1`, `T2`, or `T3`).

@@ -14,20 +14,23 @@ git clone https://github.com/Aryaman-Saraf/TIMEPASS-PARTICIPATION.git
 cd TIMEPASS-PARTICIPATION
 ```
 
-### 2. Create Your Feature Branch IMMEDIATELY
-Depending on your assigned role, create and switch to your branch:
+### 2. Switch to Your Assigned Feature Branch IMMEDIATELY
+Each teammate has their dedicated branch configured:
 
-- **Teammate 1 (Candidate Experience & Voice UI)**:
+- **Prathul (Teammate 1 — Candidate Experience & Voice UI)**:
   ```bash
-  git checkout -b feat/t1-candidate-experience
+  git checkout Prathul
+  git pull origin main
   ```
-- **Teammate 2 (AI Engine, Server & Report)**:
+- **Aryaman (Teammate 2 — AI Brain, Backend Server & Report)**:
   ```bash
-  git checkout -b feat/t2-ai-backend-report
+  git checkout feat/aryaman-dev
+  git pull origin main
   ```
-- **Teammate 3 (Vision Integrity & Testing/QA)**:
+- **Suryansh (Teammate 3 — Vision Integrity & Testing/QA Lead)**:
   ```bash
-  git checkout -b feat/t3-integrity-qa
+  git checkout suryansh
+  git pull origin main
   ```
 
 ### 3. Commit Small and Push Regularly

@@ -5,11 +5,11 @@ This page tells each teammate what they own, what they build, and when it has to
 - If this page and the plan ever disagree, **the §4 contracts win**.
 - **v3:** re-timed for the **4.5 h** we have left, with ideas from Prathul's and Suryansh's proposals merged in (plan §10). Items marked *(v3)* are new.
 
-| | Teammate | Owns (only you edit these files) | Your part of the demo |
-|---|---|---|---|
-| **T1** | Candidate experience | `public/styles.css`, `public/index.html`, `public/room.html`, `public/room.js` | "The AI talks to me and listens" |
-| **T2** | AI backend + report | `engine.js`, `engine.test.js`, `server.js`, `data/mock-session.json`, `public/report.html`, `public/report.js` | "It asks smart follow-ups and writes a fair report" |
-| **T3** | Integrity + QA | `public/integrity.js`, `README.md` | "It notices when I look away or switch tabs" |
+| | Teammate | Assigned Branch | Owns (only you edit these files) | Your part of the demo |
+|---|---|---|---|---|
+| **T1** | **Prathul** (Candidate experience) | `Prathul` | `public/styles.css`, `public/index.html`, `public/room.html`, `public/room.js` | "The AI talks to me and listens" |
+| **T2** | **Aryaman** (AI backend + report) | `feat/aryaman-dev` | `engine.js`, `engine.test.js`, `server.js`, `data/mock-session.json`, `public/report.html`, `public/report.js` | "It asks smart follow-ups and writes a fair report" |
+| **T3** | **Suryansh** (Integrity + QA) | `suryansh` | `public/integrity.js`, `README.md` | "It notices when I look away or switch tabs" |
 
 ## How we're judged (BitNBuild26, 50 points)
 | Criterion | Pts | What it means for your work |
@@ -53,7 +53,7 @@ Before each checkpoint:
 
 ---
 
-## T1: Candidate experience
+## T1: Candidate experience — Prathul (Branch: `Prathul`)
 **Mission:** a candidate fills in a form, then has a spoken conversation with "Ava" in the browser.
 
 ### 5-minute primer
@@ -101,7 +101,7 @@ A candidate can run a full interview by voice in Chrome. Typing + Enter always w
 
 ---
 
-## T2: AI backend + report
+## T2: AI backend + report — Aryaman (Branch: `feat/aryaman-dev`)
 **Mission:** the server that runs the interview brain (already written in `engine.js`) and the recruiter report page.
 
 ### 5-minute primer
@@ -167,7 +167,7 @@ import { startInterview, chatTurn, evaluate, llmStatus, httpError } from './engi
 
 ---
 
-## T3: Integrity + QA
+## T3: Integrity + QA — Suryansh (Branch: `suryansh`)
 **Mission:** watch the webcam and the browser tab **on the candidate's own device**, log attention events fairly, show them to the recruiter, and make sure the whole demo works.
 
 ### 5-minute primer

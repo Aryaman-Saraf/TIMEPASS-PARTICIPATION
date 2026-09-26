@@ -98,27 +98,27 @@ Taken from Prathul's architecture proposal and Suryansh's core technical idea (`
 | Integrity | Speaker diarization (a second voice), screen-share OCR for unauthorised apps, time-aligned audio + gaze "attention anomalies" |
 | Experience | A 2D/3D interviewer avatar, then a VR interview room |
 
-## 3. File layout and owners (v2: rebalanced, one owner per file means no merge conflicts)
-- **T1: Candidate experience.** Everything the candidate sees and hears.
-- **T2: AI backend + report.** LLM engine, server, and the recruiter report.
-- **T3: Integrity + QA.** The computer-vision monitor, its report section, and end-to-end testing.
+## 3. File layout and owners (v3: rebalanced, one owner per file means no merge conflicts)
+- **T1: Prathul (Candidate experience).** Everything the candidate sees and hears (Branch: `Prathul`).
+- **T2: Aryaman (AI backend + report).** LLM engine, server, and the recruiter report (Branch: `feat/aryaman-dev`).
+- **T3: Suryansh (Integrity + QA).** The computer-vision monitor, its report section, and end-to-end testing (Branch: `suryansh`).
 
 ```
 package.json        ✅ DONE: start/test scripts, "type":"module", no dependencies
 .env.example        ✅ DONE: GROQ_API_KEY, GEMINI_API_KEY, model overrides, PORT
 .gitignore          ✅ DONE: .env, data/sessions/
-engine.js           ✅ ALREADY WRITTEN: LLM client, prompts, adaptive policy, BARS eval, integrity risk, offline fallback (T2)
-engine.test.js      node:test tests: nextStep policy, computeIntegrity, overallScore/recommend, parseJSON, heuristic, full offline run (T2)
-server.js           HTTP routes, static files, JSON persistence, per-session busy lock, 1 MB body limit, path-traversal guard (T2)
-data/mock-session.json  an evaluated session, so the report and room can be built before the server exists (T2, by H0:30)
-public/styles.css   dark design tokens, shared components (T1)
-public/index.html   setup page: name, role, JD, resume text, question count (3/5/7), consent, "Load sample" (T1)
-public/room.html    interview room layout; must contain #cam, #overlay, #hud for the monitor (T1)
-public/room.js      speech loop, TTS, live transcript, progress, finish → evaluate (T1)
-public/integrity.js IntegrityMonitor class + renderIntegrity(el, integrity, turns) for the report (T3)
-public/report.html  recruiter shell; no ?id = candidate list, with ?id = scorecard (T2)
-public/report.js    scorecard, BARS bars, STAR table, transcript; calls T3's renderIntegrity() (T2)
-README.md           run steps + demo script (T3)
+engine.js           ✅ ALREADY WRITTEN: LLM client, prompts, adaptive policy, BARS eval, integrity risk, offline fallback (T2 - Aryaman)
+engine.test.js      node:test tests: nextStep policy, computeIntegrity, overallScore/recommend, parseJSON, heuristic, full offline run (T2 - Aryaman)
+server.js           HTTP routes, static files, JSON persistence, per-session busy lock, 1 MB body limit, path-traversal guard (T2 - Aryaman)
+data/mock-session.json  an evaluated session, so the report and room can be built before the server exists (T2 - Aryaman, by H0:30)
+public/styles.css   dark design tokens, shared components (T1 - Prathul)
+public/index.html   setup page: name, role, JD, resume text, question count (3/5/7), consent, "Load sample" (T1 - Prathul)
+public/room.html    interview room layout; must contain #cam, #overlay, #hud for the monitor (T1 - Prathul)
+public/room.js      speech loop, TTS, live transcript, progress, finish → evaluate (T1 - Prathul)
+public/integrity.js IntegrityMonitor class + renderIntegrity(el, integrity, turns) for the report (T3 - Suryansh)
+public/report.html  recruiter shell; no ?id = candidate list, with ?id = scorecard (T2 - Aryaman)
+public/report.js    scorecard, BARS bars, STAR table, transcript; calls T3's renderIntegrity() (T2 - Aryaman)
+README.md           run steps + demo script (T3 - Suryansh)
 ```
 
 ## 3a. MVP vs Stretch (MVP must work end-to-end by **H2:45**)
