@@ -141,7 +141,13 @@
   - Outlined the 6-screen journey, browser Web APIs (speech recognition, voice synthesis, Web Audio analyzer), and ready-to-copy-paste API `fetch()` snippets.
   - Granted complete creative styling and layout freedom to Tanay while locking functional contracts and DOM hooks.
   - Formally updated `TEAM_TASKS.md` and `docs/PROJECT_MASTER_KNOWLEDGE_INDEX.md` transferring T1 ownership to Tanay.
-  - Verified automated test suite: 17/17 tests passing.
+### 19. Candidate Pipeline Persistence to Disk & Automated Contract Test Suite
+- **Target Files**: `server.js`, `server.test.js`, `data/candidates.json`
+- **Details**:
+  - Implemented disk persistence for candidate roster to `data/candidates.json` via `saveCandidates()` and `loadCandidates()`.
+  - Recruiter additions (`POST /api/candidates`), deletions (`DELETE /api/candidates`), and candidate resume updates (`POST /api/candidate/resume`) now persist across server restarts.
+  - Added full automated contract test in `server.test.js` exercising the complete pipeline lifecycle.
+  - Verified test suite: 18/18 tests passing (`npm test`). Local commit created: `d36fd35`.
 
 ---
 
