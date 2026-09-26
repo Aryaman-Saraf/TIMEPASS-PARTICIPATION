@@ -1,0 +1,214 @@
+# Candor: Team Tasks (who does what, and when)
+
+This page tells each teammate what they own, what they build, and when it has to be ready.
+- The design and the API contracts live in `IMPLEMENTATION_PLAN.md`: §4 has the contracts, §3a has the MVP vs Stretch split.
+- If this page and the plan ever disagree, **the §4 contracts win**.
+
+| | Teammate | Owns (only you edit these files) | Your part of the demo |
+|---|---|---|---|
+| **T1** | Candidate experience | `public/styles.css`, `public/index.html`, `public/room.html`, `public/room.js` | "The AI talks to me and listens" |
+| **T2** | AI backend + report | `engine.js`, `engine.test.js`, `server.js`, `data/mock-session.json`, `public/report.html`, `public/report.js` | "It asks smart follow-ups and writes a fair report" |
+| **T3** | Integrity + QA | `public/integrity.js`, `README.md` | "It notices when I look away or switch tabs" |
+
+**Golden rules**
+1. **Never edit a file you don't own.** Need something changed? Message the owner.
+2. **Build MVP first.** Start stretch work only after Checkpoint 2 (H3:00) passes.
+3. **Stuck for more than 20 min?** Use the "If stuck" fallback in your section, then tell the team.
+4. **Push at least every 30 min** (`git pull`, then commit, then `git push`).
+
+---
+
+## H0:00–0:30: Everyone (setup)
+- [ ] Install Node ≥ 22.9 (`node -v`), git, and Chrome.
+- [ ] Get **your own** free Groq key at https://console.groq.com/keys (no credit card). Do not share one key: the free tier is 8K tokens/min per key.
+- [ ] Repo owner: `git init`, commit everything, push to GitHub, and invite the other two. Everyone else: `git clone`.
+- [ ] `copy .env.example .env` and paste your key into `GROQ_API_KEY=`.
+- [ ] Read §4 of `IMPLEMENTATION_PLAN.md` **together** (10 min). These are the promises between your code and your teammates' code.
+- [ ] Ship your **stub** (see your section) and push it by 0:30, so the other two can build against it.
+
+## Checkpoints (stop, pull, test together, 10 min each)
+| When | Must work |
+|---|---|
+| **H1:30** | Setup page → Start → room page opens and **speaks the opening question**. |
+| **H3:00 (MVP freeze)** | A full spoken interview → End → report shows scores, evidence, STAR and the **integrity section**. Fix any bug here before starting stretch work. |
+| **H4:15 (code freeze)** | Bug fixes only. Run the demo script. |
+
+---
+
+## T1: Candidate experience
+**Mission:** a candidate fills in a form, then has a spoken conversation with "Ava" in the browser.
+
+### 5-minute primer
+- **STT (speech-to-text):** Chrome's `webkitSpeechRecognition` turns your voice into text. It is free and Chrome/Edge only. It sends the audio to Google's servers, which the consent checkbox should mention.
+- **TTS (text-to-speech):** `speechSynthesis.speak(new SpeechSynthesisUtterance(text))` makes the browser talk. It is free and works everywhere.
+- **Endpointing:** deciding when the candidate has *finished* answering. We use 2.5 s of silence after they last spoke, plus a "Done" button.
+- **Echo:** if the mic is listening while Ava talks, Ava hears herself. **Always stop recognition before `say()` and restart it after.**
+
+### Contract you use
+- `POST /api/start-interview` `{candidateName, role, jobDescription, resumeText, questionCount}` → Session. Save `session.id` in `sessionStorage` and go to `room.html?id=<id>`.
+- `GET /api/session?id=` → Session. The opening line is `session.turns[0].text`.
+- `POST /api/chat-turn` `{sessionId, answer}` → `{reply, done, progress:{question,total,competency,difficulty,action}}`.
+- `POST /api/evaluate` `{sessionId, integrity: monitor.stop()}` → then `location = 'report.html?id=' + id`.
+- The monitor (from T3), used exactly like this:
+  ```js
+  import { IntegrityMonitor } from './integrity.js';
+  const monitor = new IntegrityMonitor(videoEl, canvasEl, hud => renderHud(hud));
+  await monitor.start(hasCamera);          // after getUserMedia succeeded (or failed → false)
+  const integrity = monitor.stop();        // {totalMs, visionAvailable, events}
+  ```
+- `room.html` **must contain** `<video id="cam" autoplay muted playsinline>`, `<canvas id="overlay">` and `<div id="hud">`.
+
+### Checklist
+- [ ] **0:00–0:30:** `room.html` skeleton with the three elements above, plus a transcript box, a typed-answer input, and Done / End buttons. Push it.
+- [ ] **0:30–1:30:** `styles.css` (dark theme, CSS variables). `index.html` form: name, role, JD textarea, resume textarea, question count 3/5/7, consent checkbox, and a **"Load sample"** button that fills in a realistic JD and resume.
+- [ ] **0:30–1:30:** `say(text)` returns a Promise that resolves on `onend`. Split the text into sentences; long utterances can get cut off in Chrome. Add a safety timeout of about 15 s per sentence in case `onend` never fires.
+- [ ] **1:30:** Checkpoint 1.
+- [ ] **1:30–3:00:** `listen()`: `continuous = true`, `interimResults = true`. Show interim text in italics. Restart in `onend` while still listening. After the first final result, start a 2.5 s silence timer; when it fires → `send()`.
+- [ ] **1:30–3:00:** Loop: `say(reply)` → `listen()` → `send(answer)` → `say(reply)` … until `done`. Show "Q2/5 · competency" progress and a timer.
+- [ ] **1:30–3:00:** "Begin" button (browsers need a click before the camera, mic and audio can start): `getUserMedia({video:true, audio:true})`, then `monitor.start(true)`. **If the camera is denied**, call `monitor.start(false)` and continue. **If the mic is denied**, typed input only.
+- [ ] **1:30–3:00:** End button or `done` → `finish()` → evaluate → redirect. If evaluate fails, show a Retry button.
+- [ ] **3:00:** Checkpoint 2.
+- [ ] **3:00–4:15 (stretch):** mic level bars (AnalyserNode), `document.body.dataset.state = speaking|listening|thinking` to animate an orb, `aria-live` on the transcript, a check at mobile width.
+
+### Definition of done (MVP)
+A candidate can run a full interview by voice in Chrome. Typing + Enter always works as a backup. Denying camera or mic does not break anything.
+
+### If stuck
+- Speech recognition is flaky → keep the typed input + Done button as the main path and demo voice on the good runs.
+- TTS never fires `onend` → the safety timeout resolves the Promise anyway.
+- Server not ready → load `data/mock-session.json` to build the room UI.
+
+---
+
+## T2: AI backend + report
+**Mission:** the server that runs the interview brain (already written in `engine.js`) and the recruiter report page.
+
+### 5-minute primer
+- **LLM (large language model):** we send a *prompt* (instructions + context) over HTTP and get text back. Groq hosts free open models; we use `openai/gpt-oss-20b` (fast, for live turns) and `gpt-oss-120b` (smarter, for planning and grading).
+- **JSON mode:** we ask the model to reply with JSON so code can read it. Models sometimes return a broken shape, so `normalize*()` in engine.js never trusts it.
+- **BARS:** a 1–5 scoring scale where each level has a written description (see `BARS` in engine.js). It makes grading consistent.
+- **STAR:** Situation, Task, Action, Result, the structure of a good behavioural answer.
+- **Why code, not the LLM, makes the hire decision:** the same scores always give the same recommendation (`overallScore` + `recommend`). That makes it fair and auditable.
+- **Rate limits:** 30 requests/min and 8K tokens/min per key. A 429 error means you're over; the engine then tries Gemini, then the offline heuristics.
+
+### Contract you provide
+All of §4: `POST /api/start-interview`, `POST /api/chat-turn`, `POST /api/evaluate`, `GET /api/sessions`, `GET /api/session?id=`, `GET /api/health`.
+Reuse the functions from `engine.js`; don't rewrite them:
+```js
+import { startInterview, chatTurn, evaluate, llmStatus, httpError } from './engine.js';
+```
+
+### Checklist
+- [ ] **0:00–0:30:** produce `data/mock-session.json` by running `startInterview` → a few `chatTurn`s → `evaluate` **with no key** (the offline fallback). Write the session to that file and push it.
+- [ ] **0:30–1:30:** `server.js` with `node:http` (no Express):
+  - static files from `public/` (`/` → `index.html`), with a **path-traversal guard** (the resolved path must stay inside `public/`);
+  - JSON body reader capped at **1 MB**;
+  - a `Map` of sessions, written to `data/sessions/<id>.json` after every change and loaded at startup;
+  - a **busy lock** per session (a `Set` of ids in flight → reply 409 if the id is already there);
+  - errors → `res.statusCode = err.status || 500` with `{error: message}`.
+- [ ] **1:30:** Checkpoint 1.
+- [ ] **1:30–3:00:** `engine.test.js` with `node:test` + `assert`:
+  - `nextStep` never goes over 2 follow-ups and wraps up at the last question;
+  - `computeIntegrity` gives 100 for no events and a lower score for a tab switch;
+  - `recommend(80) === 'Strong Hire'`;
+  - `parseJSON` handles code-fenced JSON;
+  - `heuristic` scores a full STAR answer higher than "ok";
+  - a full offline interview produces a report.
+- [ ] **1:30–3:00:** `report.html` + `report.js`:
+  - with no `?id`, a table of sessions from `/api/sessions`;
+  - with `?id`, the scorecard: header (name, role, score, recommendation pill), competency bars with rationale + evidence quotes, strengths/gaps, STAR table, communication, coaching, and a collapsible transcript;
+  - call `renderIntegrity(document.getElementById('integrity'), s.integrity, s.turns)` from T3's `integrity.js`;
+  - **escape everything** from the LLM or the candidate with `esc()` (replace `& < > " '`) before putting it in `innerHTML`.
+- [ ] **3:00:** Checkpoint 2.
+- [ ] **3:00–4:15:** prompt tuning with a real key on 3 different sample resumes. Is the follow-up relevant? Are the evidence quotes verbatim? Log the time per turn and aim for under 1.5 s. Then the **offline drill**: set a wrong key, run a full interview, and confirm you still get a report.
+- [ ] **Stretch:** radar SVG, adaptive-path badges (Main/Probe/Wrap per AI turn + difficulty dots), print CSS for `window.print()`.
+
+### Definition of done (MVP)
+`npm test` passes. `curl localhost:3000/api/health` shows `groq`. A full interview through the UI produces a report page with all MVP sections.
+
+### If stuck
+- A prompt returns junk → the normalizers and the fallback already cover it; move on and tune later.
+- 429 errors → check that each teammate is using their own key; lower `questionCount` for testing.
+- Persistence bugs → keep the in-memory `Map` only (sessions are lost on restart, which is fine for a demo).
+
+---
+
+## T3: Integrity + QA
+**Mission:** watch the webcam and the browser tab **on the candidate's own device**, log attention events fairly, show them to the recruiter, and make sure the whole demo works.
+
+### 5-minute primer
+- **Face landmarks:** Google's MediaPipe FaceLandmarker finds 478 points on a face in each video frame. It runs in the browser (free, private, no server).
+- **Head pose:** where the head points. *Yaw* = turning left/right, *pitch* = looking up/down. We estimate it from a few landmarks (nose vs cheeks, nose vs forehead/chin).
+- **Episodes, not frames:** one look-away lasting 3 s is **one** event with `durationMs: 3000`, not 36 frame-level alerts. Short glances (< 1.5 s) are ignored.
+- **False positives:** people look away to think, use two monitors, or have conditions that affect eye contact. That's why the integrity score is **shown to the recruiter as context, never used in the hire score**. The candidate sees the same HUD.
+
+### Contract you provide
+```js
+export class IntegrityMonitor {
+  constructor(video, canvas, onChange)  // onChange(hud) → {vision:'on'|'unavailable', focus:'ok'|'away', faces:n, tab:'visible'|'hidden', lastEvent}
+  async start(hasCamera)                // begin tab/blur listeners; if hasCamera, load MediaPipe and loop
+  stop()                                // → {totalMs, visionAvailable, events: IntegrityEvent[]}
+}
+export function renderIntegrity(el, integrity, turns)  // report section: risk pill, disclaimer, stats tiles, event table
+```
+- IntegrityEvent (§4): `{type, t, at, durationMs, detail:{reason?, yaw?, pitch?, count?}}`.
+- Types: `LOOK_AWAY | FACE_MISSING | MULTIPLE_FACES | TAB_HIDDEN | WINDOW_BLUR`.
+- The server recomputes severity and the score (`computeIntegrity` in engine.js), so don't compute them in the browser.
+
+### Checklist
+- [ ] **0:00–0:30: stub** `integrity.js` with the exact API above.
+  - It already logs `TAB_HIDDEN`, using `document.visibilitychange` (start the episode when hidden, end it and push the event when visible again).
+  - It already logs `WINDOW_BLUR`, using `blur` / `focus` on `window`.
+  - `start()` ignores the camera for now. Push it so T1 can integrate straight away.
+- [ ] **0:30–1:30:** load MediaPipe (checked: version 1.0.1 and these URLs return 200):
+  ```js
+  import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/vision_bundle.mjs';
+  const fileset = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm');
+  const lm = await FaceLandmarker.createFromOptions(fileset, {
+    baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task', delegate: 'GPU' },
+    runningMode: 'VIDEO', numFaces: 2, outputFaceBlendshapes: true,
+  });
+  // loop ~12 fps: const r = lm.detectForVideo(video, performance.now()); r.faceLandmarks = [[{x,y,z}...478], ...]
+  ```
+  - If GPU fails, retry with `delegate: 'CPU'`. If that fails too → `vision: 'unavailable'` and continue with tab/blur only.
+  - Draw a box around face 0 on the overlay canvas (mirror it to match the mirrored video).
+  - `FACE_MISSING`: no face for ≥ 1 s. `MULTIPLE_FACES`: 2+ faces for ≥ 1 s, with `detail.count`.
+- [ ] **1:30:** Checkpoint 1.
+- [ ] **1:30–3:00:** look-away with **fixed thresholds** (put them in a `CONFIG` object so you can tune them in the demo room):
+  - yaw ≈ `asin(clamp((nose.x - midCheekX) / (cheekWidth/2), -1, 1))` in degrees, using landmarks nose 1, cheeks 234 / 454;
+  - pitch works the same way with forehead 10 / chin 152;
+  - away if |yaw| > 25° or |pitch| > 20°, for ≥ 1.5 s → `LOOK_AWAY` with `detail:{yaw, pitch}`;
+  - call `onChange(hud)` whenever a state changes.
+- [ ] **1:30–3:00:** `renderIntegrity(el, integrity, turns)`:
+  - risk pill (low / medium / high) + score;
+  - disclaimer: "Attention signals are context, not proof, and are not part of the hire score";
+  - tiles: on-screen %, look-aways, tab switches, multi-face;
+  - event table: time, type, duration, severity, and "during Qn" (the latest AI turn whose `t` is before the event's `at`);
+  - if `!integrity.visionAvailable`, say "Camera not available: only tab/window events were monitored". Escape all text.
+- [ ] **3:00:** Checkpoint 2.
+- [ ] **3:00–4:15: QA runs** (write down what broke and tell the owner):
+  1. The full happy path by voice.
+  2. Camera denied.
+  3. Mic denied (typed only).
+  4. Turn your head for 3 s, bring a second person into frame, switch tabs for 5 s. Check: HUD → report table → risk goes up, **hire score unchanged**.
+  5. Bad Groq key (the offline fallback still gives a report).
+- [ ] **3:00–4:15:** `README.md`: what it is, free keys, `npm test`, `npm start`, the demo script below.
+- [ ] **Stretch:** 2 s calibration (average yaw/pitch at start = the "straight ahead" baseline); eye-gaze from blendshapes `eyeLookOut*/eyeLookIn*/eyeLookDown*` > 0.6; a gaze line on the overlay; timeline lanes in the report.
+
+### Definition of done (MVP)
+Every one of the 5 event types appears in the room HUD and in the report table from a real test. The no-camera path works.
+
+### If stuck
+- MediaPipe won't load → ship tab/blur + "Vision unavailable". That still covers the pillar.
+- Pose math is noisy → raise the thresholds (35° / 30°) and the minimum duration (2 s). Fewer false alarms beat more alarms.
+
+---
+
+## H4:15–5:00: Demo script (everyone)
+1. **Setup (30 s):** "Load sample" → role "Backend Engineer" → Start. Point out that the questions reference the resume.
+2. **Adaptive (90 s):** give one vague answer ("I worked on some APIs") → Ava **probes**. Give one strong STAR answer with a number → difficulty goes up.
+3. **Integrity (30 s):** look at your phone for 3 s, switch tabs once → the HUD reacts live.
+4. **Report (60 s):** score + recommendation, evidence quotes, STAR table, integrity section showing the events *and* the disclaimer that they don't affect the hire score.
+5. **Backup:** if Wi-Fi or Groq fails live, the offline fallback still runs. Also keep one good saved session in `data/sessions/` to open in the report.
+
+Run it **twice** before judging: once as a strong candidate, once as a "distracted" candidate.
