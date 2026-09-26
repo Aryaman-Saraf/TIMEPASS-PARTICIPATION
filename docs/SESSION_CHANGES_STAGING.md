@@ -128,6 +128,15 @@
   - Bound profile state to `localStorage` (`candor_current_candidate`) for seamless navigation to Screen 2 (`candidate-dashboard.html`).
   - Added modern dark-theme tokens, glassmorphism card layouts, and CSS micro-animations.
 
+### 19. Screen 2 (Candidate Dashboard & Resume Intake) Frontend Implementation
+- **Target Files**: `frontend/candidate-dashboard.html`, `frontend/candidate-dashboard.js`
+- **Details**:
+  - Implemented Screen 2 candidate home base in `frontend/` by `frontend-agent`.
+  - Created candidate profile card dynamically populating avatar, name, and email from `localStorage` state.
+  - Implemented locked position card showing target role, job description, queue position badge (`Position #1`), and format specs (4 Questions, Adaptive STAR, ~12 min, Ava Voice AI).
+  - Built Resume Intake module supporting drag-and-drop file upload (`FileReader` API), text area editing, Privacy Shield banner (PII redaction notification), and local/API state persistence.
+  - Added primary CTA (`Start Interview Pre-Check ↗`) navigating to Screen 3 (`preflight.html`).
+
 
 
 ---
