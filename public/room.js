@@ -698,9 +698,7 @@ restartMicBtn.addEventListener('click', () => {
 });
 
 endInterviewBtn.addEventListener('click', () => {
-  if (confirm('Are you sure you want to end this interview and generate your Evidence Dossier?')) {
-    handleEndInterview();
-  }
+  handleEndInterview();
 });
 
 // Initialize on DOM ready

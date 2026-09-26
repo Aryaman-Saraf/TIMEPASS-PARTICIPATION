@@ -1,5 +1,17 @@
 [
   {
+    "id": "cand-c25eb65e",
+    "name": "Marcus Vance",
+    "email": "marcus@example.com",
+    "role": "Cloud Reliability Engineer",
+    "department": "Infrastructure",
+    "status": "ready",
+    "questionCount": 4,
+    "jobDescription": "",
+    "resumeText": "",
+    "createdAt": "2026-09-26T09:29:29.226+00:00"
+  },
+  {
     "id": "cand-001",
     "name": "Sarah Jenkins",
     "email": "sarah.jenkins@example.com",
@@ -17,7 +29,7 @@
     "email": "alex.chen@example.com",
     "role": "Senior Backend Engineer",
     "department": "Infrastructure & Distributed Systems",
-    "status": "ready",
+    "status": "completed",
     "questionCount": 4,
     "jobDescription": "Distributed systems engineer experienced in high-throughput Node.js microservices, Postgres sharding, Redis caching, and incident RCA.",
     "resumeText": "Alex Chen (alex.chen@cloud.com, +1 555-019-2834, https://github.com/alex) built high-throughput microservices using Node.js and Redis.",

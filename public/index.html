@@ -539,9 +539,12 @@
         <div class="field-group" style="margin-bottom: 1.5rem;">
           <div class="flex-between">
             <label class="field-label">Parsed Resume on File in Database:</label>
-            <span id="resume-word-count-badge" style="font-size: 0.75rem; color: var(--text-muted);">0 words</span>
+            <div class="flex gap-2">
+              <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;" onclick="fillSampleResume()">⚡ Fill Sample Resume</button>
+              <span id="resume-word-count-badge" style="font-size: 0.75rem; color: var(--text-muted);">0 words</span>
+            </div>
           </div>
-          <textarea id="parsed-resume-textarea" class="field-textarea" rows="6" placeholder="Parsed resume text from PDF will appear here. You can also paste text directly…"></textarea>
+          <textarea id="parsed-resume-textarea" class="field-textarea" rows="6" oninput="handleResumeInput(event)" placeholder="Parsed resume text from PDF will appear here. You can also paste text directly…"></textarea>
         </div>
 
         <div class="flex-between" style="border-top: 1px solid var(--border-dark); padding-top: 1.25rem;">
@@ -1221,6 +1224,30 @@
       });
       document.getElementById('apply-proceed-preflight-btn').disabled = false;
     });
+
+    function handleResumeInput(e) {
+      const val = e.target.value.trim();
+      if (!activeCandidate) return;
+      activeCandidate.resumeText = val;
+      const words = val ? val.split(/\s+/).filter(Boolean).length : 0;
+      document.getElementById('resume-word-count-badge').textContent = `${words} words on file`;
+      document.getElementById('apply-proceed-preflight-btn').disabled = (words === 0);
+    }
+
+    async function fillSampleResume() {
+      if (!activeCandidate) return;
+      const sample = `${activeCandidate.name} - Experienced ${activeCandidate.role}. 5+ years building distributed applications, high-performance APIs, database schema design, and microservices architectures. Led multi-datacenter migrations with zero downtime.`;
+      activeCandidate.resumeText = sample;
+      document.getElementById('parsed-resume-textarea').value = sample;
+      const words = sample.split(/\s+/).filter(Boolean).length;
+      document.getElementById('resume-word-count-badge').textContent = `${words} words on file`;
+      document.getElementById('apply-proceed-preflight-btn').disabled = false;
+      await fetch('/api/candidate/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidateId: activeCandidate.id, resumeText: sample })
+      });
+    }
 
     function proceedToPreflight() {
       if (!activeCandidate.resumeText || !activeCandidate.resumeText.trim()) {
