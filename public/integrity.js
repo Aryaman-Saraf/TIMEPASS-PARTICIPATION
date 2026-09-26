@@ -12,17 +12,20 @@
  */
 
 export const CONFIG = {
-  YAW_THRESHOLD_DEG: 25,
-  PITCH_THRESHOLD_DEG: 20,
-  LOOK_AWAY_MIN_MS: 1500,     // Ignore brief natural glances < 1.5s
-  FACE_MISSING_MIN_MS: 1000,  // Require 1s absence before logging
-  MULTI_FACE_MIN_MS: 1000,    // Require 1s second person before logging
-  TAB_HIDDEN_MIN_MS: 300,     // Ignore micro OS glitches
-  WINDOW_BLUR_MIN_MS: 500,    // Ignore momentary window focus changes
-  CALIBRATION_SAMPLES: 25,    // ~1.5s baseline resting pose calibration
-  FPS_INTERVAL_MS: 66,        // Target ~15 FPS to keep client CPU/GPU usage minimal
-  EYE_LOOK_SIDE_THRESHOLD: 0.52, // Blendshape threshold for reading off secondary screens
-  EYE_LOOK_DOWN_THRESHOLD: 0.58, // Blendshape threshold for looking down at desk/phone
+  YAW_THRESHOLD_DEG: 16,        // Calibrated head yaw threshold for secondary monitor / looking away
+  PITCH_THRESHOLD_DEG: 12,      // Calibrated head pitch threshold for looking down at desk/phone
+  LOOK_AWAY_MIN_MS: 1000,       // 1.0s minimum continuous look-away before registering
+  LOOK_AWAY_RECOVERY_MS: 350,   // Require 350ms centered before concluding look-away episode
+  FACE_MISSING_MIN_MS: 1000,    // 1.0s absence before registering
+  FACE_MISSING_RECOVERY_MS: 350,// 350ms face present before concluding absence
+  MULTI_FACE_MIN_MS: 1000,      // 1.0s second person before registering
+  MULTI_FACE_RECOVERY_MS: 350,  // 350ms single face before concluding multi-face episode
+  TAB_HIDDEN_MIN_MS: 300,       // 300ms tab switch threshold
+  WINDOW_BLUR_MIN_MS: 500,      // 500ms window blur threshold
+  CALIBRATION_SAMPLES: 25,      // ~1.5s baseline resting pose calibration
+  FPS_INTERVAL_MS: 66,          // Target ~15 FPS to keep client CPU/GPU usage minimal
+  EYE_LOOK_SIDE_THRESHOLD: 0.28, // Blendshape threshold for reading off secondary screens
+  EYE_LOOK_DOWN_THRESHOLD: 0.32, // Blendshape threshold for looking down at desk/phone
   PASTE_CHAR_THRESHOLD: 25,      // Clipboard paste character threshold
 };
 
@@ -76,7 +79,7 @@ export class IntegrityMonitor {
     this.rafId = null;
     this.lastLoopTime = 0;
 
-    // Episode state tracking (only completed episodes >= threshold are emitted)
+    // Episode state tracking
     this.tabHiddenStart = null;
     this.tabHiddenT = 0;
 
@@ -95,6 +98,22 @@ export class IntegrityMonitor {
     this.multiFaceT = 0;
     this.activeMaxFaces = 0;
 
+    // Smoothed pose values (Exponential Moving Average)
+    this.smoothedYaw = null;
+    this.smoothedPitch = null;
+
+    // Active in-progress event references for immediate real-time counting
+    this.activeLookAwayEvent = null;
+    this.activeFaceMissingEvent = null;
+    this.activeMultiFaceEvent = null;
+    this.activeTabHiddenEvent = null;
+    this.activeBlurEvent = null;
+
+    // Debounce recovery timers
+    this.lookAwayRecoveryStart = null;
+    this.faceMissingRecoveryStart = null;
+    this.multiFaceRecoveryStart = null;
+
     // Adaptive calibration baseline (calibrates user's resting monitor position)
     this.calibrating = true;
     this.calibrationSamples = [];
@@ -107,6 +126,9 @@ export class IntegrityMonitor {
     this.staticFrameStart = null;
     this.screenStream = null;
     this.screenShareActive = false;
+    this.screenRecorder = null;
+    this.recordedScreenChunks = [];
+    this.onViolationTermination = null;
 
     // Event listener references for clean removal
     this._handleVisibility = this._onVisibilityChange.bind(this);
@@ -153,6 +175,7 @@ export class IntegrityMonitor {
         focus: 'ok',
         faces: 0,
         tab: 'visible',
+        screen: this.screenStream ? 'active' : 'off',
         lastEvent: 'Initializing vision model…',
         stats: this._getLiveStats(),
       });
@@ -207,49 +230,97 @@ export class IntegrityMonitor {
   }
 
   /**
+   * Attaches an existing desktop screen stream and wires up anti-tamper monitoring.
+   * @param {MediaStream} stream
+   * @returns {boolean}
+   */
+  attachScreenStream(stream) {
+    if (!stream) return false;
+    this.screenStream = stream;
+    const track = this.screenStream.getVideoTracks ? this.screenStream.getVideoTracks()[0] : null;
+    if (track) {
+      this.screenShareActive = true;
+      const settings = track.getSettings ? track.getSettings() : {};
+      const surface = settings.displaySurface || 'monitor';
+
+      // Start actual screen recording with MediaRecorder if available
+      try {
+        if (typeof MediaRecorder !== 'undefined') {
+          const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+            ? 'video/webm;codecs=vp9'
+            : MediaRecorder.isTypeSupported('video/webm')
+            ? 'video/webm'
+            : '';
+          this.recordedScreenChunks = [];
+          this.screenRecorder = mimeType
+            ? new MediaRecorder(this.screenStream, { mimeType })
+            : new MediaRecorder(this.screenStream);
+          this.screenRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              this.recordedScreenChunks.push(e.data);
+            }
+          };
+          this.screenRecorder.start(1000);
+        }
+      } catch (recErr) {
+        console.warn('[Candor Screen] MediaRecorder initialization notice:', recErr);
+      }
+
+      // Anomaly: Candidate clicked "Stop sharing" on the floating Chrome bar
+      track.onended = () => {
+        if (this.running) {
+          const now = Date.now();
+          this._pushEvent('TAB_HIDDEN', now - this.startTime, now - 3000, 3000, {
+            reason: 'Desktop screen share terminated by candidate',
+          });
+          this.screenStream = null;
+          this.screenShareActive = false;
+          this._emitHud('Screen sharing stopped!');
+          if (typeof this.onViolationTermination === 'function') {
+            this.onViolationTermination('Desktop screen recording was terminated by candidate');
+          }
+        }
+      };
+
+      this._emitHud(`Screen recording active (${surface})`);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Prompts candidate for desktop screen sharing and monitors anti-tampering.
    * @returns {Promise<boolean>}
    */
   async startScreenShare() {
+    if (this.screenStream) {
+      return true;
+    }
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getDisplayMedia) {
       return false;
     }
     try {
-      this.screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: { displaySurface: 'monitor' },
-        audio: false,
-      });
-
-      const track = this.screenStream.getVideoTracks()[0];
-      if (track) {
-        this.screenShareActive = true;
-        const settings = track.getSettings ? track.getSettings() : {};
-        const surface = settings.displaySurface || 'monitor';
-
-        // Anomaly: Candidate clicked "Stop sharing" on the floating Chrome bar
-        track.onended = () => {
-          if (this.running) {
-            const now = Date.now();
-            this._pushEvent('TAB_HIDDEN', now - this.startTime, now - 3000, 3000, {
-              reason: 'Desktop screen share terminated by candidate',
-            });
-            this.screenStream = null;
-            this._emitHud('Screen sharing stopped!');
-          }
-        };
-
-        this._emitHud(`Screen sharing active (${surface})`);
-        return true;
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { displaySurface: 'monitor' },
+          audio: false,
+        });
+      } catch (e) {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        });
       }
+      return this.attachScreenStream(stream);
     } catch (err) {
       console.warn('[Candor Screen] Screen share declined or failed', err);
       const now = Date.now();
-      this._pushEvent('WINDOW_BLUR', now - this.startTime, now - 1000, 1000, {
+      this._pushEvent('WINDOW_BLUR', now - (this.startTime || now), now - 1000, 1000, {
         reason: 'Desktop screen sharing declined by candidate',
       });
       return false;
     }
-    return false;
   }
 
   _onFullscreenChange() {
@@ -277,6 +348,19 @@ export class IntegrityMonitor {
       this.rafId = null;
     }
 
+    // Stop screen recording if active
+    if (this.screenRecorder && this.screenRecorder.state !== 'inactive') {
+      try {
+        this.screenRecorder.stop();
+      } catch (e) {}
+    }
+
+    if (this.recordedScreenChunks && this.recordedScreenChunks.length > 0) {
+      try {
+        this.recordedScreenBlob = new Blob(this.recordedScreenChunks, { type: 'video/webm' });
+      } catch (e) {}
+    }
+
     // Stop active screen share tracks
     if (this.screenStream) {
       try {
@@ -300,7 +384,12 @@ export class IntegrityMonitor {
 
     // Flush any pending active episodes upon session stop
     const now = Date.now();
-    if (this.tabHiddenStart) {
+
+    if (this.activeTabHiddenEvent) {
+      this.activeTabHiddenEvent.durationMs = Math.max(1, Math.round(now - this.tabHiddenStart));
+      this.activeTabHiddenEvent = null;
+      this.tabHiddenStart = null;
+    } else if (this.tabHiddenStart) {
       const dur = now - this.tabHiddenStart;
       if (dur >= CONFIG.TAB_HIDDEN_MIN_MS) {
         this._pushEvent('TAB_HIDDEN', this.tabHiddenT, this.tabHiddenStart, dur, { reason: 'tab switched' });
@@ -308,7 +397,11 @@ export class IntegrityMonitor {
       this.tabHiddenStart = null;
     }
 
-    if (this.blurStart) {
+    if (this.activeBlurEvent) {
+      this.activeBlurEvent.durationMs = Math.max(1, Math.round(now - this.blurStart));
+      this.activeBlurEvent = null;
+      this.blurStart = null;
+    } else if (this.blurStart) {
       const dur = now - this.blurStart;
       if (dur >= CONFIG.WINDOW_BLUR_MIN_MS) {
         this._pushEvent('WINDOW_BLUR', this.blurT, this.blurStart, dur, {});
@@ -316,7 +409,11 @@ export class IntegrityMonitor {
       this.blurStart = null;
     }
 
-    if (this.lookAwayStart) {
+    if (this.activeLookAwayEvent) {
+      this.activeLookAwayEvent.durationMs = Math.max(1, Math.round(now - this.lookAwayStart));
+      this.activeLookAwayEvent = null;
+      this.lookAwayStart = null;
+    } else if (this.lookAwayStart) {
       const dur = now - this.lookAwayStart;
       if (dur >= CONFIG.LOOK_AWAY_MIN_MS) {
         this._pushEvent('LOOK_AWAY', this.lookAwayT, this.lookAwayStart, dur, {
@@ -327,7 +424,11 @@ export class IntegrityMonitor {
       this.lookAwayStart = null;
     }
 
-    if (this.faceMissingStart) {
+    if (this.activeFaceMissingEvent) {
+      this.activeFaceMissingEvent.durationMs = Math.max(1, Math.round(now - this.faceMissingStart));
+      this.activeFaceMissingEvent = null;
+      this.faceMissingStart = null;
+    } else if (this.faceMissingStart) {
       const dur = now - this.faceMissingStart;
       if (dur >= CONFIG.FACE_MISSING_MIN_MS) {
         this._pushEvent('FACE_MISSING', this.faceMissingT, this.faceMissingStart, dur, { reason: 'no face in frame' });
@@ -335,7 +436,11 @@ export class IntegrityMonitor {
       this.faceMissingStart = null;
     }
 
-    if (this.multiFaceStart) {
+    if (this.activeMultiFaceEvent) {
+      this.activeMultiFaceEvent.durationMs = Math.max(1, Math.round(now - this.multiFaceStart));
+      this.activeMultiFaceEvent = null;
+      this.multiFaceStart = null;
+    } else if (this.multiFaceStart) {
       const dur = now - this.multiFaceStart;
       if (dur >= CONFIG.MULTI_FACE_MIN_MS) {
         this._pushEvent('MULTIPLE_FACES', this.multiFaceT, this.multiFaceStart, dur, { count: this.activeMaxFaces || 2 });
@@ -353,6 +458,7 @@ export class IntegrityMonitor {
       totalMs,
       visionAvailable: this.visionAvailable,
       screenShareActive: this.screenShareActive,
+      recordedScreenBlob: this.recordedScreenBlob,
       events: [...this.events],
     };
   }
@@ -390,10 +496,26 @@ export class IntegrityMonitor {
         this.tabHiddenT = now - this.startTime;
         this._emitHud('Switched tab');
       }
+      if (!this.activeTabHiddenEvent) {
+        this.activeTabHiddenEvent = {
+          type: 'TAB_HIDDEN',
+          t: Math.round(this.tabHiddenT),
+          at: new Date(this.tabHiddenStart).toISOString(),
+          durationMs: Math.max(1, Math.round(now - this.tabHiddenStart)),
+          detail: { reason: 'tab switched' },
+        };
+        this.events.push(this.activeTabHiddenEvent);
+      }
+      if (typeof this.onViolationTermination === 'function') {
+        this.onViolationTermination('Candidate opened another browser tab or minimized the interview');
+      }
     } else {
       if (this.tabHiddenStart) {
         const dur = now - this.tabHiddenStart;
-        if (dur >= CONFIG.TAB_HIDDEN_MIN_MS) {
+        if (this.activeTabHiddenEvent) {
+          this.activeTabHiddenEvent.durationMs = Math.max(1, Math.round(dur));
+          this.activeTabHiddenEvent = null;
+        } else if (dur >= CONFIG.TAB_HIDDEN_MIN_MS) {
           this._pushEvent('TAB_HIDDEN', this.tabHiddenT, this.tabHiddenStart, dur, { reason: 'tab switched' });
         }
         this.tabHiddenStart = null;
@@ -410,6 +532,9 @@ export class IntegrityMonitor {
       const now = Date.now();
       this.blurStart = now;
       this.blurT = now - this.startTime;
+    }
+    if (typeof this.onViolationTermination === 'function') {
+      this.onViolationTermination('Candidate opened another application or switched to another Chrome window');
     }
   }
 
@@ -495,6 +620,7 @@ export class IntegrityMonitor {
 
     // 1. Multiple faces check
     if (faceCount >= 2) {
+      this.multiFaceRecoveryStart = null;
       if (!this.multiFaceStart) {
         this.multiFaceStart = now;
         this.multiFaceT = now - this.startTime;
@@ -502,41 +628,85 @@ export class IntegrityMonitor {
       } else {
         this.activeMaxFaces = Math.max(this.activeMaxFaces, faceCount);
       }
-    } else if (this.multiFaceStart) {
       const dur = now - this.multiFaceStart;
       if (dur >= CONFIG.MULTI_FACE_MIN_MS) {
-        this._pushEvent('MULTIPLE_FACES', this.multiFaceT, this.multiFaceStart, dur, { count: this.activeMaxFaces });
+        if (!this.activeMultiFaceEvent) {
+          this.activeMultiFaceEvent = {
+            type: 'MULTIPLE_FACES',
+            t: Math.round(this.multiFaceT),
+            at: new Date(this.multiFaceStart).toISOString(),
+            durationMs: Math.round(dur),
+            detail: { count: this.activeMaxFaces || 2 },
+          };
+          this.events.push(this.activeMultiFaceEvent);
+          this._emitHud(`Multiple faces (${formatDuration(dur)})`);
+        } else {
+          this.activeMultiFaceEvent.durationMs = Math.round(dur);
+          this.activeMultiFaceEvent.detail.count = Math.max(this.activeMultiFaceEvent.detail.count || 2, this.activeMaxFaces);
+        }
       }
-      this.multiFaceStart = null;
-      this.activeMaxFaces = 0;
+    } else {
+      if (this.multiFaceStart) {
+        if (!this.multiFaceRecoveryStart) {
+          this.multiFaceRecoveryStart = now;
+        } else if (now - this.multiFaceRecoveryStart >= CONFIG.MULTI_FACE_RECOVERY_MS) {
+          if (this.activeMultiFaceEvent) {
+            this.activeMultiFaceEvent.durationMs = Math.round(this.multiFaceRecoveryStart - this.multiFaceStart);
+            this.activeMultiFaceEvent = null;
+          }
+          this.multiFaceStart = null;
+          this.activeMaxFaces = 0;
+          this.multiFaceRecoveryStart = null;
+        }
+      }
     }
 
     // 2. Face missing check
     if (faceCount === 0) {
-      // Pause/cancel look-away while face is missing to prevent false double-counting
-      if (this.lookAwayStart) {
-        this.lookAwayStart = null;
-      }
-
+      this.faceMissingRecoveryStart = null;
       if (!this.faceMissingStart) {
         this.faceMissingStart = now;
         this.faceMissingT = now - this.startTime;
       }
-      this._emitHud('No face detected');
-      return;
-    } else if (this.faceMissingStart) {
       const dur = now - this.faceMissingStart;
       if (dur >= CONFIG.FACE_MISSING_MIN_MS) {
-        this._pushEvent('FACE_MISSING', this.faceMissingT, this.faceMissingStart, dur, { reason: 'no face in frame' });
+        if (!this.activeFaceMissingEvent) {
+          this.activeFaceMissingEvent = {
+            type: 'FACE_MISSING',
+            t: Math.round(this.faceMissingT),
+            at: new Date(this.faceMissingStart).toISOString(),
+            durationMs: Math.round(dur),
+            detail: { reason: 'no face in frame' },
+          };
+          this.events.push(this.activeFaceMissingEvent);
+          this._emitHud(`Face missing (${formatDuration(dur)})`);
+        } else {
+          this.activeFaceMissingEvent.durationMs = Math.round(dur);
+        }
+      } else {
+        this._emitHud('No face detected');
       }
-      this.faceMissingStart = null;
+      return;
+    } else {
+      if (this.faceMissingStart) {
+        if (!this.faceMissingRecoveryStart) {
+          this.faceMissingRecoveryStart = now;
+        } else if (now - this.faceMissingRecoveryStart >= CONFIG.FACE_MISSING_RECOVERY_MS) {
+          if (this.activeFaceMissingEvent) {
+            this.activeFaceMissingEvent.durationMs = Math.round(this.faceMissingRecoveryStart - this.faceMissingStart);
+            this.activeFaceMissingEvent = null;
+          }
+          this.faceMissingStart = null;
+          this.faceMissingRecoveryStart = null;
+        }
+      }
     }
 
     // 3. Head pose tracking on primary face (Face 0)
     const landmarks = faces[0];
     const pose = this._calculatePose(landmarks);
 
-    // Initial 2-second calibration baseline
+    // Initial resting pose calibration
     if (this.calibrating) {
       this.calibrationSamples.push(pose);
       if (this.calibrationSamples.length >= CONFIG.CALIBRATION_SAMPLES) {
@@ -548,8 +718,17 @@ export class IntegrityMonitor {
       }
     }
 
-    const yaw = pose.rawYaw - this.baselineYaw;
-    const pitch = pose.rawPitch - this.baselinePitch;
+    // Smooth yaw and pitch with Exponential Moving Average (alpha = 0.35)
+    if (this.smoothedYaw === null) {
+      this.smoothedYaw = pose.rawYaw;
+      this.smoothedPitch = pose.rawPitch;
+    } else {
+      this.smoothedYaw = 0.35 * pose.rawYaw + 0.65 * this.smoothedYaw;
+      this.smoothedPitch = 0.35 * pose.rawPitch + 0.65 * this.smoothedPitch;
+    }
+
+    const yaw = this.smoothedYaw - (this.baselineYaw || 0);
+    const pitch = this.smoothedPitch - (this.baselinePitch || 0);
 
     // 4. Eye-Gaze Deviation Detection (Secondary monitor / off-screen reading)
     let isEyeAway = false;
@@ -590,7 +769,6 @@ export class IntegrityMonitor {
         varX += (pt.x - meanX) ** 2;
         varY += (pt.y - meanY) ** 2;
       }
-      // Real human webcams always have sensor micro-noise (var > 0)
       if (varX + varY === 0) {
         if (!this.staticFrameStart) {
           this.staticFrameStart = now;
@@ -605,7 +783,9 @@ export class IntegrityMonitor {
       }
     }
 
+    // 6. Look-away episode management with immediate real-time counting
     if (isLookingAway) {
+      this.lookAwayRecoveryStart = null;
       if (!this.lookAwayStart) {
         this.lookAwayStart = now;
         this.lookAwayT = now - this.startTime;
@@ -618,21 +798,59 @@ export class IntegrityMonitor {
         if (Math.abs(yaw) > Math.abs(this.activeMaxYaw)) this.activeMaxYaw = yaw;
         if (Math.abs(pitch) > Math.abs(this.activeMaxPitch)) this.activeMaxPitch = pitch;
       }
-      this._emitHud(this.activeGazeReason || 'Looking away');
-    } else if (this.lookAwayStart) {
+
       const dur = now - this.lookAwayStart;
       if (dur >= CONFIG.LOOK_AWAY_MIN_MS) {
-        this._pushEvent('LOOK_AWAY', this.lookAwayT, this.lookAwayStart, dur, {
-          yaw: Math.round(this.activeMaxYaw),
-          pitch: Math.round(this.activeMaxPitch),
-          reason: this.activeGazeReason || undefined,
-        });
+        if (!this.activeLookAwayEvent) {
+          this.activeLookAwayEvent = {
+            type: 'LOOK_AWAY',
+            t: Math.round(this.lookAwayT),
+            at: new Date(this.lookAwayStart).toISOString(),
+            durationMs: Math.round(dur),
+            detail: {
+              yaw: Math.round(this.activeMaxYaw),
+              pitch: Math.round(this.activeMaxPitch),
+              reason: this.activeGazeReason || undefined,
+            },
+          };
+          this.events.push(this.activeLookAwayEvent);
+          this._emitHud(`Looked away (${formatDuration(dur)})`);
+        } else {
+          this.activeLookAwayEvent.durationMs = Math.round(dur);
+          this.activeLookAwayEvent.detail.yaw = Math.round(this.activeMaxYaw);
+          this.activeLookAwayEvent.detail.pitch = Math.round(this.activeMaxPitch);
+          this._emitHud();
+        }
+      } else {
+        this._emitHud(this.activeGazeReason || 'Looking away');
       }
-      this.lookAwayStart = null;
-      this.activeMaxYaw = 0;
-      this.activeMaxPitch = 0;
-      this.activeGazeReason = '';
-      this._emitHud('Focused');
+    } else if (this.lookAwayStart) {
+      if (!this.lookAwayRecoveryStart) {
+        this.lookAwayRecoveryStart = now;
+        this._emitHud();
+      } else if (now - this.lookAwayRecoveryStart >= CONFIG.LOOK_AWAY_RECOVERY_MS) {
+        if (this.activeLookAwayEvent) {
+          this.activeLookAwayEvent.durationMs = Math.round(this.lookAwayRecoveryStart - this.lookAwayStart);
+          this.activeLookAwayEvent = null;
+        } else {
+          const dur = this.lookAwayRecoveryStart - this.lookAwayStart;
+          if (dur >= CONFIG.LOOK_AWAY_MIN_MS) {
+            this._pushEvent('LOOK_AWAY', this.lookAwayT, this.lookAwayStart, dur, {
+              yaw: Math.round(this.activeMaxYaw),
+              pitch: Math.round(this.activeMaxPitch),
+              reason: this.activeGazeReason || undefined,
+            });
+          }
+        }
+        this.lookAwayStart = null;
+        this.activeMaxYaw = 0;
+        this.activeMaxPitch = 0;
+        this.activeGazeReason = '';
+        this.lookAwayRecoveryStart = null;
+        this._emitHud('Focused');
+      } else {
+        this._emitHud();
+      }
     } else {
       this._emitHud();
     }
@@ -648,12 +866,14 @@ export class IntegrityMonitor {
 
     const midCheekX = (leftCheek.x + rightCheek.x) / 2;
     const cheekWidth = Math.abs(rightCheek.x - leftCheek.x);
-    const yawRatio = cheekWidth > 0 ? (nose.x - midCheekX) / (cheekWidth / 2) : 0;
+    // Projection factor 1.6 maps 2D camera coordinates accurately to real physical angles
+    const yawRatio = cheekWidth > 0 ? ((nose.x - midCheekX) / (cheekWidth / 2)) * 1.6 : 0;
     const rawYaw = Math.asin(clamp(yawRatio, -1, 1)) * (180 / Math.PI);
 
     const midFaceY = (forehead.y + chin.y) / 2;
     const faceHeight = Math.abs(chin.y - forehead.y);
-    const pitchRatio = faceHeight > 0 ? (nose.y - midFaceY) / (faceHeight / 2) : 0;
+    // Projection factor 1.6 maps vertical tilt accurately to real physical angles
+    const pitchRatio = faceHeight > 0 ? ((nose.y - midFaceY) / (faceHeight / 2)) * 1.6 : 0;
     const rawPitch = Math.asin(clamp(pitchRatio, -1, 1)) * (180 / Math.PI);
 
     return { rawYaw, rawPitch, nose };
@@ -731,9 +951,8 @@ export class IntegrityMonitor {
     // Gaze direction vector from nose tip
     const nose = landmarks[1];
     if (nose) {
-      const pose = this._calculatePose(landmarks);
-      const yaw = pose.rawYaw - this.baselineYaw;
-      const pitch = pose.rawPitch - this.baselinePitch;
+      const yaw = this.smoothedYaw !== null ? (this.smoothedYaw - (this.baselineYaw || 0)) : 0;
+      const pitch = this.smoothedPitch !== null ? (this.smoothedPitch - (this.baselinePitch || 0)) : 0;
 
       const noseX = nose.x * w;
       const noseY = nose.y * h;
@@ -767,6 +986,7 @@ export class IntegrityMonitor {
     const tabHiddenEvents = this.events.filter(e => e.type === 'TAB_HIDDEN');
     const multiFaceEvents = this.events.filter(e => e.type === 'MULTIPLE_FACES');
     const faceMissingEvents = this.events.filter(e => e.type === 'FACE_MISSING');
+    const blurEvents = this.events.filter(e => e.type === 'WINDOW_BLUR');
 
     const lookAwayMs = lookAwayEvents.reduce((a, b) => a + b.durationMs, 0);
     const tabHiddenMs = tabHiddenEvents.reduce((a, b) => a + b.durationMs, 0);
@@ -782,21 +1002,29 @@ export class IntegrityMonitor {
       onScreenPct,
       lookAwayCount: lookAwayEvents.length,
       tabHiddenCount: tabHiddenEvents.length,
+      faceMissingCount: faceMissingEvents.length,
       multiFaceCount: multiFaceEvents.length,
+      windowBlurCount: blurEvents.length,
+      totalEvents: this.events.length,
       lookAwayMs,
       tabHiddenMs,
+      faceMissingMs,
       screenShareActive: !!this.screenStream,
     };
   }
 
   _emitHud(lastEvent = null) {
+    const yawVal = this.smoothedYaw !== null ? +(this.smoothedYaw - (this.baselineYaw || 0)).toFixed(1) : null;
+    const pitchVal = this.smoothedPitch !== null ? +(this.smoothedPitch - (this.baselinePitch || 0)).toFixed(1) : null;
+
     const hudState = {
-      vision: this.visionAvailable ? 'on' : 'unavailable',
+      vision: this.visionAvailable ? 'on' : this.running ? 'loading' : 'unavailable',
       focus: this.lookAwayStart ? 'away' : 'ok',
-      faces: this.multiFaceStart ? (this.activeMaxFaces || 2) : this.faceMissingStart ? 0 : 1,
+      faces: this.multiFaceStart ? (this.activeMaxFaces || 2) : this.faceMissingStart ? 0 : (this.visionAvailable ? 1 : 0),
       tab: this.tabHiddenStart ? 'hidden' : 'visible',
       screen: this.screenStream ? 'active' : 'off',
       lastEvent: lastEvent || (this.lookAwayStart ? 'Looking away' : this.tabHiddenStart ? 'Tab hidden' : 'All clear'),
+      angles: { yaw: yawVal, pitch: pitchVal },
       stats: this._getLiveStats(),
     };
 
