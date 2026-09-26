@@ -20,7 +20,8 @@ const cacheSessions = new Map();
 // Helper for Supabase REST API requests
 async function sbFetch(endpoint, options = {}) {
   if (!IS_SUPABASE) return null;
-  const url = `${SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/${endpoint}`;
+  const baseUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
+  const url = `${baseUrl}/rest/v1/${endpoint}`;
   const headers = {
     'apikey': SUPABASE_KEY,
     'Authorization': `Bearer ${SUPABASE_KEY}`,

@@ -7,9 +7,9 @@
     "department": "Platform Engineering",
     "status": "ready",
     "questionCount": 4,
-    "jobDescription": "Senior Frontend Engineer specializing in React 18/19, TypeScript, Core Web Vitals optimization, and real-time state management. Experience with high-traffic enterprise design systems and WebSockets required.",
-    "resumeText": "Sarah Jenkins: Experienced Senior Frontend Engineer with Next.js 14 and React 19.",
-    "createdAt": "2026-09-26T08:00:00.000Z"
+    "jobDescription": "Senior Frontend Engineer specializing in React 18/19, TypeScript, Core Web Vitals optimization, and real-time state management.",
+    "resumeText": "Sarah Jenkins - 6 years frontend engineering at FinTech Co. Led migration to Next.js 14, reduced LCP from 3.8s to 1.4s via lazy-loading and code splitting.",
+    "createdAt": "2026-09-26T09:04:24.185218+00:00"
   },
   {
     "id": "cand-002",
@@ -19,9 +19,9 @@
     "department": "Infrastructure & Distributed Systems",
     "status": "ready",
     "questionCount": 4,
-    "jobDescription": "Distributed systems engineer experienced in high-throughput Node.js microservices, Postgres sharding, Redis caching, and incident RCA. Must demonstrate strong concurrency control and API design.",
+    "jobDescription": "Distributed systems engineer experienced in high-throughput Node.js microservices, Postgres sharding, Redis caching, and incident RCA.",
     "resumeText": "Alex Chen (alex.chen@cloud.com, +1 555-019-2834, https://github.com/alex) built high-throughput microservices using Node.js and Redis.",
-    "createdAt": "2026-09-26T08:15:00.000Z"
+    "createdAt": "2026-09-26T09:04:24.185218+00:00"
   },
   {
     "id": "cand-003",
@@ -31,8 +31,8 @@
     "department": "Conversational Applications",
     "status": "ready",
     "questionCount": 4,
-    "jobDescription": "Full Stack Engineer to build AI-powered conversational tools. Deep proficiency in modern JavaScript, REST/WebSocket APIs, responsive UI design, and cloud deployments.",
-    "resumeText": "Jordan Lee - 4 years full stack experience at HealthAI. Built real-time clinician dashboard using WebRTC and Node.js. Optimized database query performance and implemented OAuth2 authentication.",
-    "createdAt": "2026-09-26T08:30:00.000Z"
+    "jobDescription": "Full Stack Engineer to build AI-powered conversational tools. Deep proficiency in modern JavaScript, REST/WebSocket APIs, responsive UI design.",
+    "resumeText": "Jordan Lee - 4 years full stack experience at HealthAI. Built real-time clinician dashboard using WebRTC and Node.js. Optimized database query performance.",
+    "createdAt": "2026-09-26T09:04:24.185218+00:00"
   }
 ]
