@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Candor · Recruiter Report</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Report-only styles. Tokens come from T1's styles.css; the fallbacks keep this page readable before that merges. */
+  body { background: var(--bg, #0b1020); color: var(--text, #e6e9f2); font: 15px/1.5 system-ui, sans-serif; margin: 0; }
+  a { color: var(--accent, #6c8cff); }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  .card { background: var(--card, #141a2e); border: 1px solid var(--border, #263049); border-radius: 12px; padding: 16px; margin: 16px 0; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .muted { color: var(--muted, #8b93a7); }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 600; background: var(--border, #263049); }
+  .pill.good { background: #1f6f43; } .pill.ok { background: #6b5b12; } .pill.bad { background: #7a2331; }
+  .ring { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font: 700 26px system-ui; flex: none;
+          background: radial-gradient(var(--card, #141a2e) 60%, transparent 61%), conic-gradient(var(--accent, #6c8cff) calc(var(--v) * 1%), var(--border, #263049) 0); }
+  .tile b { display: block; font-size: 30px; }
+  .bar { height: 8px; background: var(--border, #263049); border-radius: 4px; } .bar > i { display: block; height: 100%; border-radius: 4px; background: var(--accent, #6c8cff); }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border, #263049); vertical-align: top; }
+  blockquote { margin: 4px 0; padding-left: 10px; border-left: 3px solid var(--accent, #6c8cff); color: var(--muted, #8b93a7); }
+  button { font: inherit; padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: opacity 0.15s ease, transform 0.1s ease; }
+  button:hover { opacity: 0.9; }
+  button:active { transform: scale(0.98); }
+  details > summary { user-select: none; }
+  @media print {
+    body { background: #fff !important; color: #111 !important; font-size: 12pt; }
+    .card { background: #fff !important; color: #111 !important; border: 1px solid #ddd !important; box-shadow: none !important; break-inside: avoid; }
+    button, a[href="report.html"], a[href="/"] { display: none !important; }
+    .muted { color: #555 !important; }
+    .ring { background: #eee !important; color: #000 !important; border: 2px solid #333 !important; }
+    a { color: #000 !important; text-decoration: underline !important; }
+  }
+</style>
+</head>
+<body>
+<main id="app"><p class="muted">Loading…</p></main>
+<script type="module" src="report.js"></script>
+</body>
+</html>

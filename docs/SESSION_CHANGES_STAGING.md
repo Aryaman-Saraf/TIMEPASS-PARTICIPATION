@@ -182,7 +182,113 @@
   - Full test suite verified: 21/21 tests pass (`npm test`).
 
 ---
+### 16. Archiving Initial Frontend Assets
+- **Target Directories**: `public/` ➔ `archive/public-old/`
+- **Details**:
+  - Relocated original frontend codebase from `public/` to `archive/public-old/` per user request to start fresh on frontend development.
+  - Preserved all initial code (`index.html`, `room.html`, `room.js`, `report.html`, `report.js`, `integrity.js`, `styles.css`) for seamless dependency re-wiring.
 
-## Pending Staged Actions (Awaiting User Execution / End-of-Session)
+### 17. Frontend Subagent Definition & Scope Boundaries
+- **Target Files**: `.agents/frontend-agent.md`
+- **Details**:
+  - Created `.agents/frontend-agent.md` defining the Frontend Lead subagent (`frontend-agent`).
+  - Set mandatory reading order: `docs/TANAY_FRONTEND_MASTER_GUIDE.md` and `IMPLEMENTATION_PLAN.md`.
+  - Configured strict write boundaries limited exclusively to `frontend/` directory with workspace-wide read access.
+  - Registered subagent dynamically in system via `define_subagent`.
+
+### 18. Screen 1 (Authentication / Entry Gateway) Frontend Implementation
+- **Target Files**: `frontend/index.html`, `frontend/auth.html`, `frontend/auth.js`, `frontend/styles.css`
+- **Details**:
+  - Implemented Screen 1 entry gateway in `frontend/` by `frontend-agent`.
+  - Created branding hero header with live `/api/health` status check chip.
+  - Implemented Dual Portal selection cards: Candidate / Interviewee (preset demo profiles: Sarah Jenkins, Alex Chen, Jordan Lee, and custom candidate inputs) and Recruiter / Hiring Manager portal entry.
+  - Bound profile state to `localStorage` (`candor_current_candidate`) for seamless navigation to Screen 2 (`candidate-dashboard.html`).
+  - Added modern dark-theme tokens, glassmorphism card layouts, and CSS micro-animations.
+
+### 19. Screen 2 (Candidate Dashboard & Resume Intake) Frontend Implementation
+- **Target Files**: `frontend/candidate-dashboard.html`, `frontend/candidate-dashboard.js`
+- **Details**:
+  - Implemented Screen 2 candidate home base in `frontend/` by `frontend-agent`.
+  - Created candidate profile card dynamically populating avatar, name, and email from `localStorage` state.
+  - Implemented locked position card showing target role, job description, queue position badge (`Position #1`), and format specs (4 Questions, Adaptive STAR, ~12 min, Ava Voice AI).
+  - Built Resume Intake module supporting drag-and-drop file upload (`FileReader` API), text area editing, Privacy Shield banner (PII redaction notification), and local/API state persistence.
+  - Added primary CTA (`Start Interview Pre-Check ↗`) navigating to Screen 3 (`preflight.html`).
+
+### 20. Screen 3 (Pre-Device Hardware Calibration) Frontend Implementation
+- **Target Files**: `frontend/preflight.html`, `frontend/preflight.js`
+- **Details**:
+  - Implemented Screen 3 hardware calibration check in `frontend/` by `frontend-agent`.
+  - Built mirrored webcam video preview box (`<video id="preview-video">`) with offline fallback indicators.
+  - Implemented device selection dropdowns for camera, microphone, and audio output (`navigator.mediaDevices.enumerateDevices()`).
+  - Integrated real-time Web Audio API (`AudioContext`, `AnalyserNode`) RMS volume activity bar.
+  - Integrated browser speech recognition feature detection and speaker test chime/speech utterance synthesizer.
+  - Wired primary action CTA (`Enter Live Interview Room ↗`) to dispatch `POST /api/start-interview` and navigate to Screen 4 (`room.html?id=<sessionId>`).
+
+
+### 21. Screen 4 (Live Spoken Interview Room & Attention HUD) Implementation
+- **Target Files**: `frontend/room.html`, `frontend/room.js`, `frontend/integrity.js`
+- **Details**:
+  - Implemented Screen 4 live interview room split viewport in `frontend/` by `frontend-agent`.
+  - Built left viewport: Candidate live video stream, MediaPipe canvas overlay, and real-time Attention HUD chips (Vision, Focus, Face Verification, On-Screen %).
+  - Built right viewport: 3D glowing AI Voice Orb stage with speaking/listening/thinking pulse animations, Web Audio API waveform canvas, dynamic AI reasoning card with BARS 1–5 difficulty indicator, live scrolling transcript, and backup manual text input.
+  - Wired Web Speech API (STT + TTS with acoustic feedback pause protection), turn-taking endpointing, and evaluation completion dispatch (`POST /api/evaluate`).
+
+### 22. Screen 5 (Post-Interview Completion Screen) Implementation
+- **Target Files**: `frontend/completion.html`, `frontend/completion.js`
+- **Details**:
+  - Implemented Screen 5 completion confirmation page in `frontend/` by `frontend-agent`.
+  - Displays animated submission badge, candidate metadata confirmation, and confidentiality notice regarding internal BARS scorecards.
+  - Provides return to portal and recruiter dashboard navigation.
+
+### 23. Screen 6 (Recruiter Pipeline & Evidence Dossier Portal) Implementation
+- **Target Files**: `frontend/recruiter-portal.html`, `frontend/recruiter-portal.js`, `frontend/report.html`, `frontend/recruiter.html`
+- **Details**:
+  - Implemented Screen 6 Recruiter Portal supporting dual view modes:
+    1. Pipeline Roster Table View: Candidate list, status pills, overall score, recommendation badges, integrity risk, and "+ Add Candidate" modal.
+    2. Candidate Evidence Dossier Detail View: 3 quantitative indices (Technical Relevancy, Articulation & Delivery, Integrity Confidence), score ring, advisory recommendation pill, BARS competency breakdown, and timestamped attention anomaly audit log.
+### 24. Frontend-Backend Live Connection & Test Verification
+- **Target Files**: `public/`, `frontend/report.js`, `public/report.js`
+- **Details**:
+  - Synced all newly built frontend screens into `public/` so `server.js` serves the fresh UI on `http://localhost:3000/`.
+  - Added `report.js` backwards-compatible alias exporting `recruiter-portal.js`.
+  - Verified 100% API contract wire-up (`/api/health`, `/api/start-interview`, `/api/chat-turn`, `/api/evaluate`, `/api/sessions`).
+  - Ran automated test suite via `npm test`: all 17/17 backend contract and static serving tests pass cleanly.
+### 25. Stitch MCP Integration & Gateway Screen Ingestion
+- **Target Files**: `~/.gemini/config/mcp_config.json`, `.agents/plugins/stitch/`, `scratch/stitch-client.js`, `docs/SESSION_CHANGES_STAGING.md`
+- **Details**:
+  - Saved Stitch MCP server configuration with `STITCH_API_KEY` to `~/.gemini/config/mcp_config.json` and `.agents/plugins/stitch/mcp_config.json`.
+  - Built `scratch/stitch-client.js` for executing Stitch MCP tools (`list_projects`, `get_screen`, `generate_screen_from_text`, etc.).
+  - Successfully connected to `https://stitch.googleapis.com/mcp` and discovered project `projects/3592487876692784796` ("Candor AI Authentication Gateway").
+  - Retrieved and downloaded the screen designed by the user (`3a1ce33e0e5640a4b00da477e71886d3` and variants) with its full HTML/Tailwind implementation.
+
+### 26. Application Execution & Stitch Gateway Serving
+- **Target Files**: `public/stitch-gateway.html`, `frontend/stitch-gateway.html`, `docs/SESSION_CHANGES_STAGING.md`
+- **Details**:
+  - Mirrored Stitch Gateway Screen into `frontend/` and `public/stitch-gateway.html`.
+  - Started backend server on `http://localhost:3000` via background daemon.
+  - Verified `/api/health` reports operational LLM chain (`groq → gemini`).
+  - Verified static HTTP serving: `index.html` (200 OK) and `stitch-gateway.html` (200 OK).
+
+### 27. Stitch Gateway Screen Activation as Primary Frontend
+- **Target Files**: `frontend/index.html`, `frontend/auth.html`, `public/index.html`, `public/auth.html`, `archive/frontend-pre-stitch/`
+- **Details**:
+  - Safely archived pre-Stitch gateway files to `archive/frontend-pre-stitch/` per Rule 2 zero-deletion policy.
+  - Activated the Stitch-designed "Candor AI — Enterprise Interview Gateway" as the primary application frontend at `http://localhost:3000/`.
+  - Wired live candidate selection (Sarah Jenkins, Alex Chen, Jordan Lee, and custom profiles) directly to `candor_current_candidate` state and navigation to `candidate-dashboard.html`.
+  - Wired live Recruiter console sign-in and enterprise SSO buttons to `recruiter-portal.html`.
+  - Wired top telemetry status pill to poll `/api/health` for live LLM chain status (`groq → gemini`).
+  - Verified 17/17 automated tests pass.
+
+### 28. Branch Publication (`frontendT`)
+- **Target Branch**: `frontendT` -> `origin/frontendT`
+- **Details**:
+  - Verified 17/17 automated tests passing with zero regressions.
+  - Published isolated feature branch `frontendT` to remote GitHub repository `origin/frontendT` per explicit user instruction.
+  - No changes pushed or merged to `main` or any other branch.
+
 1. End-of-Session Batch Sync to Obsidian Vault (`C:\Users\aryam\ObsidianVault`) and Memanto (`candor` namespace).
+
+
+
+
 

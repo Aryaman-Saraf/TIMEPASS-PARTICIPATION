@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candor AI — Candidate Interview Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .dashboard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(20, 26, 46, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-card);
+    }
+    .candidate-profile-info { display: flex; align-items: center; gap: 1.25rem; }
+    .candidate-avatar {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 800; color: #ffffff;
+      box-shadow: 0 0 15px var(--accent-glow);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    .candidate-meta { display: flex; flex-direction: column; }
+    .candidate-display-name { font-size: 1.4rem; font-weight: 800; color: var(--text-heading); }
+    .candidate-display-email { font-size: 0.85rem; color: var(--muted); }
+    .queue-status-banner {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.6rem 1.2rem; border-radius: var(--radius-full);
+    }
+    .queue-badge-text { font-size: 0.85rem; font-weight: 700; color: var(--success); }
+    .queue-number {
+      background: var(--success); color: #000; font-weight: 800;
+      padding: 0.15rem 0.55rem; border-radius: var(--radius-sm);
+      font-size: 0.8rem; font-family: var(--font-mono);
+    }
+    .dashboard-grid { display: grid; grid-template-columns: 5fr 7fr; gap: 2rem; margin-bottom: 2rem; }
+    .dash-card {
+      background: rgba(20, 26, 46, 0.75); backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: 2rem;
+      display: flex; flex-direction: column; box-shadow: var(--shadow-card);
+    }
+    .dash-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+    }
+    .dash-card-title {
+      font-size: 1.25rem; font-weight: 700; color: var(--text-heading);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .dash-card-title svg { width: 22px; height: 22px; fill: var(--accent); }
+    .locked-chip {
+      display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem;
+      font-weight: 700; color: var(--muted); background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border); padding: 0.25rem 0.65rem; border-radius: var(--radius-full);
+    }
+    .jd-box {
+      background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;
+    }
+    .jd-title { font-size: 1.1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.4rem; }
+    .jd-text { font-size: 0.9rem; color: var(--text); line-height: 1.6; }
+    .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .spec-tile {
+      background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 0.85rem 1rem;
+      display: flex; flex-direction: column;
+    }
+    .spec-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-bottom: 0.25rem; }
+    .spec-value { font-size: 0.95rem; font-weight: 700; color: var(--text-heading); }
+    .resume-textarea {
+      width: 100%; min-height: 200px; background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem;
+      color: var(--text); font-family: var(--font-mono); font-size: 0.88rem;
+      line-height: 1.6; resize: vertical; outline: none; transition: var(--transition);
+      margin-bottom: 1rem;
+    }
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: var(--radius-md);
+      padding: 1.25rem; text-align: center; background: rgba(15, 23, 42, 0.4);
+      cursor: pointer; transition: var(--transition); margin-bottom: 1rem;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(108, 140, 255, 0.08); }
+    .pii-notice-box {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.25);
+      border-radius: var(--radius-md); padding: 0.85rem 1.1rem;
+      font-size: 0.83rem; color: var(--cyan); margin-bottom: 1.5rem;
+    }
+    .pii-notice-box svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
+    .actions-footer { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; margin-top: 1rem; }
+    @media (max-width: 868px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .dashboard-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-grid"></div>
+
+  <div class="app-container">
+    <header class="navbar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+        </div>
+        <div class="brand-title">Candor <span>AI</span></div>
+      </a>
+      <div class="navbar-badge"><span class="status-dot"></span> Candidate Hub</div>
+    </header>
+
+    <main>
+      <section class="dashboard-header">
+        <div class="candidate-profile-info">
+          <div id="dash-candidate-avatar" class="candidate-avatar">SJ</div>
+          <div class="candidate-meta">
+            <h1 id="dash-candidate-name" class="candidate-display-name">Sarah Jenkins</h1>
+            <span id="dash-candidate-email" class="candidate-display-email">sarah.jenkins@example.com</span>
+          </div>
+        </div>
+        <div class="queue-status-banner">
+          <span class="status-dot"></span>
+          <span class="queue-badge-text">Status: Ready to Interview</span>
+          <span class="queue-number">Position #1</span>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <!-- Target Position & Specs -->
+        <article class="dash-card">
+          <div class="dash-card-header">
+            <div class="dash-card-title">
+              <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+              Target Position
+            </div>
+            <span class="locked-chip">🔒 Set by Hiring Manager</span>
+          </div>
+          <div class="jd-box">
+            <div id="dash-role-title" class="jd-title">Senior Frontend Engineer</div>
+            <p id="dash-jd-text" class="jd-text">
+              Expertise in modern JavaScript, Web Audio API, responsive UI design, performance optimization, and Web Speech integration.
+            </p>
+          </div>
+          <div class="dash-card-header" style="margin-top: 0.5rem;">
+            <div class="dash-card-title">
+              <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+              Interview Format & Specs
+            </div>
+          </div>
+          <div class="specs-grid">
+            <div class="spec-tile"><span class="spec-label">Questions</span><span class="spec-value">4 Questions</span></div>
+            <div class="spec-tile"><span class="spec-label">Probing Engine</span><span class="spec-value">Adaptive STAR</span></div>
+            <div class="spec-tile"><span class="spec-label">Estimated Time</span><span class="spec-value">~12 Minutes</span></div>
+            <div class="spec-tile"><span class="spec-label">AI Interviewer</span><span class="spec-value">Ava (Voice AI)</span></div>
+          </div>
+        </article>
+
+        <!-- Resume Management Card -->
+        <article class="dash-card">
+          <div class="dash-card-header">
+            <div class="dash-card-title">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              Resume Intake & Management
+            </div>
+          </div>
+          <div id="resume-drop-zone" class="drop-zone">
+            <div class="drop-zone-text">📁 <strong>Drag & Drop your resume file here</strong> or click to upload (.txt, .md, .pdf)</div>
+            <input type="file" id="resume-file-input" style="display: none;" accept=".txt,.md,.pdf">
+          </div>
+          <textarea id="resume-text-input" class="resume-textarea" placeholder="Paste or review your resume text here..."></textarea>
+          <div class="pii-notice-box">
+            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            <div><strong>Privacy Shield Active:</strong> PII (email, phone, home address, name) is automatically redacted before AI evaluation prompts.</div>
+          </div>
+          <div class="actions-footer">
+            <span id="resume-save-notice" style="display: none; color: var(--success); font-size: 0.85rem; font-weight: 600;">✓ Resume Saved!</span>
+            <button id="btn-save-resume" class="btn" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); width: auto;">Save Resume Changes</button>
+            <button id="btn-start-preflight" class="btn btn-primary" style="width: auto;">Start Interview Pre-Check ↗</button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-left"><span>Candor AI Candidate Portal</span> • <span>BitNBuild26 Assessment Room</span></div>
+      <div class="footer-right"><div id="api-health-chip" class="api-health-chip"><span class="status-dot"></span> Checking API status...</div></div>
+    </footer>
+  </div>
+
+  <script type="module" src="candidate-dashboard.js"></script>
+</body>
+</html>

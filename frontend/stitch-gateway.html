@@ -143,9 +143,9 @@
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
         </span>
-        <span class="text-slate-300 font-medium"><span id="telemetryNodeStatus">Evaluation Nodes: Operational</span></span>
+        <span class="text-slate-300 font-medium">Evaluation Nodes: Operational</span>
         <span class="text-slate-600">|</span>
-        <span class="text-emerald-400 font-mono"><span id="telemetryLatency">LLM Engine: groq → gemini</span></span>
+        <span class="text-emerald-400 font-mono">99.98% Latency &lt;32ms</span>
       </div>
 
       <a href="https://candor.ai" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-card-elevated border border-transparent hover:border-card-border">
@@ -618,10 +618,10 @@
         const userObj = { role: 'recruiter', email: 'sso.admin@enterprise.com', provider: provider };
         localStorage.setItem('candor_token', dummyToken);
         localStorage.setItem('candor_user', JSON.stringify(userObj));
-        renderSessionStatus(); checkLiveHealth();
+        renderSessionStatus();
         showToast(`SSO Authenticated via ${provider}! Redirecting to recruiter pipeline...`, 'success');
         setTimeout(() => {
-          window.location.href = 'recruiter-portal.html';
+          window.location.href = '/report.html';
         }, 1200);
       }, 900);
     }
@@ -663,52 +663,6 @@
     }
 
     // Technical REST API Auth Client Mock & Execution
-    
-    const CANDIDATE_PROFILES = {
-      'cand-001': {
-        id: 'cand-001',
-        name: 'Sarah Jenkins',
-        email: 'sarah.jenkins@example.com',
-        role: 'Senior Frontend Engineer',
-        department: 'Core Product',
-        jobDescription: 'Expertise in modern JavaScript, Web Audio API, responsive UI design, performance optimization, and Web Speech integration.',
-        resumeText: 'Sarah Jenkins - Senior Frontend Architect with 6+ years experience in React, vanilla ES modules, Web APIs, and real-time dashboard UI development.'
-      },
-      'cand-002': {
-        id: 'cand-002',
-        name: 'Alex Chen',
-        email: 'alex.chen@example.com',
-        role: 'Senior Backend Engineer',
-        department: 'Infrastructure',
-        jobDescription: 'Deep knowledge of Node.js asynchronous I/O, REST API design, streaming data pipelines, LLM integration, and system reliability.',
-        resumeText: 'Alex Chen - Staff Backend Engineer specializing in high-throughput microservices, Node.js HTTP servers, distributed caching, and LLM integrations.'
-      },
-      'cand-003': {
-        id: 'cand-003',
-        name: 'Jordan Lee',
-        email: 'jordan.lee@example.com',
-        role: 'Fullstack AI Architect',
-        department: 'Platform & AI',
-        jobDescription: 'End-to-end fullstack capability, LLM prompt engineering, evaluation metrics, voice AI pipelines, and client-side computer vision.',
-        resumeText: 'Jordan Lee - Fullstack AI Lead with 5 years experience deploying client-side browser vision models, Node.js backends, and speech synthesis systems.'
-      }
-    };
-
-    async function checkLiveHealth() {
-      const nodeStatus = document.getElementById('telemetryNodeStatus');
-      const latencyStatus = document.getElementById('telemetryLatency');
-      try {
-        const res = await fetch('/api/health');
-        if (res.ok) {
-          const data = await res.json();
-          if (nodeStatus) nodeStatus.textContent = 'Evaluation Nodes: Online (' + (data.llm || 'groq → gemini') + ')';
-          if (latencyStatus) latencyStatus.textContent = 'BARS Engine Active';
-        }
-      } catch (e) {
-        if (nodeStatus) nodeStatus.textContent = 'Evaluation Nodes: Offline Local Mode';
-      }
-    }
-
     async function executeLoginAPI(payload) {
       // Simulating network trip to POST /api/auth/login
       return new Promise((resolve, reject) => {
@@ -786,28 +740,16 @@
         const res = await executeLoginAPI(payload);
         localStorage.setItem('candor_token', res.data.token);
         localStorage.setItem('candor_user', JSON.stringify(res.data.user));
-
-        // Find or create candidate profile
-        let candidate = CANDIDATE_PROFILES[selectedId];
-        if (!candidate) {
-          candidate = {
-            id: 'cand-custom-' + Date.now(),
-            name: val.includes('@') ? val.split('@')[0].replace('.', ' ') : val,
-            email: val.includes('@') ? val : 'candidate@candor.ai',
-            role: 'Senior Software Engineer',
-            department: 'Core Engineering',
-            jobDescription: 'General software engineering competencies, architecture, and system design.',
-            resumeText: val
-          };
-        }
-        localStorage.setItem('candor_current_candidate', JSON.stringify(candidate));
         
-        showToast('Screening ticket verified for ' + candidate.name + '! Opening Candidate Dashboard...', 'success');
+        showToast('Screening ticket verified! Routing to interview room...', 'success');
         renderSessionStatus();
 
         setTimeout(() => {
-          window.location.href = 'candidate-dashboard.html';
-        }, 1000);
+          const targetUrl = res.data.user.id 
+            ? `/room.html?id=${encodeURIComponent(res.data.user.id)}` 
+            : `/index.html`;
+          window.location.href = targetUrl;
+        }, 1200);
 
       } catch (err) {
         showToast(err.message, 'error');
@@ -857,7 +799,7 @@
         renderSessionStatus();
 
         setTimeout(() => {
-          window.location.href = 'recruiter-portal.html';
+          window.location.href = '/report.html';
         }, 1200);
 
       } catch (err) {
