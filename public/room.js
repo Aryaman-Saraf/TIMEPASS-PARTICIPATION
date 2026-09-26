@@ -13,7 +13,7 @@ let audioContext = null;
 let analyserNode = null;
 let waveRafId = null;
 
-let isMuted = false;
+let screenPaused = true; // interview is gated until the candidate shares their entire screen
 let silenceTimer = null;
 let timerInterval = null;
 let startTimeEpoch = Date.now();
@@ -41,6 +41,10 @@ export async function initRoom() {
 
   // Wire Button Event Listeners
   setupEventListeners();
+
+  // Mandatory: candidate must share their entire screen before the interview begins
+  await requireScreenShare();
+  startTimeEpoch = Date.now();
 
   // Start Interview Timer
   startInterviewTimer();
@@ -99,7 +103,7 @@ function updateSessionMetaUI(session) {
   const progressPill = document.getElementById('room-progress-pill');
   if (progressPill) {
     const qNum = (session.cursor !== undefined ? session.cursor + 1 : 1);
-    const total = session.questionCount || 4;
+    const total = session.plan?.length || session.questionCount || 4;
     const role = session.role || 'Senior Software Engineer';
     progressPill.textContent = `Q${qNum} of ${total} · ${role}`;
   }
@@ -265,7 +269,7 @@ function initSpeechRecognition() {
  * Start STT listening loop
  */
 function listen() {
-  if (isMuted || isTurnBusy) return;
+  if (screenPaused || isTurnBusy) return;
   document.body.dataset.state = 'listening';
   setOrbStatus('Ava is listening to your answer...');
 
@@ -321,6 +325,7 @@ function say(text) {
  * Submit candidate turn to POST /api/chat-turn
  */
 async function submitCandidateTurn(answerText) {
+  if (screenPaused) return;
   if (isTurnBusy || !answerText.trim()) return;
 
   isTurnBusy = true;
@@ -359,6 +364,7 @@ async function submitCandidateTurn(answerText) {
 
       // Update Reasoning Card & BARS Difficulty
       updateReasoningCard(data.progress);
+      if (data.progress) { activeSession.cursor = data.progress.question - 1; updateSessionMetaUI(activeSession); }
 
       // Append Ava's AI reply
       appendChatBubble('ai', 'Ava (AI Interviewer)', data.reply);
@@ -510,25 +516,11 @@ function setButtonsState(enabled) {
 }
 
 function setupEventListeners() {
-  const muteBtn = document.getElementById('btn-mute-mic');
   const shareBtn = document.getElementById('btn-screenshare');
   const sendBtn = document.getElementById('btn-send-text');
   const doneBtn = document.getElementById('btn-done-speaking');
   const endBtn = document.getElementById('btn-end-interview');
   const textInput = document.getElementById('candidate-text-input');
-
-  if (muteBtn) {
-    muteBtn.addEventListener('click', () => {
-      isMuted = !isMuted;
-      muteBtn.classList.toggle('active', isMuted);
-      muteBtn.textContent = isMuted ? '🔇 Unmute Mic' : '🎙️ Mute Mic';
-      if (isMuted && recognition) {
-        try { recognition.stop(); } catch (e) {}
-      } else {
-        listen();
-      }
-    });
-  }
 
   if (shareBtn) {
     shareBtn.addEventListener('click', async () => {
@@ -606,3 +598,69 @@ async function checkApiHealth() {
 }
 
 document.addEventListener('DOMContentLoaded', initRoom);
+
+/**
+ * Blocking overlay: the interview only runs while the candidate shares their ENTIRE screen.
+ * getDisplayMedia needs a user click, so we can't auto-prompt. Resolves once sharing is live;
+ * if sharing stops mid-interview, the overlay returns and the interview pauses until re-shared.
+ */
+function requireScreenShare() {
+  return new Promise((resolve) => {
+    let overlay = document.getElementById('screen-gate');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'screen-gate';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(5,8,20,0.92);backdrop-filter:blur(6px);';
+      overlay.innerHTML = `
+        <div style="max-width:440px;padding:2rem;border-radius:16px;background:rgba(15,23,42,0.95);border:1px solid rgba(108,140,255,0.35);text-align:center;color:#e2e8f0;">
+          <div style="font-size:2.2rem;">🖥️</div>
+          <h2 style="margin:0.5rem 0;font-size:1.25rem;">Share your entire screen to continue</h2>
+          <p style="font-size:0.9rem;color:#94a3b8;line-height:1.5;">Screen sharing is required for the whole interview. Choose <strong>Entire Screen</strong> in the browser prompt. If sharing stops, the interview pauses until you share again.</p>
+          <p id="screen-gate-error" style="font-size:0.85rem;color:#f87171;min-height:1.2em;"></p>
+          <button id="screen-gate-btn" class="btn" style="width:100%;">Share Entire Screen</button>
+        </div>`;
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+    screenPaused = true;
+    if (recognition) { try { recognition.stop(); } catch (e) {} }
+
+    const errEl = overlay.querySelector('#screen-gate-error');
+    const btn = overlay.querySelector('#screen-gate-btn');
+    btn.onclick = async () => {
+      errEl.textContent = '';
+      const ok = monitor && await monitor.startScreenShare();
+      const track = ok && monitor.screenStream?.getVideoTracks()[0];
+      if (!track) { errEl.textContent = 'Screen sharing was not started. Please try again.'; return; }
+      const surface = track.getSettings?.().displaySurface;
+      if (surface && surface !== 'monitor') {
+        track.stop();
+        monitor.screenStream = null;
+        errEl.textContent = 'Please choose "Entire Screen", not a window or tab.';
+        return;
+      }
+      showScreenPreview(monitor.screenStream);
+      document.getElementById('btn-screenshare')?.classList.add('active');
+      track.addEventListener('ended', async () => {
+        document.getElementById('btn-screenshare')?.classList.remove('active');
+        await requireScreenShare();
+        listen();
+      });
+      overlay.style.display = 'none';
+      screenPaused = false;
+      resolve();
+    };
+  });
+}
+
+function showScreenPreview(stream) {
+  let box = document.getElementById('screen-preview');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'screen-preview';
+    box.style.cssText = 'position:fixed;left:16px;bottom:16px;z-index:50;width:220px;border-radius:10px;overflow:hidden;border:1px solid rgba(248,113,113,0.6);background:#000;box-shadow:0 6px 24px rgba(0,0,0,0.5);';
+    box.innerHTML = '<div style="font-size:0.7rem;padding:4px 8px;color:#fecaca;background:rgba(127,29,29,0.8);">● REC · Your shared screen</div><video autoplay muted playsinline style="width:100%;display:block;"></video>';
+    document.body.appendChild(box);
+  }
+  box.querySelector('video').srcObject = stream;
+}

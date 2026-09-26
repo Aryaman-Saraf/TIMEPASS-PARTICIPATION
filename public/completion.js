@@ -22,7 +22,8 @@ export async function initCompletionScreen() {
   if (!session) {
     try {
       const stored = localStorage.getItem('candor_evaluated_session');
-      if (stored) session = JSON.parse(stored);
+      const parsed = stored && JSON.parse(stored);
+      if (parsed && parsed.id === sessionId) session = parsed;
     } catch (e) {}
   }
 
@@ -33,7 +34,7 @@ export async function initCompletionScreen() {
         const cand = JSON.parse(storedCand);
         session = {
           id: `sess-${Date.now().toString().slice(-6)}`,
-          candidateName: cand.name || 'Sarah Jenkins',
+          candidateName: cand.name || 'Candidate',
           role: cand.role || 'Senior Frontend Engineer',
           createdAt: new Date().toISOString()
         };
@@ -41,14 +42,7 @@ export async function initCompletionScreen() {
     } catch (e) {}
   }
 
-  if (!session) {
-    session = {
-      id: 'sess-849201',
-      candidateName: 'Sarah Jenkins',
-      role: 'Senior Frontend Engineer',
-      createdAt: new Date().toISOString()
-    };
-  }
+  if (!session) session = { id: '', candidateName: 'Candidate', role: '', createdAt: new Date().toISOString() };
 
   // Populate UI Meta Elements
   const nameEl = document.getElementById('completion-candidate-name');

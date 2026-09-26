@@ -55,41 +55,6 @@ async function loadPipelineData() {
     console.warn('Could not fetch sessions from API:', err);
   }
 
-  // Fallback defaults if roster empty
-  if (candidatesList.length === 0) {
-    candidatesList = [
-      {
-        id: 'cand-001',
-        name: 'Sarah Jenkins',
-        role: 'Senior Frontend Engineer',
-        department: 'Core Product',
-        status: 'completed',
-        overallScore: 89,
-        recommendation: 'Strong Hire',
-        integrityRisk: 'low'
-      },
-      {
-        id: 'cand-002',
-        name: 'Alex Chen',
-        role: 'Senior Backend Engineer',
-        department: 'Infrastructure',
-        status: 'completed',
-        overallScore: 85,
-        recommendation: 'Hire',
-        integrityRisk: 'low'
-      },
-      {
-        id: 'cand-003',
-        name: 'Jordan Lee',
-        role: 'Fullstack AI Architect',
-        department: 'Platform & AI',
-        status: 'scheduled',
-        overallScore: null,
-        recommendation: 'Pending',
-        integrityRisk: 'none'
-      }
-    ];
-  }
 }
 
 /**
@@ -170,32 +135,25 @@ async function inspectDossier(sessionId) {
   if (!session) {
     try {
       const stored = localStorage.getItem('candor_evaluated_session');
-      if (stored) session = JSON.parse(stored);
+      const parsed = stored && JSON.parse(stored);
+      if (parsed && parsed.id === sessionId) session = parsed;
     } catch (e) {}
   }
 
-  if (!session) {
-    session = {
-      id: sessionId || 'cand-001',
-      candidateName: 'Sarah Jenkins',
-      role: 'Senior Frontend Engineer',
-      report: {
-        overallScore: 89,
-        recommendation: 'Strong Hire',
-        competencies: [
-          { name: 'Core Web & Framework Architecture', score: 4.8, evidence: ['"I optimized React bundle splitting reducing TTI by 42%."'] },
-          { name: 'Asynchronous State Management', score: 4.5, evidence: ['"Used Web Workers to offload heavy calculations off the main looper thread."'] },
-          { name: 'Browser API & Web Speech Integration', score: 4.2, evidence: ['"Implemented Web Speech API fallback handling network disconnects gracefully."'] }
-        ]
-      },
-      integrity: {
-        score: 98,
-        riskLevel: 'low',
-        visionAvailable: true,
-        stats: { onScreenPct: 98, lookAwayCount: 1, tabHiddenCount: 0, multiFaceCount: 0 },
-        events: []
-      }
-    };
+  if (!session || !session.report) {
+    document.getElementById('view-pipeline-roster').style.display = 'none';
+    document.getElementById('view-candidate-dossier').style.display = 'block';
+    document.getElementById('dossier-name').textContent = session?.candidateName || 'No evaluated interview';
+    document.getElementById('dossier-role').textContent = session
+      ? 'Interview not finished yet — no scores until it is evaluated.'
+      : 'This candidate has not completed an interview yet.';
+    for (const id of ['tile-tech-score', 'tile-delivery-score', 'tile-integrity-score']) document.getElementById(id).textContent = '—';
+    const pill = document.getElementById('dossier-rec-pill');
+    if (pill) { pill.textContent = 'Pending'; pill.className = 'rec-pill'; }
+    renderBARSSection([]);
+    const ic = document.getElementById('integrity-audit-container');
+    if (ic) ic.innerHTML = '';
+    return;
   }
 
   // Switch View Modes
@@ -206,7 +164,7 @@ async function inspectDossier(sessionId) {
   document.getElementById('dossier-name').textContent = session.candidateName || 'Candidate';
   document.getElementById('dossier-role').textContent = `${session.role || 'Software Engineer'} · Core Product`;
 
-  const rec = session.report?.recommendation || 'Strong Hire';
+  const rec = session.report.recommendation || 'Pending';
   const recPill = document.getElementById('dossier-rec-pill');
   if (recPill) {
     recPill.textContent = rec;
@@ -223,15 +181,16 @@ async function inspectDossier(sessionId) {
   }
 
   // Populate 3 Quantitative Index Tiles
-  const techScore = session.report?.overallScore || 89;
+  const techScore = session.report.overallScore ?? '—';
   const comm = session.report?.communication || {};
   const commVals = [comm.clarity, comm.structure, comm.conciseness].filter(Number.isFinite);
   const deliveryScore = commVals.length ? Math.round(commVals.reduce((a, b) => a + b, 0) / commVals.length * 20) : '—';
-  const integrityScore = session.integrity?.stats?.onScreenPct || 98;
+  const integrityScore = session.integrity?.captured ? (session.integrity.score ?? session.integrity.stats?.onScreenPct ?? '—') : '—';
 
-  document.getElementById('tile-tech-score').textContent = `${techScore}%`;
-  document.getElementById('tile-delivery-score').textContent = `${deliveryScore}%`;
-  document.getElementById('tile-integrity-score').textContent = `${integrityScore}%`;
+  const pct = v => (typeof v === 'number' ? `${v}%` : '—');
+  document.getElementById('tile-tech-score').textContent = pct(techScore);
+  document.getElementById('tile-delivery-score').textContent = pct(deliveryScore);
+  document.getElementById('tile-integrity-score').textContent = pct(integrityScore);
 
   // Render BARS Competency Scorecard
   renderBARSSection(session.report?.competencies || []);
@@ -266,9 +225,9 @@ function renderBARSSection(competencies) {
     item.innerHTML = `
       <div class="bars-item-header">
         <span class="bars-name">${escapeHTML(comp.name)}</span>
-        <span class="bars-score">BARS Level ${comp.score || 4.5} / 5.0</span>
+        <span class="bars-score">BARS Level ${comp.score ?? '—'} / 5</span>
       </div>
-      <div style="font-size: 0.85rem; color: var(--muted);">${escapeHTML(comp.rationale || 'Demonstrates strong technical proficiency and problem solving.')}</div>
+      <div style="font-size: 0.85rem; color: var(--muted);">${escapeHTML(comp.rationale || '')}</div>
       ${quoteHtml}
     `;
 
