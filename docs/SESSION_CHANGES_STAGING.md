@@ -86,6 +86,17 @@
   - Verified test suite: all 17/17 backend and server tests pass without regression.
   - Completed deep architectural audit cataloging 5 key integration gaps (path mismatch, duplicate integrity modules, duplicate report dashboards, mock vs real API wire-up, and setup session generation).
 
+### 14. Full Conflict Resolution & End-to-End System Wire-Up
+- **Target Files**: `public/index.html`, `public/room.html`, `public/room.js`, `public/styles.css`, `public/integrity.js`, `archive/teammate-proposals/merged-specs/`
+- **Details**:
+  - Re-routed and unified all candidate and recruiter assets into `public/` matching `server.js` static serving rules.
+  - Implemented `public/index.html`: combines Prathul's pre-flight video/audio preview and live mic volume meter with candidate & role configuration, 1-click role presets (Sarah - Frontend, Alex - Backend, Jordan - Fullstack), and dynamic `POST /api/start-interview` session creation.
+  - Implemented `public/room.html` and `public/room.js`: connected live webcam and MediaPipe FaceLandmarker (`IntegrityMonitor`) directly to real-time HUD telemetry, wired browser voice recognition (STT) and voice speech synthesis (TTS) to live `POST /api/chat-turn`, animated 3D voice orb and waveform visualizer, updated dynamic AI reasoning card with STAR probing progress, and dispatched collected integrity telemetry to `POST /api/evaluate` on interview completion.
+  - Harmonized design system tokens in `public/styles.css` bridging dark/light themes and dashboard widgets.
+  - Safely archived loose root proposal files into `archive/teammate-proposals/merged-specs/` preserving root directory cleanliness with zero file deletion.
+  - Verified complete system flow via browser agent: setup pre-flight, live interview, attention detection, real-time AI reply, and Recruiter Dossier dashboard navigation.
+  - Verified automated test suite: 17/17 tests passing.
+
 ---
 
 ## Pending Staged Actions (Awaiting User Execution / End-of-Session)

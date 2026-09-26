@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candor AI - Technical Setup & Pre-Flight Check</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .role-preset-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .role-preset-btn:hover, .role-preset-btn.active {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .form-group {
+      margin-bottom: 0.875rem;
+      text-align: left;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-input, .form-textarea {
+      width: 100%;
+      background: var(--surface-dark);
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      padding: 0.5rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.8125rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus {
+      border-color: var(--primary);
+    }
+    .mic-meter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .mic-meter-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .mic-meter-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--success);
+      transition: width 0.08s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navbar -->
+  <nav class="navbar flex-between">
+    <a href="index.html" class="brand-logo">
+      <div class="brand-icon">C</div>
+      <span>Candor AI</span>
+    </a>
+    <div class="flex gap-4">
+      <a href="report.html" class="btn btn-outline" style="padding: 0.375rem 0.875rem; text-decoration: none; font-size: 0.8125rem;">
+        📊 Recruiter Dossiers
+      </a>
+      <a href="test-integrity.html" class="btn btn-outline" style="padding: 0.375rem 0.875rem; text-decoration: none; font-size: 0.8125rem;">
+        🛡️ Vision Sandbox
+      </a>
+      <button class="btn btn-outline" style="padding: 0.375rem 0.875rem;" onclick="playHelpAudio()">
+        ❓ Audio Help
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Setup Modal -->
+  <div class="setup-overlay" style="padding: 2rem 1rem; overflow-y: auto;">
+    <div class="setup-card" style="max-width: 680px; width: 100%; margin: auto;">
+      <div style="text-align: center; margin-bottom: 1.25rem;">
+        <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">Technical Pre-Flight & Setup</h1>
+        <p style="color: var(--text-muted); font-size: 0.875rem;">Calibrate your audio/video and configure your adaptive technical screening</p>
+      </div>
+
+      <!-- Video Preview Frame -->
+      <div class="video-preview-box" style="margin-bottom: 1rem;">
+        <video id="preview-video" autoplay muted playsinline style="transform: scaleX(-1);"></video>
+        <div id="ready-chip" class="chip chip-success" style="position: absolute; top: 0.75rem; right: 0.75rem; z-index: 10;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); display: inline-block;"></span>
+          <span id="ready-status-text">Devices Active</span>
+        </div>
+
+        <!-- Device Controls Selector Bar -->
+        <div class="video-controls-bar">
+          <select id="cam-select" class="select-control">
+            <option>📹 Camera: Detecting…</option>
+          </select>
+          <select id="mic-select" class="select-control">
+            <option>🎙️ Microphone: Detecting…</option>
+          </select>
+          <select id="spk-select" class="select-control">
+            <option>🔊 Speakers: Default Audio Output</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live Mic Meter -->
+      <div class="mic-meter-wrap" style="margin-bottom: 1.25rem;">
+        <span>Mic Level:</span>
+        <div class="mic-meter-bar">
+          <div id="mic-fill" class="mic-meter-fill"></div>
+        </div>
+        <span id="mic-db-text" style="font-family: monospace;">0%</span>
+      </div>
+
+      <!-- Status Indicator Pills -->
+      <div class="flex" style="justify-content: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+        <div id="cam-chip" class="chip chip-success">
+          <span>✓</span> <span>Camera Connected</span>
+        </div>
+        <div id="mic-chip" class="chip chip-success">
+          <span>✓</span> <span>Microphone Active</span>
+        </div>
+        <div id="stt-chip" class="chip chip-success">
+          <span>✓</span> <span>Browser Speech AI Ready</span>
+        </div>
+      </div>
+
+      <!-- Candidate Configuration Form -->
+      <form id="setup-form" onsubmit="handleStartInterview(event)" style="border-top: 1px solid var(--border-dark); padding-top: 1.25rem; margin-bottom: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span style="font-size: 0.8125rem; font-weight: 600; color: #fff;">Candidate & Role Configuration</span>
+          <div class="flex gap-2">
+            <button type="button" class="role-preset-btn active" onclick="loadPreset('frontend')">Sarah (Frontend)</button>
+            <button type="button" class="role-preset-btn" onclick="loadPreset('backend')">Alex (Backend)</button>
+            <button type="button" class="role-preset-btn" onclick="loadPreset('fullstack')">Jordan (Fullstack)</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label" for="candidate-name">Candidate Name</label>
+            <input type="text" id="candidate-name" class="form-input" required value="Sarah Jenkins">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="candidate-role">Target Role</label>
+            <input type="text" id="candidate-role" class="form-input" required value="Senior Frontend Engineer">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label" for="question-count">Question Target</label>
+            <select id="question-count" class="form-input">
+              <option value="3">3 Questions (~6-8 min)</option>
+              <option value="4" selected>4 Questions (~10-12 min - Recommended)</option>
+              <option value="5">5 Questions (~15 min)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="screening-mode">Interview Mode</label>
+            <select id="screening-mode" class="form-input">
+              <option value="adaptive" selected>Adaptive Probing (STAR deep-dives)</option>
+              <option value="rapid">Fast Screening</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Collapsible Resume & Job Spec Section -->
+        <details style="margin-top: 0.5rem; text-align: left;">
+          <summary style="font-size: 0.75rem; color: var(--primary); cursor: pointer; user-select: none;">
+            ⚙️ View / Edit Tailored Resume & Job Description
+          </summary>
+          <div style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" for="job-desc">Job Description</label>
+              <textarea id="job-desc" rows="3" class="form-textarea" placeholder="Paste requirements, tech stack, and evaluation rubric..."></textarea>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" for="resume-text">Candidate Resume / Experience</label>
+              <textarea id="resume-text" rows="3" class="form-textarea" placeholder="Paste candidate resume or project summary (PII is automatically redacted)..."></textarea>
+            </div>
+          </div>
+        </details>
+
+        <!-- Audio Output Test & Action Buttons -->
+        <div class="flex-col gap-3" style="align-items: center; margin-top: 1.5rem;">
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-outline" onclick="testAudioFeedback()" style="font-size: 0.8125rem;">
+              🔊 Test Speakers & Synthetic Voice
+            </button>
+          </div>
+          <button type="submit" id="start-btn" class="btn btn-primary" style="width: 100%; max-width: 340px; padding: 0.875rem 1.5rem; font-size: 1rem; font-weight: 600;">
+            Begin Adaptive Interview ↗
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const PRESETS = {
+      frontend: {
+        name: "Sarah Jenkins",
+        role: "Senior Frontend Engineer",
+        jobDesc: "Senior Frontend Engineer specializing in React, TypeScript, Core Web Vitals optimization, and real-time state management. Experience with high-traffic enterprise design systems and WebSockets required.",
+        resume: "Sarah Jenkins - 6 years frontend engineering at FinTech Co. Led migration to Next.js 14, reduced LCP from 3.8s to 1.4s via lazy-loading and code splitting. Authored enterprise component library used across 12 product teams."
+      },
+      backend: {
+        name: "Alex Chen",
+        role: "Senior Backend Engineer",
+        jobDesc: "Distributed systems engineer experienced in high-throughput Node.js microservices, Postgres sharding, Redis caching, and incident RCA. Must demonstrate strong concurrency control and API design.",
+        resume: "Alex Chen - 7 years backend engineering at ScaleStream. Designed event-driven payment reconciliation pipeline processing 15k TPS with zero data loss. Implemented distributed Redis locks and multi-region failover."
+      },
+      fullstack: {
+        name: "Jordan Lee",
+        role: "Full Stack Engineer",
+        jobDesc: "Full Stack Engineer to build AI-powered conversational tools. Deep proficiency in modern JavaScript, REST/WebSocket APIs, responsive UI design, and cloud deployments.",
+        resume: "Jordan Lee - 4 years full stack experience at HealthAI. Built real-time clinician dashboard using WebRTC and Node.js. Optimized database query performance and implemented OAuth2 authentication."
+      }
+    };
+
+    function loadPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+      document.getElementById('candidate-name').value = p.name;
+      document.getElementById('candidate-role').value = p.role;
+      document.getElementById('job-desc').value = p.jobDesc;
+      document.getElementById('resume-text').value = p.resume;
+
+      document.querySelectorAll('.role-preset-btn').forEach(btn => {
+        const isCurrent = btn.getAttribute('onclick')?.includes(`'${key}'`);
+        btn.classList.toggle('active', !!isCurrent);
+      });
+    }
+
+    // Initialize with default preset
+    loadPreset('frontend');
+
+    // Audio & Camera Management
+    let audioCtx = null;
+    let micStream = null;
+    let micAnalyser = null;
+    let micAnimId = null;
+
+    function playChime(freq = 523.25, type = 'sine', duration = 0.2) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn('Audio playChime notice:', e);
+      }
+    }
+
+    // Pre-flight camera & mic capture
+    async function initPreflight() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        document.getElementById('preview-video').srcObject = stream;
+        micStream = stream;
+
+        // Populate device labels
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const camSelect = document.getElementById('cam-select');
+        const micSelect = document.getElementById('mic-select');
+        camSelect.innerHTML = '';
+        micSelect.innerHTML = '';
+
+        devices.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.deviceId;
+          if (d.kind === 'videoinput') {
+            opt.textContent = `📹 ${d.label || 'Web Camera'}`;
+            camSelect.appendChild(opt);
+          } else if (d.kind === 'audioinput') {
+            opt.textContent = `🎙️ ${d.label || 'Microphone'}`;
+            micSelect.appendChild(opt);
+          }
+        });
+
+        if (!camSelect.options.length) camSelect.innerHTML = '<option>📹 Camera: Default Stream</option>';
+        if (!micSelect.options.length) micSelect.innerHTML = '<option>🎙️ Microphone: Default Stream</option>';
+
+        // Setup real-time mic volume level meter
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        micAnalyser = audioCtx.createAnalyser();
+        micAnalyser.fftSize = 64;
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(micAnalyser);
+        const dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
+
+        const micFill = document.getElementById('mic-fill');
+        const micDbText = document.getElementById('mic-db-text');
+
+        function updateMicMeter() {
+          micAnalyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          const avg = sum / dataArray.length;
+          const pct = Math.min(100, Math.round((avg / 128) * 100));
+          micFill.style.width = pct + '%';
+          micDbText.textContent = pct + '%';
+          micAnimId = requestAnimationFrame(updateMicMeter);
+        }
+        updateMicMeter();
+
+        playChime(659.25, 'sine', 0.25);
+      } catch (err) {
+        console.warn('Pre-flight media capture notice:', err);
+        const camChip = document.getElementById('cam-chip');
+        camChip.className = 'chip chip-danger';
+        camChip.innerHTML = '<span>⚠️</span> <span>Camera/Mic Inactive (Text Mode)</span>';
+        document.getElementById('ready-status-text').textContent = 'Manual Text Mode';
+        document.getElementById('ready-chip').className = 'chip chip-danger';
+      }
+
+      // Check speech recognition
+      const hasSpeech = ('SpeechRecognition' in window) || ('webkitSpeechRecognition' in window);
+      const sttChip = document.getElementById('stt-chip');
+      if (!hasSpeech) {
+        sttChip.className = 'chip chip-warn';
+        sttChip.innerHTML = '<span>ℹ️</span> <span>Speech AI: Manual Keyboard</span>';
+      }
+    }
+
+    function testAudioFeedback() {
+      playChime(880, 'triangle', 0.3);
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance("Audio output is active and verified. Candor AI voice synthesis is ready.");
+        utt.rate = 1.05;
+        window.speechSynthesis.speak(utt);
+      }
+    }
+
+    function playHelpAudio() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance("Welcome to Candor A I. Confirm your camera and microphone, adjust your target role, then click Begin Adaptive Interview to start.");
+        utt.rate = 1.05;
+        window.speechSynthesis.speak(utt);
+      }
+    }
+
+    // Start interview via POST /api/start-interview
+    async function handleStartInterview(e) {
+      e.preventDefault();
+      const startBtn = document.getElementById('start-btn');
+      startBtn.disabled = true;
+      startBtn.innerHTML = '<span>⏳ Tailoring Adaptive Plan…</span>';
+      playChime(783.99, 'sine', 0.3);
+
+      const candidateName = document.getElementById('candidate-name').value.trim() || 'Candidate';
+      const role = document.getElementById('candidate-role').value.trim() || 'Software Engineer';
+      const questionCount = parseInt(document.getElementById('question-count').value, 10) || 4;
+      const jobDescription = document.getElementById('job-desc').value.trim();
+      const resumeText = document.getElementById('resume-text').value.trim();
+
+      try {
+        const res = await fetch('/api/start-interview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidateName,
+            role,
+            jobDescription,
+            resumeText,
+            questionCount
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `HTTP ${res.status}`);
+        }
+
+        const session = await res.json();
+        
+        // Clean up preview audio animation before navigation
+        if (micAnimId) cancelAnimationFrame(micAnimId);
+        if (micStream) micStream.getTracks().forEach(t => t.stop());
+
+        // Redirect to room with created session ID
+        window.location.href = `room.html?id=${encodeURIComponent(session.id)}`;
+      } catch (err) {
+        console.error('Failed to start interview:', err);
+        alert(`Could not start interview session: ${err.message}. Please verify the server is running.`);
+        startBtn.disabled = false;
+        startBtn.innerHTML = 'Begin Adaptive Interview ↗';
+      }
+    }
+
+    initPreflight();
+  </script>
+</body>
+</html>
