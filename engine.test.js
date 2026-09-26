@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 delete process.env.GROQ_API_KEY; delete process.env.GEMINI_API_KEY;
-const { nextStep, computeIntegrity, overallScore, recommend, parseJSON, heuristic, startInterview, chatTurn, evaluate, LIMITS } = await import('./engine.js');
+const { nextStep, computeIntegrity, overallScore, recommend, parseJSON, heuristic, startInterview, chatTurn, evaluate, redactPII, LIMITS } = await import('./engine.js');
 
 const state = (o = {}) => ({ difficulty: 3, followUps: 0, cursor: 0, plan: [{}, {}, {}], turns: [], ...o });
 const ev = (type, durationMs, extra = {}) => ({ type, t: 0, at: '2026-09-26T05:00:00.000Z', durationMs, ...extra });
@@ -88,3 +88,17 @@ test('input guards: role required (400), empty answer (400), finished interview 
   await assert.rejects(chatTurn(await run(), 'more'), { status: 409 });
   await assert.rejects(chatTurn(await startInterview({ role: 'Analyst' }), '   '), { status: 400 });
 });
+
+test('redactPII: removes emails, phones, URLs and candidate names from resume text', () => {
+  const resume = 'Alex Chen (alex.chen@finflow.io, +1 555-019-2834, https://github.com/alexchen) worked at FinFlow. Call Alex at (555) 234-5678.';
+  const redacted = redactPII(resume, 'Alex Chen');
+  assert.ok(!redacted.includes('alex.chen@finflow.io'));
+  assert.ok(!redacted.includes('555-019-2834'));
+  assert.ok(!redacted.includes('https://github.com/alexchen'));
+  assert.ok(!redacted.includes('Alex'));
+  assert.ok(!redacted.includes('Chen'));
+  assert.ok(redacted.includes('[REDACTED]'));
+  assert.equal(redactPII('', 'Alex'), '');
+  assert.equal(redactPII(null, 'Alex'), '');
+});
+

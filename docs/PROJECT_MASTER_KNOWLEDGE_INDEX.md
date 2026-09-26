@@ -25,16 +25,16 @@
 | File Path | Component | Status | Description |
 |---|---|---|---|
 | [`server.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/server.js) | Backend | ✅ Active | Pure `node:http` server implementing all 6 §4 API routes, static file serving, 1 MB body cap, busy lock, path traversal security guard, and auto-loading data seeds. |
-| [`server.test.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/server.test.js) | Testing | ✅ Active | 6 automated contract tests verifying health check, complete interview lifecycle, input errors, busy locks, static serving, and persistence. |
-| [`engine.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/engine.js) | Backend / AI | ✅ Active | Core conversational engine: OpenAI-compatible LLM client (Groq → Gemini), adaptive state machine (`nextStep`), BARS rubric evaluation, offline heuristic fallback, and 8s fast failover. |
-| [`engine.test.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/engine.test.js) | Testing | ✅ Active | 10 automated unit tests verifying limits, BARS weighting, STAR heuristic parsing, offline full flow, and edge-case integrity handling. |
+| [`server.test.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/server.test.js) | Testing | ✅ Active | 6 automated contract tests verifying health check, complete interview lifecycle, input errors, busy locks, static JS/HTML serving, and persistence. |
+| [`engine.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/engine.js) | Backend / AI | ✅ Active | Core conversational engine: OpenAI-compatible LLM client (Groq → Gemini), adaptive state machine (`nextStep`), BARS rubric evaluation, PII redaction (`redactPII`), offline heuristic fallback, and 8s fast failover. |
+| [`engine.test.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/engine.test.js) | Testing | ✅ Active | 11 automated unit tests verifying limits, BARS weighting, STAR heuristic parsing, PII redaction, offline full flow, and edge-case integrity handling. |
 | [`data/mock-session.json`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/data/mock-session.json) | Data / Seeds | ✅ Active | Evaluated showcase session (Alex Chen, Senior Backend Engineer) with Evidence Dossier metrics (overallScore 89, onScreenPct 98%), adaptive turns, and BARS quotes. |
 | [`TEAM_DIRECTIVES.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/TEAM_DIRECTIVES.md) | Coordination | ✅ Active | Shared interface guidelines: CSS color variables, 409 busy lock handling, dynamic MediaPipe import protocol, and transcript anchor links. |
 | [`IMPLEMENTATION_PLAN.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/IMPLEMENTATION_PLAN.md) | Architecture | ✅ Active | Unified master specification, market research, rubric alignment (50 pts), §4 frozen API contracts, and roadmap checkpoints. |
 | [`TEAM_TASKS.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/TEAM_TASKS.md) | Operations | ✅ Active | Task breakdown per teammate, timeboxes, definition of done, and demo scripts. |
 | [`TEAM_ONBOARDING.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/TEAM_ONBOARDING.md) | Operations | ✅ Active | Git branch setup, free API key acquisition, and local run instructions. |
-| [`public/report.html`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/report.html) | Recruiter UI | 🟡 In Progress | Recruiter report dashboard shell; mounts `#app` and loads `report.js`. |
-| [`public/report.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/report.js) | Recruiter UI | ⚪ Next Up | Recruiter dashboard rendering: session list, Evidence Dossier header, BARS scorecard, adaptive path, transcript, and integrity audit. |
+| [`public/report.html`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/report.html) | Recruiter UI | ✅ Active | Recruiter report dashboard shell with dark tokens, responsive layout, print media styles, and module loader. |
+| [`public/report.js`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/public/report.js) | Recruiter UI | ✅ Active | Recruiter dashboard: session catalog list, Evidence Dossier 3-tile header, BARS scorecard, adaptive path, STAR breakdown, coaching, transcript, and integrity audit. |
 | [`AGENTS.md`](file:///c:/Users/aryam/TIMEPASS%20PARTICIPATION/AGENTS.md) | Governance | ✅ Active | Workspace rules: unbiased delegation, file protection, commit protocol, clean Unicode formatting, and staging protocols. |
 
 ---

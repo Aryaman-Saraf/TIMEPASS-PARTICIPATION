@@ -57,8 +57,28 @@
 - **Target Files**: `AGENTS.md`, `docs/PROJECT_MASTER_KNOWLEDGE_INDEX.md`, `docs/SESSION_CHANGES_STAGING.md`
 - **Details**: Tailored commit frequency, clean Unicode formatting (zero broken LaTeX), directory cleanliness, master index maintenance, and Memanto staging protocols.
 
+### 10. Recruiter Report & Evidence Dossier Frontend
+- **Target Files**: `public/report.js`, `public/report.html`
+- **Details**:
+  - Implemented dual-view recruiter dashboard (`public/report.js`):
+    1. Session Catalog View: fetches `/api/sessions`, displays candidate list with status, score, recommendation, and integrity risk badges.
+    2. Candidate Evidence Dossier Scorecard: 3 quantitative index tiles (Technical Relevancy, Articulation & Delivery %, Integrity Confidence %), score ring, advisory recommendation pill ("Advisory, a human makes the final call"), real-time adaptive path with difficulty dots and turn reasoning, BARS competency breakdown with verbatim quotes, STAR analysis table, strengths/gaps, coaching feedback, full verbatim transcript with anchor IDs (`#turn-n`), and robust fallback rendering for `integrity.js`.
+  - Added print media styling (`@media print`) and button hover transitions to `public/report.html`.
+  - Verified browser rendering and navigation with browser subagent.
+
+### 11. PII Redaction & Privacy Safeguards
+- **Target Files**: `engine.js`, `engine.test.js`
+- **Details**:
+  - Implemented `redactPII(text, candidateName)` in `engine.js` scrubbing URLs, email addresses, phone numbers, and candidate name occurrences before injecting resume text into LLM prompts.
+  - Added unit test in `engine.test.js` verifying full redaction behavior. Total test suite expanded to 17/17 passing tests.
+
+### 12. Offline Key Failure Drill Verification
+- **Details**:
+  - Verified end-to-end resilience when both Groq and Gemini API keys are invalid.
+  - Verified that `startInterview`, `chatTurn`, and `evaluate` gracefully fall back to deterministic offline heuristics without crashing, successfully producing evaluated session reports with BARS scores and recommendations.
+
 ---
 
 ## Pending Staged Actions (Awaiting User Execution / End-of-Session)
-1. Implement `public/report.js` (Recruiter Scorecard UI, Evidence Dossier header, and Adaptive Path).
-2. End-of-Session Batch Sync to Obsidian Vault (`C:\Users\aryam\ObsidianVault`) and Memanto (`candor` namespace).
+1. End-of-Session Batch Sync to Obsidian Vault (`C:\Users\aryam\ObsidianVault`) and Memanto (`candor` namespace).
+

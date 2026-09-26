@@ -22,7 +22,18 @@
   .scroll { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border, #263049); vertical-align: top; }
   blockquote { margin: 4px 0; padding-left: 10px; border-left: 3px solid var(--accent, #6c8cff); color: var(--muted, #8b93a7); }
-  button { font: inherit; padding: 6px 14px; border-radius: 8px; cursor: pointer; }
+  button { font: inherit; padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: opacity 0.15s ease, transform 0.1s ease; }
+  button:hover { opacity: 0.9; }
+  button:active { transform: scale(0.98); }
+  details > summary { user-select: none; }
+  @media print {
+    body { background: #fff !important; color: #111 !important; font-size: 12pt; }
+    .card { background: #fff !important; color: #111 !important; border: 1px solid #ddd !important; box-shadow: none !important; break-inside: avoid; }
+    button, a[href="report.html"], a[href="/"] { display: none !important; }
+    .muted { color: #555 !important; }
+    .ring { background: #eee !important; color: #000 !important; border: 2px solid #333 !important; }
+    a { color: #000 !important; text-decoration: underline !important; }
+  }
 </style>
 </head>
 <body>

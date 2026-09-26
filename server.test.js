@@ -93,6 +93,9 @@ test('static: serves public/ files, blocks encoded traversal, 404s missing files
   const html = await fetch(base + '/report.html');
   assert.equal(html.status, 200);
   assert.match(html.headers.get('content-type'), /text\/html/);
+  const js = await fetch(base + '/report.js');
+  assert.equal(js.status, 200);
+  assert.match(js.headers.get('content-type'), /text\/javascript/);
   assert.equal((await raw('/%2e%2e%2fengine.js')).statusCode, 403);
   assert.equal((await raw('/%2e%2e%2f.env')).statusCode, 403);
   assert.ok([403, 404].includes((await raw('/..%5cengine.js')).statusCode));

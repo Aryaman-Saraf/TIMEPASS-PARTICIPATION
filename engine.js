@@ -134,6 +134,31 @@ function fallbackTurn(s, answer, next) {
   };
 }
 
+// ---------- PII Redaction (Privacy Safeguard) ----------
+export function redactPII(text, candidateName) {
+  if (!text || typeof text !== 'string') return '';
+  let out = text;
+  // 1. URLs (http/https and www)
+  out = out.replace(/\b(?:https?:\/\/|www\.)\S+/gi, '[REDACTED]');
+  // 2. Email addresses
+  out = out.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[REDACTED]');
+  // 3. Phone numbers (international, parenthesis, dashes, spaces)
+  out = out.replace(/(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{2,4}\)?[-.\s]?)\d{3,4}[-.\s]?\d{3,4}\b/g, '[REDACTED]');
+  // 4. Candidate name occurrences
+  if (candidateName && typeof candidateName === 'string') {
+    const trimmed = candidateName.trim();
+    if (trimmed && trimmed.toLowerCase() !== 'candidate') {
+      const parts = [trimmed, ...trimmed.split(/\s+/)].filter(p => p.length >= 2);
+      parts.sort((a, b) => b.length - a.length);
+      for (const p of parts) {
+        const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        out = out.replace(new RegExp(`\\b${escaped}\\b`, 'gi'), '[REDACTED]');
+      }
+    }
+  }
+  return out;
+}
+
 // ---------- Prompts ----------
 const START_SYS = 'You are an expert recruiter and structured-interview designer. You design fair, job-relevant, behaviourally anchored interviews. Respond with a single JSON object only.';
 
@@ -142,7 +167,7 @@ JOB DESCRIPTION:
 ${s.jobDescription || '(none provided — infer typical requirements for the role)'}
 CANDIDATE NAME: ${s.candidateName}
 RESUME:
-${s.resumeText || '(none provided)'}
+${redactPII(s.resumeText, s.candidateName) || '(none provided)'}
 
 Produce:
 1. "profile": {"summary": 2 sentences, "seniority": "junior"|"mid"|"senior"|"lead", "yearsExperience": number|null, "skills": ≤10 role-relevant skills from the resume, "highlights": ≤4 notable achievements, "probeAreas": ≤4 gaps or claims vs the JD worth verifying}
