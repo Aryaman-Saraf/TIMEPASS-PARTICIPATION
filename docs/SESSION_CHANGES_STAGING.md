@@ -111,6 +111,15 @@
   - Relocated original frontend codebase from `public/` to `archive/public-old/` per user request to start fresh on frontend development.
   - Preserved all initial code (`index.html`, `room.html`, `room.js`, `report.html`, `report.js`, `integrity.js`, `styles.css`) for seamless dependency re-wiring.
 
+### 17. Frontend Subagent Definition & Scope Boundaries
+- **Target Files**: `.agents/frontend-agent.md`
+- **Details**:
+  - Created `.agents/frontend-agent.md` defining the Frontend Lead subagent (`frontend-agent`).
+  - Set mandatory reading order: `docs/TANAY_FRONTEND_MASTER_GUIDE.md` and `IMPLEMENTATION_PLAN.md`.
+  - Configured strict write boundaries limited exclusively to `frontend/` directory with workspace-wide read access.
+  - Registered subagent dynamically in system via `define_subagent`.
+
+
 
 ---
 
